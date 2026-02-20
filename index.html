@@ -1,46 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#000000">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#05060a" />
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <meta name="description" content="Professional Visual Artist Portfolio - Photography, Videography & Creative Direction.">
-  <meta name="author" content="Visual Stories">
+  <meta name="description" content="Gaming x Hatsune Miku cyber portfolio — photography, videography & creative direction." />
+  <meta name="author" content="Visual Stories" />
 
-  <meta property="og:title" content="Visual Stories | Master Portfolio">
-  <meta property="og:description" content="Immersive visual journey showcasing high-end photography.">
-  <meta property="og:type" content="website">
+  <meta property="og:title" content="CYBER PORTFOLIO | MIKU EDITION" />
+  <meta property="og:description" content="Neon visuals, cinematic gallery, animated tags, and an admin command center." />
+  <meta property="og:type" content="website" />
 
-  <title>Visual Stories | Masterpiece Edition</title>
+  <title>CYBER PORTFOLIO | MIKU EDITION</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg-master:#000;
-      --text-main:#fff;
-      --text-secondary:#a0a0a0;
-      --border-light:rgba(255,255,255,.08);
-      --signal-danger:#ff4444;
+      --bg:#05060a;
+      --bg2:#070914;
+      --panel:rgba(10,12,22,.72);
+      --panel2:rgba(10,12,22,.85);
+      --text:#eaf6ff;
+      --muted:rgba(234,246,255,.68);
+      --border:rgba(234,246,255,.10);
 
-      --header-bg:rgba(0,0,0,.4);
-      --header-blur:10px;
+      --miku:#00ffd5;
+      --pink:#ff4fd8;
+      --violet:#7c4dff;
+      --danger:#ff3b3b;
+      --good:#00ffa8;
 
-      --font-sans:'Inter',sans-serif;
+      --shadow:0 25px 120px rgba(0,0,0,.6);
+      --glow:0 0 30px rgba(0,255,213,.18);
 
-      --nav-height:85px;
-      --max-width:1400px;
+      --font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
 
-      --ease-out-expo:cubic-bezier(.19,1,.22,1);
+      --nav-h:86px;
+      --max:1400px;
+
+      --ease:cubic-bezier(.19,1,.22,1);
 
       --z-grain:9000;
       --z-loader:9999;
@@ -49,213 +58,459 @@
       --z-content:50;
       --z-back:-1;
 
-      --loader-color1:#fff;
-      --loader-color2:#a0a0a0;
+      --wm-opacity:.15;
+      --loader-color1:var(--miku);
+      --loader-color2:var(--pink);
     }
 
-    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;outline:none;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     html{font-size:16px;scroll-behavior:auto;}
     body{
-      background:var(--bg-master);color:var(--text-main);font-family:var(--font-sans);
-      overflow-x:hidden;min-height:100vh;-webkit-font-smoothing:antialiased;overscroll-behavior:none;
+      background:
+        radial-gradient(1200px 900px at 15% 10%, rgba(0,255,213,.12), transparent 55%),
+        radial-gradient(1000px 900px at 80% 20%, rgba(255,79,216,.10), transparent 60%),
+        radial-gradient(1200px 900px at 60% 90%, rgba(124,77,255,.08), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color:var(--text);
+      font-family:var(--font);
+      overflow-x:hidden;
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      overscroll-behavior:none;
     }
 
     body.protected{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-    body.protected img,body.protected video{pointer-events:none;-webkit-user-drag:none;}
+    body.protected img, body.protected video{pointer-events:none;-webkit-user-drag:none;}
 
-    a{text-decoration:none;color:inherit;cursor:pointer;transition:opacity .25s;}
-    button{border:none;background:none;cursor:pointer;font-family:inherit;}
+    a{color:inherit;text-decoration:none;}
+    button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;}
     img,video{display:block;width:100%;height:auto;}
 
     ::-webkit-scrollbar{width:6px;}
-    ::-webkit-scrollbar-track{background:#000;}
-    ::-webkit-scrollbar-thumb{background:#333;border-radius:4px;}
-    ::-webkit-scrollbar-thumb:hover{background:#555;}
+    ::-webkit-scrollbar-track{background:#05060a;}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:6px;}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.28);}
 
     .film-grain{
-      position:fixed;top:0;left:0;width:100%;height:100%;
-      pointer-events:none;z-index:var(--z-grain);opacity:.04;
+      position:fixed;inset:0;pointer-events:none;z-index:var(--z-grain);opacity:.05;
       background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      mix-blend-mode:overlay;
     }
 
     /* PRELOADER */
     #preloader{
-      position:fixed;inset:0;background:#000;z-index:var(--z-loader);
-      display:flex;flex-direction:column;justify-content:center;align-items:center;
-      transition:opacity .8s var(--ease-out-expo),visibility .8s;
+      position:fixed;inset:0;z-index:var(--z-loader);
+      display:flex;align-items:center;justify-content:center;flex-direction:column;
+      background:
+        radial-gradient(1200px 900px at 20% 10%, rgba(0,255,213,.20), transparent 55%),
+        radial-gradient(900px 800px at 80% 25%, rgba(255,79,216,.16), transparent 60%),
+        linear-gradient(180deg, #04050a, #070814);
+      transition:opacity .8s var(--ease), visibility .8s;
     }
     #preloader.vanish{opacity:0;visibility:hidden;pointer-events:none;}
 
     .loader-logo{
-      font-size:1.5rem;font-weight:900;letter-spacing:4px;text-transform:uppercase;
-      animation:pulse 2s infinite;
+      font-weight:900;letter-spacing:6px;text-transform:uppercase;
+      font-size:1.1rem;
+      padding:14px 18px;border-radius:14px;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:var(--glow);
+      backdrop-filter:blur(10px);
+      animation:pulse 2.0s infinite;
     }
     .loader-logo .w1{color:var(--loader-color1);}
     .loader-logo .w2{color:var(--loader-color2);}
-    .loader-line-wrap{width:150px;height:2px;background:#222;overflow:hidden;border-radius:2px;}
-    .loader-line-fill{width:0;height:100%;background:#fff;animation:loadFill 1.5s var(--ease-out-expo) forwards;}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    .loader-sub{margin-top:14px;color:rgba(234,246,255,.70);font-size:.75rem;letter-spacing:2px;text-transform:uppercase;}
+    .loader-line-wrap{width:190px;height:2px;background:rgba(255,255,255,.12);overflow:hidden;border-radius:2px;margin-top:18px;}
+    .loader-line-fill{
+      width:0;height:100%;
+      background:linear-gradient(90deg, var(--miku), var(--pink), var(--violet));
+      animation:loadFill 1.3s var(--ease) forwards;
+    }
+    @keyframes pulse{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(2px);opacity:.65}}
     @keyframes loadFill{to{width:100%}}
 
+    /* NAV */
     nav{
-      position:fixed;top:0;left:0;width:100%;height:var(--nav-height);
-      display:flex;justify-content:space-between;align-items:center;
-      padding:0 5%;z-index:var(--z-nav);
-      background:var(--header-bg);
-      backdrop-filter:blur(var(--header-blur));
-      -webkit-backdrop-filter:blur(var(--header-blur));
-      border-bottom:1px solid rgba(255,255,255,.05);
+      position:fixed;top:0;left:0;width:100%;height:var(--nav-h);
+      z-index:var(--z-nav);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 5%;
+      background:linear-gradient(180deg, rgba(5,6,10,.65), rgba(5,6,10,.35));
+      border-bottom:1px solid rgba(255,255,255,.06);
+      backdrop-filter:blur(14px);
     }
-    .logo{font-size:1.2rem;font-weight:900;text-transform:uppercase;color:#fff;white-space:nowrap;}
-    .nav-right-side{display:flex;align-items:center;gap:40px;}
-    .desktop-links{display:flex;gap:30px;align-items:center;}
-    .nav-link{
-      font-size:.85rem;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:1px;
-      opacity:.8;position:relative;
-    }
-    .nav-link:hover{opacity:1;}
-    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:#fff;transition:.3s var(--ease-out-expo);}
-    .nav-link:hover::after{width:100%;}
-    .btn-contact{
-      background:#fff;color:#000;padding:10px 28px;border-radius:100px;
-      font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-      transition:transform .2s, box-shadow .2s;
+    .logo{
+      font-weight:900;letter-spacing:2px;text-transform:uppercase;
+      display:flex;align-items:center;gap:12px;
       white-space:nowrap;
     }
-    .btn-contact:hover{transform:scale(1.05);box-shadow:0 0 25px rgba(255,255,255,.3);}
-    .btn-contact:active{transform:scale(.95);}
+    .logo .sig{
+      width:10px;height:10px;border-radius:999px;
+      background:var(--miku);
+      box-shadow:0 0 20px rgba(0,255,213,.5);
+    }
+    .nav-right{display:flex;align-items:center;gap:22px;}
+    .desktop-links{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      max-width:min(62vw, 860px);
+    }
+    .nav-link{
+      font-size:.78rem;font-weight:950;letter-spacing:1.5px;text-transform:uppercase;
+      color:rgba(234,246,255,.82);
+      position:relative;cursor:pointer;
+      transition:opacity .2s;
+      white-space:nowrap;
+    }
+    .nav-link:hover{opacity:1;color:#fff;}
+    .nav-link::after{
+      content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;
+      background:linear-gradient(90deg, var(--miku), var(--pink));
+      transition:.32s var(--ease);
+    }
+    .nav-link:hover::after{width:100%;}
+    .btn-contact{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:12px 18px;border-radius:999px;
+      background:linear-gradient(90deg, rgba(0,255,213,.95), rgba(255,79,216,.92));
+      color:#06060a;
+      font-size:.75rem;font-weight:950;letter-spacing:.8px;text-transform:uppercase;
+      box-shadow:0 18px 60px rgba(0,0,0,.4);
+      transform:translateZ(0);
+      transition:transform .18s, filter .18s;
+      white-space:nowrap;
+    }
+    .btn-contact:hover{transform:scale(1.03);filter:brightness(1.05);}
     .admin-trigger{width:20px;height:20px;opacity:0;cursor:default;}
 
     /* HERO */
-    .hero{
+    header.hero{
       position:relative;height:100dvh;width:100%;
-      display:flex;flex-direction:column;justify-content:center;align-items:center;
-      text-align:center;overflow:hidden;padding:0 25px;
+      display:flex;justify-content:center;align-items:center;
+      padding:0 28px;text-align:center;overflow:hidden;
     }
-    .hero-bg-wrapper{position:absolute;inset:0;z-index:var(--z-back);pointer-events:none;background:#000;}
-    .hero-img{
-      width:100%;height:100%;object-fit:contain;object-position:center;
-      transform:none;background:#000;
+    .hero-bg{position:absolute;inset:0;z-index:var(--z-back);pointer-events:none;background:#04050a;}
+    .hero-bg img{
+      width:100%;height:100%;object-fit:cover;
+      filter:saturate(1.12) contrast(1.05);
+      opacity:.55;
+      transform:scale(1.05);
     }
-    .hero-vignette-overlay{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 40%,rgba(0,0,0,.3) 60%,rgba(0,0,0,.8) 90%,#000 100%);z-index:2;pointer-events:none;}
-    .hero-top-fade{position:absolute;top:0;left:0;width:100%;height:180px;background:linear-gradient(to bottom,rgba(0,0,0,.9) 0%,transparent 100%);z-index:3;pointer-events:none;}
-    .hero-bottom-fade{position:absolute;bottom:0;left:0;width:100%;height:300px;background:linear-gradient(to top,#000 10%,transparent 100%);z-index:3;pointer-events:none;}
-    .hero-content{z-index:var(--z-content);opacity:0;transform:translateY(50px);width:100%;max-width:var(--max-width);}
-    .hero-title{font-size:clamp(3.5rem,13vw,11rem);font-weight:900;line-height:.9;text-transform:uppercase;letter-spacing:-3px;color:#fff;margin-bottom:20px;text-shadow:0 20px 60px rgba(0,0,0,.9);}
-    .hero-subtitle{font-size:clamp(.9rem,3vw,1.2rem);font-weight:500;text-transform:uppercase;letter-spacing:4px;color:rgba(255,255,255,.9);text-shadow:0 5px 15px rgba(0,0,0,.8);}
+    .hero-grid{
+      position:absolute;inset:-2px;
+      background:
+        linear-gradient(transparent 0, rgba(0,255,213,.06) 1px, transparent 1px),
+        linear-gradient(90deg, transparent 0, rgba(255,79,216,.05) 1px, transparent 1px);
+      background-size:36px 36px;
+      opacity:.35;
+      mask-image:radial-gradient(circle at 50% 40%, black 30%, transparent 70%);
+      pointer-events:none;
+    }
+    .hero-vignette{position:absolute;inset:0;background:radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.55) 75%, rgba(0,0,0,.95) 100%);z-index:2;pointer-events:none;}
+    .hero-top{position:absolute;top:0;left:0;right:0;height:220px;background:linear-gradient(180deg, rgba(0,0,0,.75), transparent);z-index:3;pointer-events:none;}
+    .hero-bottom{position:absolute;bottom:0;left:0;right:0;height:340px;background:linear-gradient(0deg, rgba(0,0,0,.90), transparent);z-index:3;pointer-events:none;}
 
-    .scroll-indicator{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:1.5rem;animation:bounce 2s infinite;z-index:10;cursor:pointer;}
-    @keyframes bounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,15px)}}
+    .hero-content{
+      z-index:var(--z-content);
+      max-width:var(--max);
+      opacity:0;transform:translateY(50px);
+    }
+    .hero-kicker{
+      display:inline-flex;gap:10px;align-items:center;justify-content:center;
+      font-size:.74rem;font-weight:950;letter-spacing:2px;text-transform:uppercase;
+      color:rgba(234,246,255,.78);
+      padding:10px 14px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(10,12,22,.45);
+      backdrop-filter:blur(10px);
+      box-shadow:var(--glow);
+    }
+    .hero-title{
+      margin-top:18px;
+      font-size:clamp(3.1rem, 10vw, 9.6rem);
+      line-height:.9;
+      font-weight:950;
+      letter-spacing:-3px;
+      text-transform:uppercase;
+      color:#fff;
+      text-shadow:0 25px 90px rgba(0,0,0,.85);
+      white-space:pre-line;
+    }
+    .hero-title .miku{
+      background:linear-gradient(90deg, var(--miku), #ffffff, var(--pink));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      filter:drop-shadow(0 0 18px rgba(0,255,213,.18));
+    }
+    .hero-sub{
+      margin-top:16px;
+      font-size:clamp(.9rem, 2.8vw, 1.15rem);
+      font-weight:800;letter-spacing:4px;text-transform:uppercase;
+      color:rgba(234,246,255,.86);
+    }
+
+    .scroll-ind{
+      position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+      color:rgba(234,246,255,.65);
+      font-size:1.3rem;
+      animation:bounce 2s infinite;
+      z-index:10;
+      cursor:pointer;
+    }
+    @keyframes bounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,12px)}}
 
     /* SECTIONS */
-    .section-artist{padding:120px 0;background:#000;position:relative;z-index:5;}
-    .container{width:100%;max-width:var(--max-width);margin:0 auto;padding:0 40px;}
-    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
-    .artist-img-wrapper{width:100%;display:flex;justify-content:center;}
-    .artist-img{
-      width:100%;max-width:600px;border-radius:4px;
-      filter:grayscale(100%) contrast(1.1);transition:.8s ease;
-      -webkit-mask-image:radial-gradient(circle at center,black 40%,transparent 100%);
-      mask-image:radial-gradient(circle at center,black 40%,transparent 100%);
+    .section{padding:110px 0;position:relative;z-index:5;}
+    .container{width:100%;max-width:var(--max);margin:0 auto;padding:0 40px;}
+    .section-head{
+      display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+      margin-bottom:44px;
+      border-bottom:1px solid var(--border);
+      padding-bottom:18px;
     }
-    .artist-img:hover{
-      filter:grayscale(0%);transform:scale(1.02);
-      -webkit-mask-image:radial-gradient(circle at center,black 70%,transparent 100%);
-      mask-image:radial-gradient(circle at center,black 70%,transparent 100%);
+    .tagline{
+      display:inline-flex;gap:10px;align-items:center;
+      font-size:.78rem;font-weight:950;letter-spacing:2px;text-transform:uppercase;
+      color:rgba(234,246,255,.65);
     }
-    .tag{display:inline-block;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text-secondary);margin-bottom:25px;border-bottom:1px solid #333;padding-bottom:5px;}
-    .about-head{font-size:clamp(2.5rem,5vw,4.5rem);font-weight:800;margin-bottom:30px;line-height:1;letter-spacing:-1px;}
-    .about-body{font-size:1.2rem;color:#b0b0b0;line-height:1.7;margin-bottom:0;}
-
-    /* GALLERY */
-    .section-work{padding:50px 0 150px;background:#000;}
-    .work-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:60px;border-bottom:1px solid var(--border-light);padding-bottom:20px;}
-    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:40px;}
-
-    .tilt-card{
-      position:relative;aspect-ratio:4/5;border-radius:12px;
-      background:#0b0b0b;border:1px solid rgba(255,255,255,.06);
-      cursor:pointer;opacity:0;
-      transition:transform .25s var(--ease-out-expo), box-shadow .25s var(--ease-out-expo);
-      box-shadow:0 20px 70px rgba(0,0,0,.35);
-      transform-style:preserve-3d;perspective:1000px;
-    }
-    .tilt-card:hover{transform:translateY(-10px) scale(1.01);box-shadow:0 35px 120px rgba(0,0,0,.6);}
-    .card-inner{width:100%;height:100%;position:relative;overflow:hidden;border-radius:12px;background:#000;transform:translateZ(0);transition:transform .1s;}
-    .card-inner img,.card-inner video{
-      width:100%;height:100%;object-fit:contain;background:#000;
-      filter:none;transform:none;
+    .tagline .dot{width:8px;height:8px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.45);}
+    .section-title{
+      font-size:clamp(2.2rem, 4.7vw, 4.2rem);
+      font-weight:950;letter-spacing:-1px;
+      margin-top:10px;
     }
 
-    .play-badge{
-      position:absolute;top:18px;right:18px;width:40px;height:40px;border-radius:50%;
-      background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
-      display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;
-      border:1px solid rgba(255,255,255,.2);z-index:3;pointer-events:none;
+    /* DYNAMIC SECTIONS GRID */
+    .sections-grid{
+      display:grid;
+      grid-template-columns:repeat(12, 1fr);
+      gap:22px;
     }
-
-    .watermark{
-      position:absolute;
-      top:18px;
-      left:18px;
-      z-index:3;
+    .sec-card{
+      grid-column:span 6;
+      background:rgba(10,12,22,.55);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:26px 24px;
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+      scroll-margin-top:120px;
+    }
+    .sec-card::before{
+      content:"";
+      position:absolute;inset:-2px;
+      background:radial-gradient(700px 200px at 10% 0%, rgba(0,255,213,.18), transparent 60%),
+                 radial-gradient(700px 200px at 90% 0%, rgba(255,79,216,.14), transparent 60%);
+      opacity:.6;
       pointer-events:none;
-      font-weight:900;
-      letter-spacing:1px;
+    }
+    .sec-card h3{
+      position:relative;
+      font-size:1.25rem;
+      font-weight:950;
+      letter-spacing:.4px;
+      margin-bottom:10px;
+    }
+    .sec-card .sub{
+      position:relative;
+      color:rgba(234,246,255,.65);
+      font-size:.92rem;
+      margin-bottom:14px;
       text-transform:uppercase;
-      color:rgba(255,255,255,var(--wm-opacity,0.15));
-      font-size:0.7rem;
+      letter-spacing:2px;
+      font-weight:950;
+    }
+    .sec-card .txt{
+      position:relative;
+      color:rgba(234,246,255,.74);
+      line-height:1.75;
+      white-space:pre-line;
+    }
+
+    /* WORK / GALLERY */
+    #work.section{padding-top:70px;}
+    .gallery-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(360px, 1fr));
+      gap:34px;
+    }
+    .tilt-card{
+      position:relative;
+      aspect-ratio:4/5;
+      border-radius:18px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 25px 120px rgba(0,0,0,.55);
+      overflow:hidden;
+      transform-style:preserve-3d;
+      perspective:1000px;
+      cursor:pointer;
+      opacity:0;
+      transition:transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s;
+    }
+    .tilt-card:hover{
+      transform:translateY(-10px) scale(1.01);
+      border-color:rgba(0,255,213,.25);
+      box-shadow:0 35px 160px rgba(0,0,0,.70);
+    }
+    .card-inner{width:100%;height:100%;position:relative;overflow:hidden;border-radius:18px;background:#000;transform:translateZ(0);transition:transform .1s;}
+    .card-inner img, .card-inner video{
+      width:100%;height:100%;
+      object-fit:cover;
+      background:#000;
+      filter:saturate(1.08) contrast(1.04);
+      transform:scale(1.02);
+    }
+    .play-badge{
+      position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:14px;
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.14);
+      display:flex;align-items:center;justify-content:center;
+      backdrop-filter:blur(8px);
+      z-index:3;pointer-events:none;
+      box-shadow:0 0 0 1px rgba(0,255,213,.12);
+    }
+    .watermark{
+      position:absolute;top:16px;left:16px;z-index:3;pointer-events:none;
+      font-weight:950;letter-spacing:1px;text-transform:uppercase;
+      color:rgba(255,255,255,var(--wm-opacity,.15));
+      font-size:0.72rem;
       text-shadow:0 8px 25px rgba(0,0,0,0.6);
     }
+    .tag-chips{
+      position:absolute;left:16px;right:16px;top:16px;
+      display:flex;flex-wrap:wrap;gap:8px;
+      z-index:4;
+      pointer-events:none;
+      padding-right:60px;
+    }
+    .chip{
+      pointer-events:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:.70rem;
+      font-weight:950;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      color:rgba(234,246,255,.92);
+      background:rgba(10,12,22,.60);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter:blur(10px);
+      box-shadow:0 0 0 1px rgba(0,255,213,.08);
+      transform:translateY(-6px);
+      opacity:0;
+      animation:chipIn .55s var(--ease) forwards;
+    }
+    .chip::before{
+      content:"";
+      width:7px;height:7px;border-radius:999px;
+      background:linear-gradient(90deg, var(--miku), var(--pink));
+      box-shadow:0 0 16px rgba(0,255,213,.35);
+    }
+    @keyframes chipIn{to{transform:translateY(0);opacity:1;}}
 
     .card-overlay{
-      position:absolute;left:0;bottom:0;width:100%;
+      position:absolute;left:0;right:0;bottom:0;
       padding:18px 18px 16px;
-      background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.2),transparent);
-      z-index:2;display:flex;flex-direction:column;gap:8px;
+      background:linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.25), transparent);
+      z-index:2;
+      display:flex;flex-direction:column;gap:10px;
     }
-    .card-title{color:#fff;font-size:.9rem;font-weight:900;letter-spacing:.7px;text-transform:uppercase;}
-    .card-desc{color:rgba(255,255,255,.78);font-size:.85rem;line-height:1.35;white-space:pre-line;}
-    .card-actions{display:flex;gap:10px;margin-top:6px;}
-
+    .card-title{font-weight:950;letter-spacing:.8px;text-transform:uppercase;font-size:.92rem;}
+    .card-desc{color:rgba(234,246,255,.78);font-size:.86rem;line-height:1.35;white-space:pre-line;}
+    .card-actions{display:flex;gap:10px;align-items:center;margin-top:2px;}
     .btn-wa{
       display:inline-flex;align-items:center;gap:8px;
-      padding:10px 14px;border-radius:999px;background:#25D366;color:#001b0c;
-      font-weight:900;font-size:.75rem;text-transform:uppercase;letter-spacing:.6px;
-      border:1px solid rgba(255,255,255,.15);
+      padding:10px 14px;border-radius:999px;
+      background:linear-gradient(90deg, rgba(0,255,213,.95), rgba(255,79,216,.92));
+      color:#06060a;
+      font-weight:950;font-size:.75rem;letter-spacing:.7px;text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.14);
     }
-    .btn-wa:hover{filter:brightness(1.05);}
 
     /* FOOTER */
-    .section-footer{padding:120px 0 60px;background:#080808;border-top:1px solid var(--border-light);text-align:center;}
-    .cta-big{font-size:clamp(3rem,8vw,7rem);font-weight:800;margin-bottom:40px;background:linear-gradient(to right,#fff,#666);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-    .socials{display:flex;justify-content:center;gap:40px;margin:50px 0;}
-    .social-icon{font-size:2rem;color:#555;transition:.3s;}
-    .social-icon:hover{color:#fff;transform:translateY(-5px);}
-    .btn-share{margin-top:30px;background:transparent;border:1px solid #333;color:#888;padding:12px 35px;border-radius:50px;font-size:.85rem;transition:.3s;cursor:pointer;}
-    .btn-share:hover{border-color:#fff;color:#fff;}
-    .copyright{margin-top:80px;font-size:.75rem;color:#444;text-transform:uppercase;letter-spacing:1px;}
+    footer.section{
+      padding:120px 0 70px;
+      background:linear-gradient(180deg, rgba(10,12,22,.25), rgba(0,0,0,.55));
+      border-top:1px solid rgba(255,255,255,.08);
+      text-align:center;
+    }
+    .cta{
+      font-size:clamp(2.6rem, 7.8vw, 6.6rem);
+      font-weight:950;
+      margin-bottom:32px;
+      background:linear-gradient(90deg, #fff, rgba(255,255,255,.55));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 0 18px rgba(0,255,213,.12));
+    }
+    .socials{display:flex;justify-content:center;gap:34px;margin:44px 0;}
+    .social-icon{font-size:1.9rem;color:rgba(234,246,255,.35);transition:.22s;}
+    .social-icon:hover{color:#fff;transform:translateY(-3px);}
+    .btn-share{
+      margin-top:20px;
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(234,246,255,.72);
+      padding:12px 22px;border-radius:999px;
+      background:rgba(10,12,22,.35);
+      backdrop-filter:blur(10px);
+      transition:.22s;
+    }
+    .btn-share:hover{border-color:rgba(0,255,213,.35);color:#fff;box-shadow:var(--glow);}
+    .copyright{margin-top:70px;font-size:.75rem;color:rgba(234,246,255,.40);letter-spacing:1px;text-transform:uppercase;}
 
     /* BACK TO TOP */
     .back-top{
-      position:fixed;bottom:30px;right:30px;width:55px;height:55px;border-radius:50%;
-      background:#fff;color:#000;display:flex;align-items:center;justify-content:center;
-      opacity:0;transform:translateY(20px);transition:.3s;cursor:pointer;z-index:var(--z-modal);
-      box-shadow:0 10px 30px rgba(0,0,0,.3);
+      position:fixed;bottom:28px;right:28px;
+      width:56px;height:56px;border-radius:18px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(10,12,22,.75);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(12px);
+      box-shadow:var(--shadow);
+      opacity:0;transform:translateY(18px);
+      transition:.22s;
+      z-index:var(--z-modal);
     }
     .back-top.visible{opacity:1;transform:translateY(0);}
+    .back-top i{color:#fff;}
 
     /* LIGHTBOX */
     #lightbox{
-      position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:var(--z-modal);
-      display:none;justify-content:center;align-items:center;opacity:0;transition:.25s;
+      position:fixed;inset:0;background:rgba(0,0,0,.96);
+      z-index:var(--z-modal);
+      display:none;justify-content:center;align-items:center;
+      opacity:0;transition:.22s;
     }
     #lightbox.active{display:flex;opacity:1;}
-    .lightbox-close{position:absolute;top:24px;right:24px;font-size:2rem;color:#fff;cursor:pointer;z-index:20;}
+    .lightbox-close{
+      position:absolute;top:20px;right:20px;
+      width:56px;height:56px;border-radius:18px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(10,12,22,.70);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(12px);
+      color:#fff;font-size:1.7rem;
+      cursor:pointer;
+      z-index:50;
+    }
     .lightbox-content{
-      width:min(96vw,1600px);height:min(92vh,900px);
-      border-radius:12px;overflow:hidden;background:#000;
-      box-shadow:0 0 120px rgba(0,0,0,.8);
+      width:min(96vw, 1600px);
+      height:min(92vh, 920px);
+      border-radius:18px;
+      overflow:hidden;
+      background:#000;
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
       position:relative;
     }
     .zoom-stage{width:100%;height:100%;overflow:hidden;cursor:grab;position:relative;background:#000;touch-action:none;}
@@ -269,68 +524,341 @@
     .lightbox-bottombar{
       position:absolute;left:16px;right:16px;bottom:16px;
       display:flex;justify-content:space-between;align-items:center;gap:12px;
-      z-index:15;pointer-events:none;
+      z-index:15;
+      pointer-events:none;
     }
-    .lightbox-bottombar .left,.lightbox-bottombar .right{display:flex;gap:10px;align-items:center;pointer-events:auto;}
+    .lightbox-bottombar .left,.lightbox-bottombar .right{
+      display:flex;gap:10px;align-items:center;pointer-events:auto;flex-wrap:wrap;
+    }
     .pill{
-      background:rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.15);
-      color:rgba(255,255,255,.85);
-      padding:10px 12px;border-radius:999px;font-size:.78rem;
-      backdrop-filter:blur(8px);
+      background:rgba(10,12,22,.65);
+      border:1px solid rgba(255,255,255,.12);
+      color:rgba(234,246,255,.90);
+      padding:10px 12px;border-radius:999px;
+      font-size:.78rem;font-weight:950;letter-spacing:.6px;
+      backdrop-filter:blur(12px);
+      max-width:min(70vw, 900px);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
     .nav-arrow{
-      width:44px;height:44px;border-radius:12px;
+      width:46px;height:46px;border-radius:16px;
       display:flex;align-items:center;justify-content:center;
-      background:rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.15);
+      background:rgba(10,12,22,.70);
+      border:1px solid rgba(255,255,255,.12);
       color:#fff;
     }
 
     /* ADMIN */
-    #login-modal{position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:6000;display:none;justify-content:center;align-items:center;}
-    .login-box{width:340px;background:#111;padding:50px;border:1px solid #333;border-radius:16px;text-align:center;}
+    #login-modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.96);
+      z-index:6000;display:none;justify-content:center;align-items:center;
+      padding:22px;
+    }
+    .login-box{
+      width:min(420px, 100%);
+      border-radius:22px;
+      background:rgba(10,12,22,.72);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+      padding:36px 28px;
+      backdrop-filter:blur(14px);
+    }
+    .login-title{
+      font-weight:950;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      font-size:1.05rem;
+      margin-bottom:10px;
+      display:flex;gap:10px;align-items:center;
+    }
+    .login-title .badge{
+      width:10px;height:10px;border-radius:999px;background:var(--pink);
+      box-shadow:0 0 18px rgba(255,79,216,.4);
+    }
+    .login-sub{color:rgba(234,246,255,.60);font-size:.86rem;line-height:1.55;margin-bottom:18px;}
 
-    #admin-panel{display:none;position:fixed;inset:0;background:#050505;z-index:5000;overflow-y:auto;padding:50px 30px;}
-    .admin-head{max-width:1100px;margin:0 auto 50px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-light);padding-bottom:30px;}
-    .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:30px;max-width:1100px;margin:0 auto;}
-    .admin-card{background:#111;padding:35px;border-radius:16px;border:1px solid #222;}
-    .admin-card h3{color:#fff;margin-bottom:25px;font-size:1.1rem;}
-    .admin-label{display:block;font-size:.75rem;color:#666;text-transform:uppercase;margin-bottom:10px;font-weight:700;letter-spacing:1px;}
-    .admin-input{width:100%;background:#000;border:1px solid #333;color:#fff;padding:16px;margin-bottom:20px;border-radius:8px;font-size:.95rem;}
-    .btn-action{width:100%;padding:16px;background:#fff;color:#000;font-weight:800;border-radius:8px;text-transform:uppercase;cursor:pointer;}
+    #admin-panel{
+      display:none;
+      position:fixed;inset:0;z-index:5000;
+      background:
+        radial-gradient(1200px 900px at 15% 10%, rgba(0,255,213,.12), transparent 55%),
+        radial-gradient(1000px 900px at 80% 20%, rgba(255,79,216,.10), transparent 60%),
+        linear-gradient(180deg, #04050a, #070814);
+      overflow-y:auto;
+      padding:30px 22px;
+    }
+    .admin-shell{max-width:1250px;margin:0 auto;display:grid;grid-template-columns:290px 1fr;gap:18px;}
+    .admin-side{
+      position:sticky;top:18px;align-self:start;
+      border-radius:22px;
+      background:rgba(10,12,22,.62);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+      padding:18px;
+      backdrop-filter:blur(14px);
+    }
+    .admin-brand{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding-bottom:14px;margin-bottom:14px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .admin-brand .t{
+      font-weight:950;letter-spacing:1px;text-transform:uppercase;font-size:.92rem;
+      display:flex;gap:10px;align-items:center;
+    }
+    .admin-brand .t .sig{width:10px;height:10px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.35);}
+    .admin-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+    .btn-soft{
+      padding:10px 12px;border-radius:14px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      color:rgba(234,246,255,.86);
+      font-weight:950;font-size:.78rem;letter-spacing:.7px;text-transform:uppercase;
+    }
+    .btn-danger{
+      padding:10px 12px;border-radius:14px;
+      background:rgba(255,59,59,.10);
+      border:1px solid rgba(255,59,59,.35);
+      color:rgba(255,180,180,.92);
+      font-weight:950;font-size:.78rem;letter-spacing:.7px;text-transform:uppercase;
+    }
 
-    .media-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-top:25px;}
-    .thumb{position:relative;aspect-ratio:1;background:#222;overflow:hidden;border-radius:10px;border:1px solid rgba(255,255,255,.06);}
+    .admin-main{
+      border-radius:22px;
+      background:rgba(10,12,22,.58);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+      padding:18px;
+      backdrop-filter:blur(14px);
+    }
+    .admin-top{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+      padding:8px 6px 18px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      margin-bottom:18px;
+    }
+    .admin-top h2{
+      font-size:1.15rem;font-weight:950;letter-spacing:1px;text-transform:uppercase;
+      display:flex;align-items:center;gap:10px;
+    }
+    .admin-top h2 .sig{width:10px;height:10px;border-radius:999px;background:var(--pink);box-shadow:0 0 18px rgba(255,79,216,.35);}
+    .admin-note{color:rgba(234,246,255,.60);font-size:.86rem;line-height:1.5;max-width:700px;}
+
+    .admin-grid{
+      display:grid;
+      grid-template-columns:repeat(12, 1fr);
+      gap:14px;
+    }
+    .admin-card{
+      grid-column:span 6;
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      padding:16px;
+    }
+    .admin-card.full{grid-column:1 / -1;}
+    .admin-card h3{
+      font-size:.92rem;
+      font-weight:950;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      margin-bottom:12px;
+      color:rgba(234,246,255,.92);
+    }
+
+    .admin-input, .admin-textarea{
+      width:100%;
+      padding:14px 14px;
+      border-radius:14px;
+      background:rgba(10,12,22,.60);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      outline:none;
+      font-size:.95rem;
+    }
+    .admin-textarea{min-height:120px;resize:vertical;line-height:1.5;}
+    .btn-action{
+      width:100%;
+      padding:14px 14px;
+      margin-top:12px;
+      border-radius:14px;
+      background:linear-gradient(90deg, rgba(0,255,213,.95), rgba(255,79,216,.92));
+      color:#06060a;
+      font-weight:950;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .admin-label{
+      display:block;
+      font-size:.72rem;
+      color:rgba(234,246,255,.55);
+      text-transform:uppercase;
+      margin:10px 0 8px;
+      font-weight:950;
+      letter-spacing:1.6px;
+    }
+    .tiny{font-size:.78rem;color:rgba(234,246,255,.55);line-height:1.5;margin-top:8px;}
+
+    .media-thumbs{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:12px;
+      margin-top:12px;
+    }
+    .thumb{
+      position:relative;
+      aspect-ratio:1;
+      border-radius:16px;
+      overflow:hidden;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+    }
     .thumb img,.thumb video{width:100%;height:100%;object-fit:cover;opacity:.92;}
-    .thumb-edit{position:absolute;left:10px;right:10px;bottom:10px;z-index:2;display:flex;gap:10px;}
+    .thumb-overlay{
+      position:absolute;left:10px;right:10px;bottom:10px;
+      display:flex;gap:8px;
+      z-index:2;
+    }
     .thumb-btn{
-      flex:1;background:rgba(255,255,255,.92);border-radius:12px;padding:10px 12px;
-      font-weight:900;font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;
+      flex:1;
+      padding:9px 10px;border-radius:12px;
+      background:rgba(10,12,22,.70);
+      border:1px solid rgba(255,255,255,.12);
+      font-weight:950;font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;
     }
     .thumb-del{
-      position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:12px;
-      background:rgba(220,30,30,.88);color:#fff;display:flex;justify-content:center;align-items:center;z-index:3;
+      position:absolute;top:10px;right:10px;
+      width:40px;height:40px;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,59,59,.14);
+      border:1px solid rgba(255,59,59,.35);
+      color:#fff;
+      z-index:3;
     }
 
-    @media (min-width:769px){
-      .hero{align-items:flex-start;text-align:left;padding-left:100px;}
-      .hero-content{max-width:80%;}
-      .hero-title{font-size:160px;letter-spacing:-6px;line-height:.85;}
-      .scroll-indicator{left:100px;transform:translateX(0);}
-      .desktop-links{display:flex;}
+    /* Admin Modal (Media Edit) */
+    #admin-media-modal{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.86);
+      z-index:8000;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
     }
-    @media (max-width:768px){
-      .container{padding:0 25px;}
-      .hero-title{font-size:14vw;letter-spacing:-2px;}
-      .hero{padding:0 30px;}
-      .desktop-links{display:none!important;}
-      .about-grid{grid-template-columns:1fr;gap:50px;}
+    #admin-media-modal.active{display:flex;}
+    .modal-box{
+      width:min(1050px, 100%);
+      border-radius:22px;
+      background:rgba(10,12,22,.78);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(14px);
+      overflow:hidden;
+    }
+    .modal-head{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      padding:16px 18px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .modal-head .t{
+      font-weight:950;letter-spacing:1px;text-transform:uppercase;font-size:.92rem;
+      display:flex;gap:10px;align-items:center;
+    }
+    .modal-head .t .sig{width:10px;height:10px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.35);}
+    .modal-close{
+      width:44px;height:44px;border-radius:16px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .modal-body{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      padding:16px 18px 18px;
+    }
+    .modal-preview{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.35);
+      overflow:hidden;
+      min-height:360px;
+      position:relative;
+    }
+    .modal-preview img, .modal-preview video{
+      width:100%;height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .modal-preview .badge{
+      position:absolute;top:14px;left:14px;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(10,12,22,.70);
+      border:1px solid rgba(255,255,255,.12);
+      font-size:.72rem;
+      font-weight:950;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+    }
+    .modal-form{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+      padding:14px;
+    }
+    .url-row{
+      display:flex;gap:10px;align-items:center;
+    }
+    .url-row input{
+      flex:1;
+    }
+    .btn-mini{
+      padding:12px 12px;border-radius:14px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      font-weight:950;
+      text-transform:uppercase;
+      letter-spacing:.8px;
+      font-size:.72rem;
+      white-space:nowrap;
+    }
+    .modal-actions{
+      display:flex;gap:10px;flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .btn-save{
+      flex:1;
+      padding:14px 14px;border-radius:14px;
+      background:linear-gradient(90deg, rgba(0,255,213,.95), rgba(255,79,216,.92));
+      color:#06060a;
+      font-weight:950;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+
+    /* Responsive */
+    @media (min-width: 900px){
+      header.hero{align-items:flex-start;text-align:left;padding-left:100px;}
+      .hero-content{max-width:85%;}
+      .scroll-ind{left:100px;transform:translateX(0);}
+    }
+    @media (max-width: 980px){
+      .admin-shell{grid-template-columns:1fr;}
+      .admin-side{position:relative;top:auto;}
+      .media-thumbs{grid-template-columns:repeat(3, 1fr);}
+      .admin-card{grid-column:1 / -1;}
+      .modal-body{grid-template-columns:1fr;}
+      .modal-preview{min-height:280px;}
+      .desktop-links{display:none !important;}
+    }
+    @media (max-width: 768px){
+      .container{padding:0 22px;}
       .gallery-grid{grid-template-columns:1fr;}
-      .admin-grid{grid-template-columns:1fr;}
-      .media-thumbs{grid-template-columns:repeat(2,1fr);}
-      nav{padding:0 20px;}
-      .nav-right-side{gap:20px;}
+      .sections-grid .sec-card{grid-column:1 / -1;}
+      nav{padding:0 18px;}
+      .nav-right{gap:14px;}
     }
   </style>
 </head>
@@ -343,75 +871,99 @@
       <span id="loader-w1" class="w1">CYRIS</span>
       <span id="loader-w2" class="w2">STUDIO</span>
     </div>
+    <div class="loader-sub">Booting Neon Systems…</div>
     <div class="loader-line-wrap"><div class="loader-line-fill"></div></div>
   </div>
 
   <div id="wrapper">
     <nav id="navbar">
-      <div class="logo" id="disp-brand">PORTFOLIO.</div>
-      <div class="nav-right-side">
-        <div class="desktop-links">
-          <div onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})" class="nav-link">Work</div>
-          <div onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" class="nav-link">About</div>
+      <div class="logo">
+        <span class="sig"></span>
+        <span id="disp-brand">PORTFOLIO.</span>
+      </div>
+
+      <div class="nav-right">
+        <div class="desktop-links" id="nav-links">
+          <!-- injected -->
         </div>
-        <div onclick="core.scrollToFooter()" class="btn-contact">Contact</div>
+
+        <div onclick="core.scrollToFooter()" class="btn-contact">
+          <i class="fas fa-headset"></i> Contact
+        </div>
+
         <div class="admin-trigger" onclick="core.checkRoute()"></div>
       </div>
     </nav>
 
     <header class="hero">
-      <div class="hero-bg-wrapper">
-        <img src="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2000" class="hero-img" id="hero-bg-el" alt="Cinematic Wallpaper">
+      <div class="hero-bg">
+        <img id="hero-bg-el" src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400" alt="Cyber background">
       </div>
-
-      <div class="hero-vignette-overlay"></div>
-      <div class="hero-top-fade"></div>
-      <div class="hero-bottom-fade"></div>
+      <div class="hero-grid"></div>
+      <div class="hero-vignette"></div>
+      <div class="hero-top"></div>
+      <div class="hero-bottom"></div>
 
       <div class="hero-content">
-        <h1 id="disp-hero-title" class="hero-title">VISUAL<br>STORIES.</h1>
-        <p id="disp-hero-subtitle" class="hero-subtitle">PHOTOGRAPHY & VIDEOGRAPHY</p>
+        <div class="hero-kicker">
+          <span style="width:8px;height:8px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.5)"></span>
+          GAMING • MIKU • VISUALS
+        </div>
+
+        <h1 id="disp-hero-title" class="hero-title"><span class="miku">VISUAL</span><br>STORIES.</h1>
+        <p id="disp-hero-subtitle" class="hero-sub">PHOTOGRAPHY & VIDEOGRAPHY</p>
       </div>
 
-      <div class="scroll-indicator" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">
+      <div class="scroll-ind" onclick="document.getElementById('sections').scrollIntoView({behavior:'smooth'})">
         <i class="fas fa-chevron-down"></i>
       </div>
     </header>
 
-    <section id="about" class="section-artist">
-      <div class="container about-grid">
-        <div class="artist-img-wrapper">
-          <img id="disp-artist-img" class="artist-img" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=800" alt="Artist Profile">
+    <!-- Dynamic sections -->
+    <section id="sections" class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="tagline"><span class="dot"></span> Loadout</div>
+            <div class="section-title">Sections</div>
+          </div>
+          <div style="color:rgba(234,246,255,.55);font-size:.86rem;line-height:1.4;max-width:520px;">
+            These blocks are editable in the admin dashboard (add / remove / reorder / toggle).
+          </div>
         </div>
-        <div class="about-text-col">
-          <span class="tag" id="disp-about-title">The Artist</span>
-          <h2 id="disp-artist-name" class="about-head">Creative Vision.</h2>
-          <p id="disp-about-text" class="about-body">
-            I am an observer of light and shadow. In a world of noise, I seek the quiet moments that tell the loudest stories.
-          </p>
-        </div>
+
+        <div class="sections-grid" id="sections-grid"></div>
       </div>
     </section>
 
-    <section id="work" class="section-work">
+    <!-- Gallery -->
+    <section id="work" class="section">
       <div class="container">
-        <div class="work-header">
-          <span class="tag" style="margin:0;border:none;">Selected Works</span>
-          <span style="font-size:0.8rem;color:#666;" id="gallery-counter">Loading...</span>
+        <div class="section-head">
+          <div>
+            <div class="tagline"><span class="dot"></span> Selected Works</div>
+            <div class="section-title">Gallery</div>
+          </div>
+          <div style="color:rgba(234,246,255,.55);font-size:.86rem;">
+            <span id="gallery-counter">Loading…</span>
+          </div>
         </div>
+
         <div class="gallery-grid" id="gallery-feed"></div>
       </div>
     </section>
 
-    <footer id="contact" class="section-footer">
+    <footer id="contact" class="section">
       <div class="container">
-        <h2 class="cta-big">Let's Create.</h2>
-        <p style="color:#666;max-width:500px;margin:0 auto 40px;">Open for collaborations worldwide.</p>
+        <h2 class="cta">Let’s Create.</h2>
+        <p style="color:rgba(234,246,255,.60);max-width:520px;margin:0 auto 34px;line-height:1.6;">
+          Open for collaborations worldwide. Tap WhatsApp on a specific work so I know exactly which media you mean.
+        </p>
 
         <div class="socials">
-          <a id="link-insta" href="#" target="_blank"><i class="fab fa-instagram social-icon"></i></a>
-          <a id="link-yt" href="#" target="_blank"><i class="fab fa-youtube social-icon"></i></a>
-          <a id="link-wa" href="#" target="_blank"><i class="fab fa-whatsapp social-icon"></i></a>
+          <a id="link-insta" href="#" target="_blank" rel="noopener"><i class="fab fa-instagram social-icon"></i></a>
+          <a id="link-yt" href="#" target="_blank" rel="noopener"><i class="fab fa-youtube social-icon"></i></a>
+          <a id="link-wa" href="#" target="_blank" rel="noopener"><i class="fab fa-whatsapp social-icon"></i></a>
           <a id="btn-email-main" href="#"><i class="fas fa-envelope social-icon"></i></a>
         </div>
 
@@ -421,129 +973,246 @@
 
         <div class="copyright">
           &copy; 2026 <span id="disp-footer-brand">PORTFOLIO</span>.
-          <br><span style="color:#333;">Views: <span id="disp-views">...</span></span>
+          <br><span style="color:rgba(234,246,255,.35);">Views: <span id="disp-views">…</span></span>
         </div>
       </div>
     </footer>
 
-    <div id="btn-top" class="back-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+    <div id="btn-top" class="back-top" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Back to top">
       <i class="fas fa-arrow-up"></i>
     </div>
   </div>
 
+  <!-- Lightbox -->
   <div id="lightbox">
-    <div class="lightbox-close" onclick="core.closeLightbox()">&times;</div>
+    <div class="lightbox-close" onclick="core.closeLightbox()" title="Close">&times;</div>
     <div id="lightbox-content" class="lightbox-content" onclick="event.stopPropagation()"></div>
   </div>
 
+  <!-- Login -->
   <div id="login-modal">
     <div class="login-box">
-      <h3 style="color:white;margin-bottom:30px;">SYSTEM ACCESS</h3>
-      <input type="email" id="auth-email" class="admin-input" placeholder="admin@example.com">
-      <input type="password" id="auth-pass" class="admin-input" placeholder="Password">
-      <button class="btn-action" onclick="core.login()">LOGIN</button>
-      <p id="login-error" style="color:var(--signal-danger);font-size:0.8rem;margin-top:20px;"></p>
-      <p onclick="core.exitAdmin()" style="margin-top:25px;color:#666;font-size:0.8rem;cursor:pointer;">Cancel</p>
+      <div class="login-title"><span class="badge"></span> SYSTEM ACCESS</div>
+      <div class="login-sub">Login to open the command center (upload media, edit sections, change tags, and settings).</div>
+
+      <input type="email" id="auth-email" class="admin-input" placeholder="admin@example.com" />
+      <div style="height:10px"></div>
+      <input type="password" id="auth-pass" class="admin-input" placeholder="Password" />
+      <button class="btn-action" style="margin-top:12px" onclick="core.login()">LOGIN</button>
+
+      <p id="login-error" style="color:var(--danger);font-size:0.85rem;margin-top:14px;line-height:1.3;"></p>
+      <p onclick="core.exitAdmin()" style="margin-top:16px;color:rgba(234,246,255,.55);font-size:0.85rem;cursor:pointer;">Cancel</p>
     </div>
   </div>
 
+  <!-- Admin Panel -->
   <div id="admin-panel">
-    <div class="admin-head">
-      <h2 style="color:white;">Command Center</h2>
-      <div style="display:flex;gap:15px;">
-        <button onclick="core.exitAdmin()" style="background:transparent;color:white;border:1px solid #333;padding:10px 20px;border-radius:6px;">View Site</button>
-        <button onclick="core.logout()" style="background:#330000;color:var(--signal-danger);border:none;padding:10px 20px;border-radius:6px;">Logout</button>
-      </div>
-    </div>
-
-    <div class="admin-grid">
-      <div class="admin-card">
-        <h3>Branding</h3>
-        <span class="admin-label">Website Name</span>
-        <input type="text" id="edit-brand" class="admin-input">
-        <button class="btn-action" onclick="core.saveBranding()">Update Name</button>
-      </div>
-
-      <div class="admin-card">
-        <h3>Hero Section</h3>
-        <span class="admin-label">Main Title</span>
-        <input type="text" id="edit-title" class="admin-input">
-        <span class="admin-label">Subtitle</span>
-        <input type="text" id="edit-subtitle" class="admin-input">
-        <button class="btn-action" onclick="core.saveHero()">Update Hero</button>
-      </div>
-
-      <div class="admin-card">
-        <h3>Visual Assets</h3>
-        <span class="admin-label">Hero Wallpaper</span>
-        <input type="file" id="upload-hero" class="admin-input" accept="image/*">
-        <button class="btn-action" onclick="core.uploadHeroWallpaper()">Update Wallpaper</button>
-      </div>
-
-      <div class="admin-card">
-        <h3>Artist Profile</h3>
-        <span class="admin-label">Section Title</span>
-        <input type="text" id="edit-about-title" class="admin-input">
-        <span class="admin-label">Bio Text</span>
-        <textarea id="edit-bio" class="admin-input" rows="5"></textarea>
-        <span class="admin-label">Profile Picture</span>
-        <input type="file" id="upload-artist" class="admin-input" accept="image/*">
-        <button class="btn-action" onclick="core.uploadArtistPic()">Update Profile</button>
-      </div>
-
-      <div class="admin-card">
-        <h3>Connections</h3>
-        <input type="text" id="edit-insta" class="admin-input" placeholder="Instagram URL">
-        <input type="text" id="edit-yt" class="admin-input" placeholder="YouTube URL">
-        <input type="text" id="edit-wa" class="admin-input" placeholder="WhatsApp URL (Footer Icon)">
-        <input type="text" id="edit-email" class="admin-input" placeholder="Email Address">
-        <button class="btn-action" onclick="core.saveLinks()">Update Links</button>
-      </div>
-
-      <div class="admin-card">
-        <h3>WhatsApp Contact Button</h3>
-        <span class="admin-label">WhatsApp Phone (digits only)</span>
-        <input type="text" id="edit-wa-phone" class="admin-input" placeholder="e.g. 2348012345678">
-        <span class="admin-label">Message Template</span>
-        <textarea id="edit-wa-template" class="admin-input" rows="6" placeholder="Use {title}, {url}, {type}"></textarea>
-        <button class="btn-action" onclick="core.saveWhatsAppSettings()">Save WhatsApp Settings</button>
-      </div>
-
-      <div class="admin-card">
-        <h3>Loader (Preloader)</h3>
-        <span class="admin-label">Word 1 Text</span>
-        <input type="text" id="edit-loader-w1" class="admin-input" placeholder="e.g. CYRIS">
-        <span class="admin-label">Word 1 Color</span>
-        <input type="text" id="edit-loader-c1" class="admin-input" placeholder="#ffffff">
-        <span class="admin-label">Word 2 Text</span>
-        <input type="text" id="edit-loader-w2" class="admin-input" placeholder="e.g. STUDIO">
-        <span class="admin-label">Word 2 Color</span>
-        <input type="text" id="edit-loader-c2" class="admin-input" placeholder="#a0a0a0">
-        <button class="btn-action" onclick="core.saveLoader()">Save Loader</button>
-      </div>
-
-      <div class="admin-card">
-        <h3>UI Options</h3>
-        <span class="admin-label">Enable Lightbox Next/Prev (1=yes, 0=no)</span>
-        <input type="text" id="edit-ui-nav" class="admin-input" placeholder="1">
-        <span class="admin-label">Enable Watermark (1=yes, 0=no)</span>
-        <input type="text" id="edit-ui-wm" class="admin-input" placeholder="0">
-        <span class="admin-label">Watermark Text</span>
-        <input type="text" id="edit-ui-wm-text" class="admin-input" placeholder="© 2026 PORTFOLIO">
-        <span class="admin-label">Watermark Opacity (0.05 - 0.4)</span>
-        <input type="text" id="edit-ui-wm-opacity" class="admin-input" placeholder="0.15">
-        <button class="btn-action" onclick="core.saveUI()">Save UI</button>
-      </div>
-
-      <div class="admin-card" style="grid-column: 1 / -1;">
-        <h3>Gallery Manager</h3>
-        <div style="background:#050505;padding:30px;border-radius:12px;border:1px dashed #333;margin-bottom:30px;">
-          <span class="admin-label" style="color:white;">Upload Media (Images / Videos)</span>
-          <input type="file" id="upload-media" class="admin-input" accept="image/*,video/*" capture="environment">
-          <button class="btn-action" id="btn-upload-media" onclick="core.uploadMedia()">Upload to Gallery</button>
+    <div class="admin-shell">
+      <aside class="admin-side">
+        <div class="admin-brand">
+          <div class="t"><span class="sig"></span> Command Center</div>
         </div>
-        <span class="admin-label">Current Gallery (Edit title/description)</span>
-        <div class="media-thumbs" id="admin-list"></div>
+
+        <div class="tiny">
+          Routes:
+          <div style="margin-top:8px">
+            <div><b>#adminonly</b> → login</div>
+            <div><b>#dashboard</b> → panel</div>
+          </div>
+        </div>
+
+        <div class="admin-actions" style="margin-top:14px;">
+          <button class="btn-soft" onclick="core.exitAdmin()"><i class="fas fa-eye"></i> View Site</button>
+          <button class="btn-danger" onclick="core.logout()"><i class="fas fa-right-from-bracket"></i> Logout</button>
+        </div>
+
+        <div class="tiny" style="margin-top:16px;">
+          Tip: Use tags like <b>miku</b>, <b>cyber</b>, <b>fps</b>, <b>cinematic</b>.
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <div class="admin-top">
+          <div>
+            <h2><span class="sig"></span> Dashboard</h2>
+            <div class="admin-note">
+              Manage branding, loader colors, links, WhatsApp templates (includes media URL), dynamic sections, and the gallery (tags + edit + delete).
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+
+          <div class="admin-card">
+            <h3>Branding</h3>
+            <span class="admin-label">Website Name</span>
+            <input type="text" id="edit-brand" class="admin-input" />
+            <button class="btn-action" onclick="core.saveBranding()">Update Name</button>
+          </div>
+
+          <div class="admin-card">
+            <h3>Hero</h3>
+            <span class="admin-label">Main Title</span>
+            <input type="text" id="edit-title" class="admin-input" />
+            <span class="admin-label">Subtitle</span>
+            <input type="text" id="edit-subtitle" class="admin-input" />
+            <button class="btn-action" onclick="core.saveHero()">Update Hero</button>
+          </div>
+
+          <div class="admin-card">
+            <h3>Connections</h3>
+            <span class="admin-label">Instagram URL</span>
+            <input type="text" id="edit-insta" class="admin-input" placeholder="https://instagram.com/..." />
+            <span class="admin-label">YouTube URL</span>
+            <input type="text" id="edit-yt" class="admin-input" placeholder="https://youtube.com/..." />
+            <span class="admin-label">WhatsApp URL (footer icon)</span>
+            <input type="text" id="edit-wa" class="admin-input" placeholder="https://wa.me/..." />
+            <span class="admin-label">Email Address</span>
+            <input type="text" id="edit-email" class="admin-input" placeholder="you@email.com" />
+            <button class="btn-action" onclick="core.saveLinks()">Update Links</button>
+          </div>
+
+          <div class="admin-card">
+            <h3>WhatsApp Contact Button</h3>
+            <span class="admin-label">WhatsApp Phone (digits only)</span>
+            <input type="text" id="edit-wa-phone" class="admin-input" placeholder="e.g. 2348012345678" />
+            <span class="admin-label">Message Template</span>
+            <textarea id="edit-wa-template" class="admin-textarea" rows="7" placeholder="Use {title}, {url}, {type}, {tags}"></textarea>
+            <div class="tiny">
+              IMPORTANT: {url} is the media URL. This is how you’ll know which image/video they’re contacting about.
+            </div>
+            <button class="btn-action" onclick="core.saveWhatsAppSettings()">Save WhatsApp Settings</button>
+          </div>
+
+          <div class="admin-card">
+            <h3>Loader</h3>
+            <span class="admin-label">Word 1 Text</span>
+            <input type="text" id="edit-loader-w1" class="admin-input" />
+            <span class="admin-label">Word 1 Color</span>
+            <input type="text" id="edit-loader-c1" class="admin-input" placeholder="#00ffd5" />
+            <span class="admin-label">Word 2 Text</span>
+            <input type="text" id="edit-loader-w2" class="admin-input" />
+            <span class="admin-label">Word 2 Color</span>
+            <input type="text" id="edit-loader-c2" class="admin-input" placeholder="#ff4fd8" />
+            <button class="btn-action" onclick="core.saveLoader()">Save Loader</button>
+          </div>
+
+          <div class="admin-card">
+            <h3>UI Options</h3>
+            <span class="admin-label">Enable Lightbox Next/Prev (1=yes, 0=no)</span>
+            <input type="text" id="edit-ui-nav" class="admin-input" placeholder="1" />
+            <span class="admin-label">Enable Watermark (1=yes, 0=no)</span>
+            <input type="text" id="edit-ui-wm" class="admin-input" placeholder="1" />
+            <span class="admin-label">Watermark Text</span>
+            <input type="text" id="edit-ui-wm-text" class="admin-input" placeholder="© 2026 PORTFOLIO" />
+            <span class="admin-label">Watermark Opacity (0.05 - 0.4)</span>
+            <input type="text" id="edit-ui-wm-opacity" class="admin-input" placeholder="0.15" />
+            <button class="btn-action" onclick="core.saveUI()">Save UI</button>
+          </div>
+
+          <div class="admin-card full">
+            <h3>Sections Manager (Add / Edit / Remove)</h3>
+
+            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;">
+              <div style="grid-column:span 4;">
+                <span class="admin-label">Slug (unique, no spaces)</span>
+                <input class="admin-input" id="sec-slug" placeholder="e.g. services" />
+              </div>
+              <div style="grid-column:span 4;">
+                <span class="admin-label">Title</span>
+                <input class="admin-input" id="sec-title" placeholder="Services" />
+              </div>
+              <div style="grid-column:span 4;">
+                <span class="admin-label">Subtitle</span>
+                <input class="admin-input" id="sec-subtitle" placeholder="What I do" />
+              </div>
+              <div style="grid-column:1 / -1;">
+                <span class="admin-label">Body</span>
+                <textarea class="admin-textarea" id="sec-body" placeholder="Write section content..."></textarea>
+              </div>
+
+              <div style="grid-column:span 3;">
+                <span class="admin-label">Enabled (true/false)</span>
+                <input class="admin-input" id="sec-enabled" placeholder="true" />
+              </div>
+              <div style="grid-column:span 3;">
+                <span class="admin-label">Sort Order (number)</span>
+                <input class="admin-input" id="sec-sort" placeholder="10" />
+              </div>
+              <div style="grid-column:span 6;display:flex;gap:10px;align-items:flex-end;">
+                <button class="btn-action" style="margin-top:0;flex:1;" id="btn-sec-main" onclick="core.createSection()">Add Section</button>
+                <button class="btn-soft" style="flex:1;" onclick="core.reloadSections()">Refresh List</button>
+              </div>
+            </div>
+
+            <div class="tiny" style="margin-top:12px;">
+              Click a section below to load it into the editor, then update or delete.
+            </div>
+
+            <div id="sections-admin-list" style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:12px;"></div>
+          </div>
+
+          <div class="admin-card full">
+            <h3>Gallery Manager (Upload + Tags + Edit)</h3>
+
+            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:end;">
+              <div style="grid-column:span 6;">
+                <span class="admin-label" style="color:#fff;">Upload Media (Images / Videos)</span>
+                <input type="file" id="upload-media" class="admin-input" accept="image/*,video/*" capture="environment" />
+              </div>
+              <div style="grid-column:span 6;">
+                <button class="btn-action" id="btn-upload-media" onclick="core.uploadMedia()">Upload to Gallery</button>
+              </div>
+            </div>
+
+            <div class="tiny">
+              Click <b>Edit</b> on a thumbnail to open the media editor (shows URL + preview + tags).
+            </div>
+
+            <div class="media-thumbs" id="admin-list"></div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Admin Media Modal -->
+  <div id="admin-media-modal" onclick="core.closeMediaModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="t"><span class="sig"></span> Edit Media</div>
+        <button class="modal-close" type="button" onclick="core.closeMediaModal()" title="Close"><i class="fas fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-preview" id="amm-preview">
+          <div class="badge" id="amm-type">MEDIA</div>
+        </div>
+
+        <div class="modal-form">
+          <span class="admin-label">Media URL (so you know what they contact about)</span>
+          <div class="url-row">
+            <input type="text" id="amm-url" class="admin-input" readonly />
+            <button class="btn-mini" type="button" onclick="core.copyMediaUrl()"><i class="fas fa-copy"></i> Copy</button>
+          </div>
+
+          <span class="admin-label">Title</span>
+          <input type="text" id="amm-title" class="admin-input" placeholder="Title..." />
+
+          <span class="admin-label">Description</span>
+          <textarea id="amm-desc" class="admin-textarea" rows="6" placeholder="Description..."></textarea>
+
+          <span class="admin-label">Tags (comma-separated)</span>
+          <input type="text" id="amm-tags" class="admin-input" placeholder="miku, cyber, fps, cinematic" />
+          <div class="tiny">Tags appear as animated chips on the card and in the lightbox.</div>
+
+          <div class="modal-actions">
+            <button class="btn-save" type="button" onclick="core.saveMediaModal()"><i class="fas fa-floppy-disk"></i> Save</button>
+            <button class="btn-soft" type="button" onclick="core.closeMediaModal()">Cancel</button>
+            <button class="btn-danger" type="button" onclick="core.deleteMediaFromModal()"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -556,20 +1225,26 @@
 
       const state = {
         whatsappPhone: '',
-        whatsappTemplate: 'Hello, I am interested in this {type}:\nTitle: {title}\nLink: {url}',
+        whatsappTemplate: 'Hello, I am interested in this {type}:\nTitle: {title}\nLink: {url}\nTags: {tags}',
 
         loaderWord1: 'CYRIS',
         loaderWord2: 'STUDIO',
-        loaderColor1: '#ffffff',
-        loaderColor2: '#a0a0a0',
+        loaderColor1: '#00ffd5',
+        loaderColor2: '#ff4fd8',
 
         uiEnableLightboxNav: true,
-        uiEnableWatermark: false,
+        uiEnableWatermark: true,
         uiWatermarkText: '© 2026 PORTFOLIO',
         uiWatermarkOpacity: 0.15,
 
         galleryItems: [],
-        currentIndex: 0
+        currentIndex: 0,
+
+        sections: [],
+        editingSectionId: null,
+
+        // media modal
+        editingMediaId: null
       };
 
       const zoom = {
@@ -586,34 +1261,67 @@
       const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
       const escapeForTemplate = (v) => (v ?? '').toString();
 
-      const buildWhatsAppUrl = ({ phone, template, title, url, type }) => {
+      const tagsToString = (tags) => {
+        if (!tags) return '';
+        if (Array.isArray(tags)) return tags.join(', ');
+        return (tags || '').toString();
+      };
+
+      const parseTags = (raw) => {
+        return (raw || '')
+          .split(',')
+          .map(t => t.trim())
+          .filter(Boolean)
+          .slice(0, 12);
+      };
+
+      const isVideoUrl = (url) => {
+        try {
+          const u = new URL(url);
+          const p = (u.pathname || '').toLowerCase();
+          return p.endsWith('.mp4') || p.endsWith('.mov') || p.endsWith('.webm') || p.endsWith('.m4v');
+        } catch {
+          const s = (url || '').toLowerCase();
+          return s.includes('.mp4') || s.includes('.mov') || s.includes('.webm') || s.includes('.m4v');
+        }
+      };
+
+      const escapeHtml = (str) => (str ?? '').toString()
+        .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+        .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+
+      const buildWhatsAppUrl = ({ phone, template, title, url, type, tags }) => {
         const p = (phone || '').replace(/[^\d]/g, '');
         if (!p) return null;
+
         const msg = (template || '')
           .replaceAll('{title}', escapeForTemplate(title || 'Untitled'))
           .replaceAll('{url}', escapeForTemplate(url))
-          .replaceAll('{type}', escapeForTemplate(type));
+          .replaceAll('{type}', escapeForTemplate(type))
+          .replaceAll('{tags}', escapeForTemplate(tagsToString(tags)));
+
         return `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
       };
 
       const applyLoaderToDom = () => {
         document.getElementById('loader-w1').innerText = state.loaderWord1 || 'CYRIS';
         document.getElementById('loader-w2').innerText = state.loaderWord2 || 'STUDIO';
-        document.documentElement.style.setProperty('--loader-color1', state.loaderColor1 || '#ffffff');
-        document.documentElement.style.setProperty('--loader-color2', state.loaderColor2 || '#a0a0a0');
+        document.documentElement.style.setProperty('--loader-color1', state.loaderColor1 || '#00ffd5');
+        document.documentElement.style.setProperty('--loader-color2', state.loaderColor2 || '#ff4fd8');
       };
 
       const init = async () => {
         applyLoaderToDom();
-        setTimeout(() => document.getElementById('preloader').classList.add('vanish'), 1500);
+        setTimeout(() => document.getElementById('preloader').classList.add('vanish'), 1200);
 
-        const lenis = new Lenis({ duration: 1.2, smooth: true });
+        const lenis = new Lenis({ duration: 1.15, smooth: true });
         function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
         requestAnimationFrame(raf);
 
         setupAnimations();
         setupTilt();
-        await fetchData();
+
+        await fetchAll();
         document.getElementById('preloader').classList.add('vanish');
 
         checkRoute();
@@ -623,7 +1331,6 @@
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('dragstart', e => e.preventDefault());
 
-        // Lightbox global controls
         document.getElementById('lightbox').addEventListener('click', closeLightbox);
         window.addEventListener('keydown', onKeydown);
       };
@@ -631,41 +1338,54 @@
       const setupAnimations = () => {
         gsap.registerPlugin(ScrollTrigger);
         gsap.to("#hero-bg-el", { yPercent: 10, ease: "none", scrollTrigger: { trigger: ".hero", scrub: true } });
-        gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: "power3.out" });
+        gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.4, delay: 0.25, ease: "power3.out" });
       };
 
       const setupTilt = () => {
+        let last = 0;
         document.addEventListener('mousemove', (e) => {
+          const now = performance.now();
+          if (now - last < 16) return;
+          last = now;
+
           document.querySelectorAll('.tilt-card').forEach(card => {
             const rect = card.getBoundingClientRect();
+            if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+              const inner = card.querySelector('.card-inner');
+              if (inner) inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
+              return;
+            }
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-
-            if(x > 0 && x < rect.width && y > 0 && y < rect.height) {
-              const centerX = rect.width / 2;
-              const centerY = rect.height / 2;
-              const rotateX = ((y - centerY) / centerY) * -3;
-              const rotateY = ((x - centerX) / centerX) * 3;
-              card.querySelector('.card-inner').style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            } else {
-              card.querySelector('.card-inner').style.transform = `rotateX(0) rotateY(0)`;
-            }
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = ((y - centerY) / centerY) * -3;
+            const rotateY = ((x - centerX) / centerX) * 3;
+            const inner = card.querySelector('.card-inner');
+            if (inner) inner.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
           });
         });
       };
 
       const handleScroll = () => {
         const btn = document.getElementById('btn-top');
-        if(window.scrollY > 600) btn.classList.add('visible');
+        if (window.scrollY > 600) btn.classList.add('visible');
         else btn.classList.remove('visible');
       };
 
       const scrollToFooter = () => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
 
-      const fetchData = async () => {
+      const fetchAll = async () => {
+        await Promise.all([
+          fetchContentAndGallery(),
+          fetchSections()
+        ]);
+      };
+
+      const fetchContentAndGallery = async () => {
         try {
           const { data: content } = await supabase.from('site_content').select('*');
-          if(content) {
+          if (content) {
             const map = {};
             content.forEach(c => map[c.id] = c.content);
 
@@ -673,18 +1393,14 @@
             setText('disp-footer-brand', map.site_name);
             setText('disp-hero-title', map.hero_title);
             setText('disp-hero-subtitle', map.hero_subtitle);
-            setText('disp-about-text', map.about_text);
-            setText('disp-about-title', map.about_title || 'The Artist');
-            setText('disp-artist-name', map.about_name || 'Creative Vision.');
             setText('disp-views', map.view_count);
 
-            if(map.artist_image) document.getElementById('disp-artist-img').src = map.artist_image;
-            if(map.hero_bg) document.getElementById('hero-bg-el').src = map.hero_bg;
+            if (map.hero_bg) document.getElementById('hero-bg-el').src = map.hero_bg;
 
             setHref('link-insta', map.instagram);
             setHref('link-yt', map.youtube);
             setHref('link-wa', map.whatsapp);
-            if(map.email) document.getElementById('btn-email-main').href = "mailto:" + map.email;
+            if (map.email) document.getElementById('btn-email-main').href = "mailto:" + map.email;
 
             state.whatsappPhone = map.whatsapp_phone || '';
             state.whatsappTemplate = map.whatsapp_template || state.whatsappTemplate;
@@ -696,10 +1412,9 @@
             applyLoaderToDom();
 
             state.uiEnableLightboxNav = (map.ui_enable_lightbox_nav || '1') === '1';
-            state.uiEnableWatermark = (map.ui_enable_watermark || '0') === '1';
+            state.uiEnableWatermark = (map.ui_enable_watermark || '1') === '1';
             state.uiWatermarkText = map.ui_watermark_text || state.uiWatermarkText;
             state.uiWatermarkOpacity = parseFloat(map.ui_watermark_opacity || state.uiWatermarkOpacity);
-
             document.documentElement.style.setProperty('--wm-opacity', String(clamp(state.uiWatermarkOpacity, 0.05, 0.4)));
 
             incrementView(map.view_count);
@@ -707,25 +1422,136 @@
 
           const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
           renderGallery(gallery || []);
-        } catch(e) {
+        } catch (e) {
           console.error("API Error:", e);
         }
       };
 
-      const setText = (id, val) => { if(val !== undefined && val !== null && val !== '') document.getElementById(id).innerText = val; };
+      const fetchSections = async () => {
+        try {
+          const { data: sections } = await supabase
+            .from('site_sections')
+            .select('*')
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true });
+
+          state.sections = (sections || []);
+          renderSections();
+          renderSectionsAdminList();
+          renderNavLinks(); // (2) auto nav links
+        } catch (e) {
+          console.error("Sections fetch error:", e);
+        }
+      };
+
+      const renderNavLinks = () => {
+        const nav = document.getElementById('nav-links');
+        if (!nav) return;
+
+        const enabled = (state.sections || []).filter(s => !!s.enabled);
+
+        // Always include Work + Contact. Include each enabled section anchor.
+        // We render links in order: Work, Sections, [each enabled], Contact
+        const links = [];
+
+        links.push({ id: 'work', label: 'Work' });
+        links.push({ id: 'sections', label: 'Sections' });
+
+        enabled.forEach(s => {
+          // anchor id is "sec-<slug>"
+          links.push({ id: `sec-${s.slug}`, label: s.title || s.slug });
+        });
+
+        links.push({ id: 'contact', label: 'Contact' });
+
+        nav.innerHTML = '';
+        links.forEach(l => {
+          const el = document.createElement('div');
+          el.className = 'nav-link';
+          el.innerText = l.label;
+          el.onclick = () => document.getElementById(l.id)?.scrollIntoView({ behavior: 'smooth' });
+          nav.appendChild(el);
+        });
+      };
+
+      const renderSections = () => {
+        const grid = document.getElementById('sections-grid');
+        if (!grid) return;
+
+        const enabled = (state.sections || []).filter(s => !!s.enabled);
+        grid.innerHTML = '';
+
+        if (!enabled.length) {
+          grid.innerHTML = `<div style="grid-column:1 / -1;color:rgba(234,246,255,.55);">No sections enabled. Add some from dashboard.</div>`;
+          return;
+        }
+
+        enabled.forEach(s => {
+          const el = document.createElement('div');
+          el.className = 'sec-card';
+          el.id = `sec-${s.slug}`;
+          el.innerHTML = `
+            <div class="sub">${escapeHtml(s.subtitle || '')}</div>
+            <h3>${escapeHtml(s.title || '')}</h3>
+            <div class="txt">${escapeHtml(s.body || '')}</div>
+          `;
+          grid.appendChild(el);
+        });
+      };
+
+      const renderSectionsAdminList = () => {
+        const list = document.getElementById('sections-admin-list');
+        if (!list) return;
+
+        list.innerHTML = '';
+        (state.sections || []).forEach(s => {
+          const card = document.createElement('div');
+          card.style.gridColumn = 'span 6';
+          card.style.border = '1px solid rgba(255,255,255,.10)';
+          card.style.borderRadius = '16px';
+          card.style.padding = '14px';
+          card.style.background = 'rgba(10,12,22,.45)';
+
+          card.innerHTML = `
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+              <div>
+                <div style="font-weight:950;letter-spacing:1px;text-transform:uppercase;font-size:.82rem;">${escapeHtml(s.slug)}</div>
+                <div style="margin-top:6px;font-weight:950;font-size:1.05rem;">${escapeHtml(s.title || '')}</div>
+                <div style="margin-top:6px;color:rgba(234,246,255,.60);font-size:.86rem;text-transform:uppercase;letter-spacing:1.6px;">${escapeHtml(s.subtitle || '')}</div>
+                <div style="margin-top:10px;color:rgba(234,246,255,.65);font-size:.9rem;line-height:1.45;white-space:pre-line;">${escapeHtml((s.body || '').slice(0, 140))}${(s.body||'').length > 140 ? '…' : ''}</div>
+                <div style="margin-top:10px;color:rgba(234,246,255,.55);font-size:.8rem;">enabled: <b>${s.enabled ? 'true' : 'false'}</b> • sort: <b>${s.sort_order ?? 0}</b></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;min-width:140px;">
+                <button class="btn-soft" type="button" onclick="core.loadSectionToEditor(${s.id})">Edit</button>
+                <button class="btn-danger" type="button" onclick="core.deleteSection(${s.id})">Delete</button>
+              </div>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+      };
+
+      const setText = (id, val) => {
+        if (val !== undefined && val !== null && val !== '') document.getElementById(id).innerText = val;
+      };
+
       const setHref = (id, val) => {
         const el = document.getElementById(id);
-        if(val && val.length > 2) { el.href = val; el.style.display = 'inline-block'; }
+        if (!el) return;
+        if (val && val.length > 2) { el.href = val; el.style.display = 'inline-block'; }
         else el.style.display = 'none';
       };
+
       const incrementView = async (curr) => {
-        const n = parseInt(curr || 0) + 1;
-        await supabase.from('site_content').update({ content: n }).eq('id', 'view_count');
-        document.getElementById('disp-views').innerText = n;
+        try {
+          const n = parseInt(curr || 0) + 1;
+          await supabase.from('site_content').update({ content: n }).eq('id', 'view_count');
+          const el = document.getElementById('disp-views');
+          if (el) el.innerText = n;
+        } catch {}
       };
 
       const resetZoom = () => { zoom.scale = 1; zoom.x = 0; zoom.y = 0; };
-
       const applyZoomTransform = (mediaEl) => {
         mediaEl.style.transform = `translate(calc(-50% + ${zoom.x}px), calc(-50% + ${zoom.y}px)) scale(${zoom.scale})`;
       };
@@ -737,9 +1563,9 @@
 
         const url = item.image_url;
         const title = item.title || 'Untitled';
-        const description = item.description || '';
-        const isVid = ['mp4','mov','webm'].some(ext => (url || '').toLowerCase().includes(ext));
-        openLightbox(url, isVid, { title, description });
+        const tags = parseTags(item.tags);
+        const isVid = isVideoUrl(url);
+        openLightbox(url, isVid, { title, tags });
       };
 
       const openLightbox = (url, isVid, meta = {}) => {
@@ -747,6 +1573,7 @@
         const wrap = document.getElementById('lightbox-content');
 
         const title = meta.title || 'Untitled';
+        const tags = meta.tags || [];
         const type = isVid ? 'video' : 'photo';
 
         const waHref = buildWhatsAppUrl({
@@ -754,7 +1581,8 @@
           template: state.whatsappTemplate,
           title,
           url,
-          type
+          type,
+          tags
         });
 
         resetZoom();
@@ -766,7 +1594,9 @@
 
         const mediaHtml = isVid
           ? `<video class="zoom-media" src="${url}" controls autoplay playsinline style="background:#000;"></video>`
-          : `<img class="zoom-media" src="${url}" alt="${title}" decoding="async" loading="eager" style="background:#000;">`;
+          : `<img class="zoom-media" src="${url}" alt="${escapeHtml(title)}" decoding="async" loading="eager" style="background:#000;">`;
+
+        const tagsPill = tags.length ? `<div class="pill">Tags: ${escapeHtml(tags.join(', '))}</div>` : '';
 
         wrap.innerHTML = `
           <div class="zoom-stage" id="zoom-stage">
@@ -774,7 +1604,8 @@
 
             <div class="lightbox-bottombar">
               <div class="left">
-                <div class="pill">${title}</div>
+                <div class="pill">${escapeHtml(title)}</div>
+                ${tagsPill}
                 ${!isVid ? `<div class="pill">Wheel/Pinch to zoom • Drag to pan</div>` : `<div class="pill">Video</div>`}
               </div>
               <div class="right">
@@ -789,14 +1620,10 @@
           </div>
         `;
 
-        wrap.addEventListener('click', (e) => e.stopPropagation(), { once: true });
-
         const stage = document.getElementById('zoom-stage');
         const mediaEl = stage.querySelector('.zoom-media');
-
         applyZoomTransform(mediaEl);
 
-        // Wheel zoom for images only
         stage.addEventListener('wheel', (e) => {
           if (isVid) return;
           e.preventDefault();
@@ -807,7 +1634,6 @@
           applyZoomTransform(mediaEl);
         }, { passive: false });
 
-        // Pointer drag pan for images only
         stage.addEventListener('pointerdown', (e) => {
           if (isVid) return;
           zoom.dragging = true;
@@ -836,7 +1662,6 @@
           stage.classList.remove('dragging');
         });
 
-        // Pinch-to-zoom (touch)
         let lastDist = null;
         stage.addEventListener('touchmove', (e) => {
           if (isVid) return;
@@ -863,14 +1688,8 @@
         });
 
         if (state.uiEnableLightboxNav) {
-          document.getElementById('lb-prev')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            prevItem();
-          });
-          document.getElementById('lb-next')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            nextItem();
-          });
+          document.getElementById('lb-prev')?.addEventListener('click', (e) => { e.stopPropagation(); prevItem(); });
+          document.getElementById('lb-next')?.addEventListener('click', (e) => { e.stopPropagation(); nextItem(); });
         }
 
         box.classList.add('active');
@@ -897,7 +1716,6 @@
       const onKeydown = (e) => {
         const box = document.getElementById('lightbox');
         const active = box.classList.contains('active');
-
         if (!active) return;
 
         if (e.key === 'Escape') closeLightbox();
@@ -921,7 +1739,8 @@
           const url = item.image_url;
           const title = item.title || 'Untitled';
           const description = item.description || '';
-          const isVid = ['mp4','mov','webm'].some(ext => (url || '').toLowerCase().includes(ext));
+          const tags = parseTags(item.tags);
+          const isVid = isVideoUrl(url);
           const type = isVid ? 'video' : 'photo';
 
           const card = document.createElement('div');
@@ -929,48 +1748,53 @@
 
           const mediaHtml = isVid
             ? `<video src="${url}#t=0.1" preload="metadata" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video><div class="play-badge"><i class="fas fa-play"></i></div>`
-            : `<img src="${url}" loading="lazy" decoding="async" alt="${title}">`;
+            : `<img src="${url}" loading="lazy" decoding="async" alt="${escapeHtml(title)}">`;
 
           const waHref = buildWhatsAppUrl({
             phone: state.whatsappPhone,
             template: state.whatsappTemplate,
             title,
             url,
-            type
+            type,
+            tags
           });
 
           const watermarkHtml = state.uiEnableWatermark
-            ? `<div class="watermark">${state.uiWatermarkText}</div>`
+            ? `<div class="watermark">${escapeHtml(state.uiWatermarkText)}</div>`
+            : '';
+
+          const chipsHtml = tags.length
+            ? `<div class="tag-chips">${tags.slice(0, 5).map((t, idx) => `<span class="chip" style="animation-delay:${idx * 0.06}s">${escapeHtml(t)}</span>`).join('')}</div>`
             : '';
 
           card.innerHTML = `
             <div class="card-inner">
               ${mediaHtml}
               ${watermarkHtml}
+              ${chipsHtml}
               <div class="card-overlay">
-                <div class="card-title">${title}</div>
-                ${description ? `<div class="card-desc">${description}</div>` : ``}
+                <div class="card-title">${escapeHtml(title)}</div>
+                ${description ? `<div class="card-desc">${escapeHtml(description)}</div>` : ``}
                 <div class="card-actions">
                   ${waHref ? `
                     <a class="btn-wa" href="${waHref}" target="_blank" rel="noopener">
                       <i class="fab fa-whatsapp"></i> Contact
                     </a>
                   ` : `
-                    <span style="color:#666;font-size:0.8rem;">(Admin: set WhatsApp phone to enable contact)</span>
+                    <span style="color:rgba(234,246,255,.55);font-size:0.85rem;">(Admin: set WhatsApp phone to enable contact)</span>
                   `}
                 </div>
               </div>
             </div>
           `;
 
-          // Card click opens lightbox for this index
           card.addEventListener('click', () => openLightboxByIndex(i));
           card.querySelector('.btn-wa')?.addEventListener('click', (e) => e.stopPropagation());
 
           gsap.from(card, {
             scrollTrigger: { trigger: card, start: "top 90%" },
             opacity: 0, y: 30, duration: 0.8,
-            delay: (i % 3) * 0.1
+            delay: (i % 3) * 0.08
           });
 
           feed.appendChild(card);
@@ -979,15 +1803,15 @@
           const thumb = document.createElement('div');
           thumb.className = 'thumb';
           thumb.innerHTML = `
-            ${isVid ? `<video src="${url}#t=0.1" preload="metadata" muted></video>` : `<img src="${url}">`}
+            ${isVid ? `<video src="${url}#t=0.1" preload="metadata" muted></video>` : `<img src="${url}" alt="">`}
             <button class="thumb-del" type="button" title="Delete"><i class="fas fa-trash"></i></button>
-            <div class="thumb-edit">
+            <div class="thumb-overlay">
               <button class="thumb-btn" type="button">Edit</button>
             </div>
           `;
 
           thumb.querySelector('.thumb-del').addEventListener('click', (e) => { e.stopPropagation(); deleteMedia(item.id); });
-          thumb.querySelector('.thumb-btn').addEventListener('click', (e) => { e.stopPropagation(); editMediaMeta(item.id, item.title || '', item.description || ''); });
+          thumb.querySelector('.thumb-btn').addEventListener('click', (e) => { e.stopPropagation(); openMediaModal(item); });
 
           adminList.appendChild(thumb);
         });
@@ -995,15 +1819,19 @@
 
       const checkRoute = () => {
         const h = window.location.hash;
-        if(h === '#adminonly') {
-          document.getElementById('wrapper').style.display='none';
-          document.getElementById('login-modal').style.display='flex';
-        } else if(h === '#dashboard') {
-          document.getElementById('wrapper').style.display='none';
-          document.getElementById('login-modal').style.display='none';
-          document.getElementById('admin-panel').style.display='block';
+        if (h === '#adminonly') {
+          document.getElementById('wrapper').style.display = 'none';
+          document.getElementById('login-modal').style.display = 'flex';
+          document.getElementById('admin-panel').style.display = 'none';
+        } else if (h === '#dashboard') {
+          document.getElementById('wrapper').style.display = 'none';
+          document.getElementById('login-modal').style.display = 'none';
+          document.getElementById('admin-panel').style.display = 'block';
           loadAdminData();
-        } else exitAdmin();
+          fetchSections();
+        } else {
+          exitAdmin();
+        }
       };
 
       const login = async () => {
@@ -1012,7 +1840,7 @@
         const msg = document.getElementById('login-error');
         msg.innerText = "Verifying Credentials...";
         const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-        if(error) msg.innerText = error.message;
+        if (error) msg.innerText = error.message;
         else window.location.hash = '#dashboard';
       };
 
@@ -1020,27 +1848,25 @@
 
       const exitAdmin = () => {
         window.location.hash = '';
-        document.getElementById('wrapper').style.display='block';
-        document.getElementById('login-modal').style.display='none';
-        document.getElementById('admin-panel').style.display='none';
+        document.getElementById('wrapper').style.display = 'block';
+        document.getElementById('login-modal').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'none';
       };
 
       const loadAdminData = () => {
-        const getTxt = (id) => document.getElementById(id).innerText;
+        const getTxt = (id) => document.getElementById(id)?.innerText || '';
 
         document.getElementById('edit-brand').value = getTxt('disp-brand');
         document.getElementById('edit-title').value = getTxt('disp-hero-title');
         document.getElementById('edit-subtitle').value = getTxt('disp-hero-subtitle');
-        document.getElementById('edit-bio').value = getTxt('disp-about-text');
-        document.getElementById('edit-about-title').value = getTxt('disp-about-title');
 
-        const insta = document.getElementById('link-insta'); if(insta) document.getElementById('edit-insta').value = insta.href;
-        const yt = document.getElementById('link-yt'); if(yt) document.getElementById('edit-yt').value = yt.href;
-        const wa = document.getElementById('link-wa'); if(wa) document.getElementById('edit-wa').value = wa.href;
-        const mail = document.getElementById('btn-email-main'); if(mail) document.getElementById('edit-email').value = mail.href.replace('mailto:', '');
+        const insta = document.getElementById('link-insta'); if (insta) document.getElementById('edit-insta').value = insta.href;
+        const yt = document.getElementById('link-yt'); if (yt) document.getElementById('edit-yt').value = yt.href;
+        const wa = document.getElementById('link-wa'); if (wa) document.getElementById('edit-wa').value = wa.href;
+        const mail = document.getElementById('btn-email-main'); if (mail) document.getElementById('edit-email').value = mail.href.replace('mailto:', '');
 
         document.getElementById('edit-wa-phone').value = state.whatsappPhone || '';
-        document.getElementById('edit-wa-template').value = state.whatsappTemplate || '';
+        document.getElementById('edit-wa-template').value = state.whatsappTemplate || state.whatsappTemplate;
 
         document.getElementById('edit-loader-w1').value = state.loaderWord1 || '';
         document.getElementById('edit-loader-w2').value = state.loaderWord2 || '';
@@ -1053,10 +1879,11 @@
         document.getElementById('edit-ui-wm-opacity').value = String(state.uiWatermarkOpacity || 0.15);
       };
 
+      // site_content saves
       const saveBranding = async () => {
         await supabase.from('site_content').upsert({ id: 'site_name', content: document.getElementById('edit-brand').value });
         alert("Saved!");
-        fetchData();
+        fetchContentAndGallery();
       };
 
       const saveHero = async () => {
@@ -1065,7 +1892,7 @@
           { id: 'hero_subtitle', content: document.getElementById('edit-subtitle').value }
         ]);
         alert("Saved!");
-        fetchData();
+        fetchContentAndGallery();
       };
 
       const saveLinks = async () => {
@@ -1076,7 +1903,7 @@
           { id: 'email', content: document.getElementById('edit-email').value }
         ]);
         alert("Saved!");
-        fetchData();
+        fetchContentAndGallery();
       };
 
       const saveWhatsAppSettings = async () => {
@@ -1085,7 +1912,7 @@
           { id: 'whatsapp_template', content: document.getElementById('edit-wa-template').value }
         ]);
         alert("WhatsApp saved!");
-        fetchData();
+        fetchContentAndGallery();
       };
 
       const saveLoader = async () => {
@@ -1096,7 +1923,7 @@
           { id: 'loader_color2', content: document.getElementById('edit-loader-c2').value }
         ]);
         alert("Loader saved!");
-        fetchData();
+        fetchContentAndGallery();
       };
 
       const saveUI = async () => {
@@ -1107,78 +1934,193 @@
           { id: 'ui_watermark_opacity', content: document.getElementById('edit-ui-wm-opacity').value }
         ]);
         alert("UI saved!");
-        fetchData();
+        fetchContentAndGallery();
       };
 
-      const editMediaMeta = async (id, currentTitle, currentDesc) => {
-        const newTitle = prompt("Title:", currentTitle || '');
-        if (newTitle === null) return;
-
-        const newDescRaw = prompt("Description (use \\n for new lines):", (currentDesc || '').replaceAll('\n', '\\n'));
-        if (newDescRaw === null) return;
-
-        const newDesc = newDescRaw.replaceAll('\\n', '\n');
-
-        await supabase.from('gallery').update({ title: newTitle, description: newDesc }).eq('id', id);
-        alert("Updated!");
-        fetchData();
+      // Sections CRUD
+      const reloadSections = async () => {
+        await fetchSections();
+        alert("Sections refreshed.");
       };
 
-      const uploadArtistPic = async () => {
-        const file = document.getElementById('upload-artist').files[0];
-        await supabase.from('site_content').upsert([
-          { id: 'about_text', content: document.getElementById('edit-bio').value },
-          { id: 'about_title', content: document.getElementById('edit-about-title').value }
-        ]);
-        if(file) {
-          const name = `profile_${Date.now()}`;
-          await supabase.storage.from('portfolio').upload(name, file);
-          const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
-          await supabase.from('site_content').upsert({ id: 'artist_image', content: data.publicUrl });
+      const createSection = async () => {
+        const slug = document.getElementById('sec-slug').value.trim();
+        const title = document.getElementById('sec-title').value.trim();
+        const subtitle = document.getElementById('sec-subtitle').value.trim();
+        const body = document.getElementById('sec-body').value;
+        const enabled = (document.getElementById('sec-enabled').value || 'true').toLowerCase() === 'true';
+        const sort_order = parseInt(document.getElementById('sec-sort').value || '0', 10);
+
+        if (!slug) return alert("Slug is required.");
+        if (!title) return alert("Title is required.");
+
+        const { error } = await supabase.from('site_sections').insert([{ slug, title, subtitle, body, enabled, sort_order }]);
+        if (error) return alert(error.message);
+
+        alert("Section added!");
+        clearSectionEditor();
+        fetchSections();
+      };
+
+      const clearSectionEditor = () => {
+        state.editingSectionId = null;
+        document.getElementById('sec-slug').value = '';
+        document.getElementById('sec-title').value = '';
+        document.getElementById('sec-subtitle').value = '';
+        document.getElementById('sec-body').value = '';
+        document.getElementById('sec-enabled').value = 'true';
+        document.getElementById('sec-sort').value = '0';
+
+        const btn = document.getElementById('btn-sec-main');
+        btn.innerText = 'Add Section';
+        btn.onclick = () => createSection();
+      };
+
+      const loadSectionToEditor = (id) => {
+        const s = (state.sections || []).find(x => x.id === id);
+        if (!s) return;
+        state.editingSectionId = id;
+
+        document.getElementById('sec-slug').value = s.slug || '';
+        document.getElementById('sec-title').value = s.title || '';
+        document.getElementById('sec-subtitle').value = s.subtitle || '';
+        document.getElementById('sec-body').value = s.body || '';
+        document.getElementById('sec-enabled').value = s.enabled ? 'true' : 'false';
+        document.getElementById('sec-sort').value = String(s.sort_order ?? 0);
+
+        const btn = document.getElementById('btn-sec-main');
+        btn.innerText = 'Update Section';
+        btn.onclick = () => updateSection();
+      };
+
+      const updateSection = async () => {
+        const id = state.editingSectionId;
+        if (!id) return alert("No section loaded.");
+
+        const slug = document.getElementById('sec-slug').value.trim();
+        const title = document.getElementById('sec-title').value.trim();
+        const subtitle = document.getElementById('sec-subtitle').value.trim();
+        const body = document.getElementById('sec-body').value;
+        const enabled = (document.getElementById('sec-enabled').value || 'true').toLowerCase() === 'true';
+        const sort_order = parseInt(document.getElementById('sec-sort').value || '0', 10);
+
+        const { error } = await supabase.from('site_sections')
+          .update({ slug, title, subtitle, body, enabled, sort_order })
+          .eq('id', id);
+
+        if (error) return alert(error.message);
+        alert("Section updated!");
+        clearSectionEditor();
+        fetchSections();
+      };
+
+      const deleteSection = async (id) => {
+        if (!confirm("Delete this section?")) return;
+        const { error } = await supabase.from('site_sections').delete().eq('id', id);
+        if (error) return alert(error.message);
+        alert("Section deleted.");
+        fetchSections();
+      };
+
+      // Media modal (1)
+      const openMediaModal = (item) => {
+        state.editingMediaId = item.id;
+
+        const url = item.image_url || '';
+        const isVid = isVideoUrl(url);
+
+        document.getElementById('amm-url').value = url;
+        document.getElementById('amm-title').value = item.title || '';
+        document.getElementById('amm-desc').value = item.description || '';
+        document.getElementById('amm-tags').value = item.tags || '';
+
+        document.getElementById('amm-type').innerText = isVid ? 'VIDEO' : 'IMAGE';
+
+        const preview = document.getElementById('amm-preview');
+        preview.innerHTML = `<div class="badge" id="amm-type">${isVid ? 'VIDEO' : 'IMAGE'}</div>` +
+          (isVid
+            ? `<video src="${url}" controls playsinline style="width:100%;height:100%;object-fit:cover;background:#000"></video>`
+            : `<img src="${url}" alt="Preview" />`);
+
+        document.getElementById('admin-media-modal').classList.add('active');
+      };
+
+      const closeMediaModal = () => {
+        document.getElementById('admin-media-modal').classList.remove('active');
+        state.editingMediaId = null;
+      };
+
+      const copyMediaUrl = async () => {
+        const url = document.getElementById('amm-url').value;
+        try {
+          await navigator.clipboard.writeText(url);
+          alert("Media URL copied!");
+        } catch {
+          alert("Copy failed. Please copy manually.");
         }
-        alert("Updated!");
-        fetchData();
       };
 
-      const uploadHeroWallpaper = async () => {
-        const file = document.getElementById('upload-hero').files[0];
-        if(!file) return alert("Select file!");
-        const name = `hero_${Date.now()}`;
-        await supabase.storage.from('portfolio').upload(name, file);
-        const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
-        await supabase.from('site_content').upsert({ id: 'hero_bg', content: data.publicUrl });
-        alert("Wallpaper updated!");
-        fetchData();
+      const saveMediaModal = async () => {
+        const id = state.editingMediaId;
+        if (!id) return alert("No media selected.");
+
+        const title = document.getElementById('amm-title').value || '';
+        const description = document.getElementById('amm-desc').value || '';
+        const tags = document.getElementById('amm-tags').value || '';
+
+        const { error } = await supabase.from('gallery')
+          .update({ title, description, tags })
+          .eq('id', id);
+
+        if (error) return alert(error.message);
+
+        alert("Saved!");
+        closeMediaModal();
+        fetchContentAndGallery();
       };
 
+      const deleteMediaFromModal = async () => {
+        const id = state.editingMediaId;
+        if (!id) return;
+        if (!confirm("Delete this media item?")) return;
+        await deleteMedia(id);
+        closeMediaModal();
+      };
+
+      // Media ops
       const uploadMedia = async () => {
         const file = document.getElementById('upload-media').files[0];
-        if(!file) return alert("Select file first!");
+        if (!file) return alert("Select file first!");
         document.getElementById('btn-upload-media').innerText = "Uploading...";
 
         const ext = file.name.split('.').pop();
         const name = `media_${Date.now()}.${ext}`;
         const { error } = await supabase.storage.from('portfolio').upload(name, file);
-        if(error) { alert(error.message); return; }
+        if (error) { alert(error.message); document.getElementById('btn-upload-media').innerText = "Upload to Gallery"; return; }
 
         const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
+        const mediaUrl = data.publicUrl;
 
-        await supabase.from('gallery').insert([{ image_url: data.publicUrl, title: '', description: '' }]);
+        const autoType = isVideoUrl(mediaUrl) ? 'video' : 'image';
+
+        const { error: insErr } = await supabase.from('gallery')
+          .insert([{ image_url: mediaUrl, title: '', description: '', tags: '', media_type: autoType }]);
+
+        if (insErr) alert(insErr.message);
+        else alert("Success!");
 
         document.getElementById('btn-upload-media').innerText = "Upload to Gallery";
-        alert("Success!");
-        fetchData();
+        fetchContentAndGallery();
       };
 
       const deleteMedia = async (id) => {
-        if(confirm("Delete item?")) {
-          await supabase.from('gallery').delete().eq('id', id);
-          fetchData();
-        }
+        const { error } = await supabase.from('gallery').delete().eq('id', id);
+        if (error) return alert(error.message);
+        fetchContentAndGallery();
       };
 
       const shareProfile = () => {
-        if(navigator.share) navigator.share({ title: 'Portfolio', url: window.location.href });
+        if (navigator.share) navigator.share({ title: 'Portfolio', url: window.location.href });
         else { navigator.clipboard.writeText(window.location.href); alert("Copied!"); }
       };
 
@@ -1196,11 +2138,22 @@
         saveWhatsAppSettings,
         saveLoader,
         saveUI,
-        uploadArtistPic,
-        uploadHeroWallpaper,
         uploadMedia,
         deleteMedia,
-        shareProfile
+        shareProfile,
+
+        // sections
+        reloadSections,
+        createSection,
+        loadSectionToEditor,
+        deleteSection,
+
+        // media modal
+        openMediaModal,
+        closeMediaModal,
+        copyMediaUrl,
+        saveMediaModal,
+        deleteMediaFromModal
       };
     })();
 
