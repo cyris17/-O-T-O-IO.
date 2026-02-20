@@ -1,1144 +1,1210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <meta name="description" content="Professional Visual Artist Portfolio - Photography, Videography & Creative Direction.">
-    <meta name="author" content="Visual Stories">
-    
-    <meta property="og:title" content="Visual Stories | Master Portfolio">
-    <meta property="og:description" content="Immersive visual journey showcasing high-end photography.">
-    <meta property="og:type" content="website">
-    
-    <title>Visual Stories | Masterpiece Edition</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg-master: #000000;
-            --bg-surface: #050505;
-            --bg-card: #0a0a0a;
-            --bg-panel: #0f0f0f;
-            
-            --header-bg: rgba(0, 0, 0, 0.4); 
-            --header-blur: 10px;
-            
-            --font-sans: 'Inter', sans-serif;
-            --font-serif: 'Playfair Display', serif;
-            
-            --text-main: #ffffff;
-            --text-secondary: #a0a0a0;
-            --text-muted: #555555;
-            
-            --accent: #ffffff;
-            --border-light: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.25);
-            --signal-success: #00cc66;
-            --signal-danger: #ff4444;
-            
-            --nav-height: 85px;
-            --max-width: 1400px;
-            --padding-mobile: 25px;
-            --padding-desktop: 80px;
-            
-            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-            --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            --trans-fast: 0.3s;
-            --trans-slow: 0.8s;
-            
-            --z-grain: 9000;
-            --z-loader: 9999;
-            --z-cursor: 9500;
-            --z-modal: 5000;
-            --z-nav: 1000;
-            --z-content: 50;
-            --z-overlay: 10;
-            --z-base: 1;
-            --z-back: -1;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
 
-        *, *::before, *::after {
-            margin: 0; padding: 0; box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; outline: none;
-        }
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-        html { font-size: 16px; scroll-behavior: auto; }
+  <meta name="description" content="Professional Visual Artist Portfolio - Photography, Videography & Creative Direction.">
+  <meta name="author" content="Visual Stories">
 
-        body {
-            background-color: var(--bg-master);
-            color: var(--text-main);
-            font-family: var(--font-sans);
-            overflow-x: hidden;
-            width: 100%; min-height: 100vh;
-            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-            overscroll-behavior: none;
-        }
+  <meta property="og:title" content="Visual Stories | Master Portfolio">
+  <meta property="og:description" content="Immersive visual journey showcasing high-end photography.">
+  <meta property="og:type" content="website">
 
-        body.protected {
-            -webkit-user-select: none; user-select: none;
-            -webkit-touch-callout: none;
-        }
-        body.protected img, body.protected video {
-            pointer-events: none; -webkit-user-drag: none;
-        }
+  <title>Visual Stories | Masterpiece Edition</title>
 
-        a { text-decoration: none; color: inherit; cursor: pointer; transition: opacity var(--trans-fast); }
-        button { border: none; background: none; cursor: pointer; font-family: inherit; }
-        img, video { display: block; width: 100%; height: auto; }
-        ul { list-style: none; }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+  <style>
+    :root{
+      --bg-master:#000;
+      --text-main:#fff;
+      --text-secondary:#a0a0a0;
+      --border-light:rgba(255,255,255,.08);
+      --signal-danger:#ff4444;
 
-        .film-grain {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: var(--z-grain);
-            opacity: 0.04;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        }
+      --header-bg:rgba(0,0,0,.4);
+      --header-blur:10px;
 
-        #preloader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #000; z-index: var(--z-loader);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.8s var(--ease-out-expo), visibility 0.8s;
-        }
-        #preloader.vanish { opacity: 0; visibility: hidden; pointer-events: none; }
+      --font-sans:'Inter',sans-serif;
 
-        .loader-logo {
-            font-size: 1.5rem; font-weight: 900; letter-spacing: 4px;
-            color: white; margin-bottom: 20px; text-transform: uppercase;
-            animation: pulse 2s infinite;
-        }
-        .loader-line-wrap {
-            width: 150px; height: 2px; background: #222; overflow: hidden; border-radius: 2px;
-        }
-        .loader-line-fill {
-            width: 0%; height: 100%; background: white;
-            animation: loadFill 1.5s var(--ease-out-expo) forwards;
-        }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes loadFill { to { width: 100%; } }
+      --nav-height:85px;
+      --max-width:1400px;
 
-        nav {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 5%; z-index: var(--z-nav);
-            background: var(--header-bg);
-            backdrop-filter: blur(var(--header-blur));
-            -webkit-backdrop-filter: blur(var(--header-blur));
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.4s var(--ease-out-expo);
-        }
+      --ease-out-expo:cubic-bezier(.19,1,.22,1);
 
-        .logo {
-            font-size: 1.2rem; font-weight: 900; letter-spacing: -0.5px;
-            text-transform: uppercase; color: white; white-space: nowrap;
-        }
+      --z-grain:9000;
+      --z-loader:9999;
+      --z-modal:5000;
+      --z-nav:1000;
+      --z-content:50;
+      --z-back:-1;
 
-        .nav-right-side { display: flex; align-items: center; gap: 40px; }
+      --loader-color1:#fff;
+      --loader-color2:#a0a0a0;
+    }
 
-        .desktop-links { display: flex; gap: 30px; align-items: center; }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;outline:none;}
+    html{font-size:16px;scroll-behavior:auto;}
+    body{
+      background:var(--bg-master);color:var(--text-main);font-family:var(--font-sans);
+      overflow-x:hidden;min-height:100vh;-webkit-font-smoothing:antialiased;overscroll-behavior:none;
+    }
 
-        .nav-link {
-            font-size: 0.85rem; font-weight: 600; color: white;
-            text-transform: uppercase; letter-spacing: 1px;
-            cursor: pointer; opacity: 0.8; transition: 0.3s;
-            position: relative;
-        }
-        .nav-link:hover { opacity: 1; }
-        .nav-link::after {
-            content: ''; position: absolute; bottom: -4px; left: 0; width: 0%; height: 2px;
-            background: white; transition: 0.3s var(--ease-out-expo);
-        }
-        .nav-link:hover::after { width: 100%; }
+    body.protected{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+    body.protected img,body.protected video{pointer-events:none;-webkit-user-drag:none;}
 
-        .btn-contact {
-            background: white; color: black; padding: 10px 28px;
-            border-radius: 100px; font-size: 0.75rem; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
-            white-space: nowrap;
-        }
-        .btn-contact:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(255,255,255,0.3); }
-        .btn-contact:active { transform: scale(0.95); }
+    a{text-decoration:none;color:inherit;cursor:pointer;transition:opacity .25s;}
+    button{border:none;background:none;cursor:pointer;font-family:inherit;}
+    img,video{display:block;width:100%;height:auto;}
 
-        .admin-trigger { width: 20px; height: 20px; opacity: 0; cursor: default; }
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:#000;}
+    ::-webkit-scrollbar-thumb{background:#333;border-radius:4px;}
+    ::-webkit-scrollbar-thumb:hover{background:#555;}
 
-        .hero {
-            position: relative;
-            height: 100dvh; 
-            width: 100%;
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center; text-align: center;
-            overflow: hidden; padding: 0 var(--padding-mobile);
-        }
+    .film-grain{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      pointer-events:none;z-index:var(--z-grain);opacity:.04;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
 
-        .hero-bg-wrapper {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: var(--z-back); pointer-events: none;
-            background: #000;
-        }
-        
-        /* UPDATED: hero wallpaper original framing + HD */
-        .hero-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            object-position: center;
-            transform: none;
-            background: #000;
-        }
+    /* PRELOADER */
+    #preloader{
+      position:fixed;inset:0;background:#000;z-index:var(--z-loader);
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      transition:opacity .8s var(--ease-out-expo),visibility .8s;
+    }
+    #preloader.vanish{opacity:0;visibility:hidden;pointer-events:none;}
 
-        .hero-vignette-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(
-                circle at center,
-                transparent 40%,
-                rgba(0,0,0,0.3) 60%,
-                rgba(0,0,0,0.8) 90%,
-                #000000 100%
-            );
-            z-index: 2; pointer-events: none;
-        }
-        
-        .hero-top-fade {
-            position: absolute; top: 0; left: 0; width: 100%; height: 180px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
-            z-index: 3; pointer-events: none;
-        }
+    .loader-logo{
+      font-size:1.5rem;font-weight:900;letter-spacing:4px;text-transform:uppercase;
+      animation:pulse 2s infinite;
+    }
+    .loader-logo .w1{color:var(--loader-color1);}
+    .loader-logo .w2{color:var(--loader-color2);}
+    .loader-line-wrap{width:150px;height:2px;background:#222;overflow:hidden;border-radius:2px;}
+    .loader-line-fill{width:0;height:100%;background:#fff;animation:loadFill 1.5s var(--ease-out-expo) forwards;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes loadFill{to{width:100%}}
 
-        .hero-bottom-fade {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 300px;
-            background: linear-gradient(to top, var(--bg-master) 10%, transparent 100%);
-            z-index: 3; pointer-events: none;
-        }
+    nav{
+      position:fixed;top:0;left:0;width:100%;height:var(--nav-height);
+      display:flex;justify-content:space-between;align-items:center;
+      padding:0 5%;z-index:var(--z-nav);
+      background:var(--header-bg);
+      backdrop-filter:blur(var(--header-blur));
+      -webkit-backdrop-filter:blur(var(--header-blur));
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .logo{font-size:1.2rem;font-weight:900;text-transform:uppercase;color:#fff;white-space:nowrap;}
+    .nav-right-side{display:flex;align-items:center;gap:40px;}
+    .desktop-links{display:flex;gap:30px;align-items:center;}
+    .nav-link{
+      font-size:.85rem;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:1px;
+      opacity:.8;position:relative;
+    }
+    .nav-link:hover{opacity:1;}
+    .nav-link::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:#fff;transition:.3s var(--ease-out-expo);}
+    .nav-link:hover::after{width:100%;}
+    .btn-contact{
+      background:#fff;color:#000;padding:10px 28px;border-radius:100px;
+      font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+      transition:transform .2s, box-shadow .2s;
+      white-space:nowrap;
+    }
+    .btn-contact:hover{transform:scale(1.05);box-shadow:0 0 25px rgba(255,255,255,.3);}
+    .btn-contact:active{transform:scale(.95);}
+    .admin-trigger{width:20px;height:20px;opacity:0;cursor:default;}
 
-        .hero-content {
-            z-index: var(--z-content); opacity: 0; transform: translateY(50px);
-            width: 100%; max-width: var(--max-width);
-        }
+    /* HERO */
+    .hero{
+      position:relative;height:100dvh;width:100%;
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      text-align:center;overflow:hidden;padding:0 25px;
+    }
+    .hero-bg-wrapper{position:absolute;inset:0;z-index:var(--z-back);pointer-events:none;background:#000;}
+    .hero-img{
+      width:100%;height:100%;object-fit:contain;object-position:center;
+      transform:none;background:#000;
+    }
+    .hero-vignette-overlay{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 40%,rgba(0,0,0,.3) 60%,rgba(0,0,0,.8) 90%,#000 100%);z-index:2;pointer-events:none;}
+    .hero-top-fade{position:absolute;top:0;left:0;width:100%;height:180px;background:linear-gradient(to bottom,rgba(0,0,0,.9) 0%,transparent 100%);z-index:3;pointer-events:none;}
+    .hero-bottom-fade{position:absolute;bottom:0;left:0;width:100%;height:300px;background:linear-gradient(to top,#000 10%,transparent 100%);z-index:3;pointer-events:none;}
+    .hero-content{z-index:var(--z-content);opacity:0;transform:translateY(50px);width:100%;max-width:var(--max-width);}
+    .hero-title{font-size:clamp(3.5rem,13vw,11rem);font-weight:900;line-height:.9;text-transform:uppercase;letter-spacing:-3px;color:#fff;margin-bottom:20px;text-shadow:0 20px 60px rgba(0,0,0,.9);}
+    .hero-subtitle{font-size:clamp(.9rem,3vw,1.2rem);font-weight:500;text-transform:uppercase;letter-spacing:4px;color:rgba(255,255,255,.9);text-shadow:0 5px 15px rgba(0,0,0,.8);}
 
-        .hero-title {
-            font-size: clamp(3.5rem, 13vw, 11rem); font-weight: 900;
-            line-height: 0.9; text-transform: uppercase; letter-spacing: -3px;
-            color: white; margin-bottom: 20px;
-            text-shadow: 0 20px 60px rgba(0,0,0,0.9);
-        }
+    .scroll-indicator{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:1.5rem;animation:bounce 2s infinite;z-index:10;cursor:pointer;}
+    @keyframes bounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,15px)}}
 
-        .hero-subtitle {
-            font-size: clamp(0.9rem, 3vw, 1.2rem); font-weight: 500;
-            text-transform: uppercase; letter-spacing: 4px; color: rgba(255,255,255,0.9);
-            text-shadow: 0 5px 15px rgba(0,0,0,0.8);
-        }
+    /* SECTIONS */
+    .section-artist{padding:120px 0;background:#000;position:relative;z-index:5;}
+    .container{width:100%;max-width:var(--max-width);margin:0 auto;padding:0 40px;}
+    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+    .artist-img-wrapper{width:100%;display:flex;justify-content:center;}
+    .artist-img{
+      width:100%;max-width:600px;border-radius:4px;
+      filter:grayscale(100%) contrast(1.1);transition:.8s ease;
+      -webkit-mask-image:radial-gradient(circle at center,black 40%,transparent 100%);
+      mask-image:radial-gradient(circle at center,black 40%,transparent 100%);
+    }
+    .artist-img:hover{
+      filter:grayscale(0%);transform:scale(1.02);
+      -webkit-mask-image:radial-gradient(circle at center,black 70%,transparent 100%);
+      mask-image:radial-gradient(circle at center,black 70%,transparent 100%);
+    }
+    .tag{display:inline-block;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text-secondary);margin-bottom:25px;border-bottom:1px solid #333;padding-bottom:5px;}
+    .about-head{font-size:clamp(2.5rem,5vw,4.5rem);font-weight:800;margin-bottom:30px;line-height:1;letter-spacing:-1px;}
+    .about-body{font-size:1.2rem;color:#b0b0b0;line-height:1.7;margin-bottom:0;}
 
-        .scroll-indicator {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            color: rgba(255,255,255,0.6); font-size: 1.5rem;
-            animation: bounce 2s infinite; z-index: 10; cursor: pointer;
-        }
-        @keyframes bounce { 0%,100% { transform: translate(-50%,0); } 50% { transform: translate(-50%,15px); } }
+    /* GALLERY */
+    .section-work{padding:50px 0 150px;background:#000;}
+    .work-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:60px;border-bottom:1px solid var(--border-light);padding-bottom:20px;}
+    .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:40px;}
 
-        .section-artist {
-            padding: 120px 0; background: var(--bg-master); position: relative; z-index: 5;
-        }
-        .container {
-            width: 100%; max-width: var(--max-width); margin: 0 auto; padding: 0 40px;
-        }
-        .about-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
-        }
+    .tilt-card{
+      position:relative;aspect-ratio:4/5;border-radius:12px;
+      background:#0b0b0b;border:1px solid rgba(255,255,255,.06);
+      cursor:pointer;opacity:0;
+      transition:transform .25s var(--ease-out-expo), box-shadow .25s var(--ease-out-expo);
+      box-shadow:0 20px 70px rgba(0,0,0,.35);
+      transform-style:preserve-3d;perspective:1000px;
+    }
+    .tilt-card:hover{transform:translateY(-10px) scale(1.01);box-shadow:0 35px 120px rgba(0,0,0,.6);}
+    .card-inner{width:100%;height:100%;position:relative;overflow:hidden;border-radius:12px;background:#000;transform:translateZ(0);transition:transform .1s;}
+    .card-inner img,.card-inner video{
+      width:100%;height:100%;object-fit:contain;background:#000;
+      filter:none;transform:none;
+    }
 
-        .artist-img-wrapper { width: 100%; display: flex; justify-content: center; }
-        
-        .artist-img {
-            width: 100%; max-width: 600px;
-            border-radius: 4px;
-            filter: grayscale(100%) contrast(1.1); transition: 0.8s ease;
-            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
-            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
-        }
-        .artist-img:hover {
-            filter: grayscale(0%); transform: scale(1.02);
-            -webkit-mask-image: radial-gradient(circle at center, black 70%, transparent 100%);
-            mask-image: radial-gradient(circle at center, black 70%, transparent 100%);
-        }
+    .play-badge{
+      position:absolute;top:18px;right:18px;width:40px;height:40px;border-radius:50%;
+      background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;
+      border:1px solid rgba(255,255,255,.2);z-index:3;pointer-events:none;
+    }
 
-        .tag {
-            display: inline-block; font-size: 0.8rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary);
-            margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 5px;
-        }
-        .about-head {
-            font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 800;
-            margin-bottom: 30px; line-height: 1; letter-spacing: -1px;
-        }
-        .about-body { font-size: 1.2rem; color: #b0b0b0; line-height: 1.7; margin-bottom: 0; }
+    .watermark{
+      position:absolute;
+      top:18px;
+      left:18px;
+      z-index:3;
+      pointer-events:none;
+      font-weight:900;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      color:rgba(255,255,255,var(--wm-opacity,0.15));
+      font-size:0.7rem;
+      text-shadow:0 8px 25px rgba(0,0,0,0.6);
+    }
 
-        .section-work { padding: 50px 0 150px; background: var(--bg-master); }
-        
-        .work-header {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            margin-bottom: 60px; border-bottom: 1px solid var(--border-light); padding-bottom: 20px;
-        }
+    .card-overlay{
+      position:absolute;left:0;bottom:0;width:100%;
+      padding:18px 18px 16px;
+      background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.2),transparent);
+      z-index:2;display:flex;flex-direction:column;gap:8px;
+    }
+    .card-title{color:#fff;font-size:.9rem;font-weight:900;letter-spacing:.7px;text-transform:uppercase;}
+    .card-desc{color:rgba(255,255,255,.78);font-size:.85rem;line-height:1.35;white-space:pre-line;}
+    .card-actions{display:flex;gap:10px;margin-top:6px;}
 
-        .gallery-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 40px;
-        }
+    .btn-wa{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:10px 14px;border-radius:999px;background:#25D366;color:#001b0c;
+      font-weight:900;font-size:.75rem;text-transform:uppercase;letter-spacing:.6px;
+      border:1px solid rgba(255,255,255,.15);
+    }
+    .btn-wa:hover{filter:brightness(1.05);}
 
-        .tilt-card {
-            position: relative; aspect-ratio: 4/5; background: #111;
-            border-radius: 6px; cursor: pointer; opacity: 0;
-            transform-style: preserve-3d; perspective: 1000px;
-        }
+    /* FOOTER */
+    .section-footer{padding:120px 0 60px;background:#080808;border-top:1px solid var(--border-light);text-align:center;}
+    .cta-big{font-size:clamp(3rem,8vw,7rem);font-weight:800;margin-bottom:40px;background:linear-gradient(to right,#fff,#666);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .socials{display:flex;justify-content:center;gap:40px;margin:50px 0;}
+    .social-icon{font-size:2rem;color:#555;transition:.3s;}
+    .social-icon:hover{color:#fff;transform:translateY(-5px);}
+    .btn-share{margin-top:30px;background:transparent;border:1px solid #333;color:#888;padding:12px 35px;border-radius:50px;font-size:.85rem;transition:.3s;cursor:pointer;}
+    .btn-share:hover{border-color:#fff;color:#fff;}
+    .copyright{margin-top:80px;font-size:.75rem;color:#444;text-transform:uppercase;letter-spacing:1px;}
 
-        .card-inner {
-            width: 100%; height: 100%; position: relative; overflow: hidden; border-radius: 6px;
-            transform: translateZ(0); transition: transform 0.1s;
-        }
+    /* BACK TO TOP */
+    .back-top{
+      position:fixed;bottom:30px;right:30px;width:55px;height:55px;border-radius:50%;
+      background:#fff;color:#000;display:flex;align-items:center;justify-content:center;
+      opacity:0;transform:translateY(20px);transition:.3s;cursor:pointer;z-index:var(--z-modal);
+      box-shadow:0 10px 30px rgba(0,0,0,.3);
+    }
+    .back-top.visible{opacity:1;transform:translateY(0);}
 
-        /* UPDATED: color by default + original framing */
-        .card-inner img, .card-inner video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: transform 0.8s var(--ease-out-expo), filter 0.5s;
-            filter: none;
-            background: #000;
-        }
+    /* LIGHTBOX */
+    #lightbox{
+      position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:var(--z-modal);
+      display:none;justify-content:center;align-items:center;opacity:0;transition:.25s;
+    }
+    #lightbox.active{display:flex;opacity:1;}
+    .lightbox-close{position:absolute;top:24px;right:24px;font-size:2rem;color:#fff;cursor:pointer;z-index:20;}
+    .lightbox-content{
+      width:min(96vw,1600px);height:min(92vh,900px);
+      border-radius:12px;overflow:hidden;background:#000;
+      box-shadow:0 0 120px rgba(0,0,0,.8);
+      position:relative;
+    }
+    .zoom-stage{width:100%;height:100%;overflow:hidden;cursor:grab;position:relative;background:#000;touch-action:none;}
+    .zoom-stage.dragging{cursor:grabbing;}
+    .zoom-media{
+      position:absolute;left:50%;top:50%;
+      transform:translate(-50%,-50%) scale(1);
+      transform-origin:center center;will-change:transform;
+      max-width:none;max-height:none;
+    }
+    .lightbox-bottombar{
+      position:absolute;left:16px;right:16px;bottom:16px;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      z-index:15;pointer-events:none;
+    }
+    .lightbox-bottombar .left,.lightbox-bottombar .right{display:flex;gap:10px;align-items:center;pointer-events:auto;}
+    .pill{
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.85);
+      padding:10px 12px;border-radius:999px;font-size:.78rem;
+      backdrop-filter:blur(8px);
+    }
+    .nav-arrow{
+      width:44px;height:44px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.15);
+      color:#fff;
+    }
 
-        .tilt-card:hover img, .tilt-card:hover video { transform: scale(1.03); filter: none; }
+    /* ADMIN */
+    #login-modal{position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:6000;display:none;justify-content:center;align-items:center;}
+    .login-box{width:340px;background:#111;padding:50px;border:1px solid #333;border-radius:16px;text-align:center;}
 
-        .play-badge {
-            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 12px; pointer-events: none; border: 1px solid rgba(255,255,255,0.2);
-            z-index: 3;
-        }
+    #admin-panel{display:none;position:fixed;inset:0;background:#050505;z-index:5000;overflow-y:auto;padding:50px 30px;}
+    .admin-head{max-width:1100px;margin:0 auto 50px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-light);padding-bottom:30px;}
+    .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:30px;max-width:1100px;margin:0 auto;}
+    .admin-card{background:#111;padding:35px;border-radius:16px;border:1px solid #222;}
+    .admin-card h3{color:#fff;margin-bottom:25px;font-size:1.1rem;}
+    .admin-label{display:block;font-size:.75rem;color:#666;text-transform:uppercase;margin-bottom:10px;font-weight:700;letter-spacing:1px;}
+    .admin-input{width:100%;background:#000;border:1px solid #333;color:#fff;padding:16px;margin-bottom:20px;border-radius:8px;font-size:.95rem;}
+    .btn-action{width:100%;padding:16px;background:#fff;color:#000;font-weight:800;border-radius:8px;text-transform:uppercase;cursor:pointer;}
 
-        .card-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            padding: 18px 18px 16px;
-            background: linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.15), transparent);
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+    .media-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-top:25px;}
+    .thumb{position:relative;aspect-ratio:1;background:#222;overflow:hidden;border-radius:10px;border:1px solid rgba(255,255,255,.06);}
+    .thumb img,.thumb video{width:100%;height:100%;object-fit:cover;opacity:.92;}
+    .thumb-edit{position:absolute;left:10px;right:10px;bottom:10px;z-index:2;display:flex;gap:10px;}
+    .thumb-btn{
+      flex:1;background:rgba(255,255,255,.92);border-radius:12px;padding:10px 12px;
+      font-weight:900;font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;
+    }
+    .thumb-del{
+      position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:12px;
+      background:rgba(220,30,30,.88);color:#fff;display:flex;justify-content:center;align-items:center;z-index:3;
+    }
 
-        .card-title {
-            color: #fff;
-            font-size: 0.9rem;
-            font-weight: 900;
-            letter-spacing: 0.7px;
-            text-transform: uppercase;
-        }
-
-        .card-desc {
-            color: rgba(255,255,255,0.78);
-            font-size: 0.85rem;
-            line-height: 1.35;
-            white-space: pre-line;
-        }
-
-        .card-actions { display: flex; gap: 10px; margin-top: 6px; }
-
-        .btn-wa {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            border-radius: 999px;
-            background: #25D366;
-            color: #001b0c;
-            font-weight: 900;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-        .btn-wa:hover { filter: brightness(1.05); }
-
-        .section-footer {
-            padding: 120px 0 60px; background: #080808; border-top: 1px solid var(--border-light); text-align: center;
-        }
-        .cta-big {
-            font-size: clamp(3rem, 8vw, 7rem); font-weight: 800; margin-bottom: 40px;
-            background: linear-gradient(to right, #fff, #666); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .socials { display: flex; justify-content: center; gap: 40px; margin: 50px 0; }
-        .social-icon { font-size: 2rem; color: #555; transition: 0.3s; }
-        .social-icon:hover { color: white; transform: translateY(-5px); }
-        
-        .btn-share {
-            margin-top: 30px; background: transparent; border: 1px solid #333; color: #888;
-            padding: 12px 35px; border-radius: 50px; font-size: 0.85rem; transition: 0.3s; cursor: pointer;
-        }
-        .btn-share:hover { border-color: white; color: white; }
-
-        .copyright { margin-top: 80px; font-size: 0.75rem; color: #444; text-transform: uppercase; letter-spacing: 1px; }
-
-        #lightbox {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); z-index: var(--z-modal); display: none;
-            justify-content: center; align-items: center; opacity: 0; transition: 0.3s;
-        }
-        #lightbox.active { display: flex; opacity: 1; }
-        .lightbox-content {
-            max-width: 95vw; max-height: 95vh; border-radius: 4px; overflow: hidden;
-            box-shadow: 0 0 100px rgba(0,0,0,0.8);
-        }
-        .lightbox-content.zoomed { transform: scale(1.5); cursor: zoom-out; }
-        .lightbox-content img { cursor: zoom-in; }
-        .lightbox-close { position: absolute; top: 30px; right: 30px; font-size: 2rem; color: white; cursor: pointer; }
-
-        #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 6000; display: none; justify-content: center; align-items: center; }
-        .login-box { width: 340px; background: #111; padding: 50px; border: 1px solid #333; border-radius: 16px; text-align: center; }
-
-        .back-top {
-            position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px;
-            background: white; color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            opacity: 0; transform: translateY(20px); transition: 0.3s; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: var(--z-modal);
-        }
-        .back-top.visible { opacity: 1; transform: translateY(0); }
-
-        #admin-panel {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #050505; z-index: 5000; overflow-y: auto; padding: 50px 30px;
-        }
-        .admin-head {
-            max-width: 1100px; margin: 0 auto 50px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border-light); padding-bottom: 30px;
-        }
-        .admin-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px; max-width: 1100px; margin: 0 auto;
-        }
-        .admin-card { background: #111; padding: 35px; border-radius: 16px; border: 1px solid #222; }
-        .admin-card h3 { color: white; margin-bottom: 25px; font-size: 1.1rem; }
-        .admin-label { display: block; font-size: 0.75rem; color: #666; text-transform: uppercase; margin-bottom: 10px; font-weight: 700; letter-spacing: 1px; }
-        .admin-input {
-            width: 100%; background: #000; border: 1px solid #333; color: white;
-            padding: 16px; margin-bottom: 20px; border-radius: 8px; font-size: 0.95rem;
-        }
-        .btn-action {
-            width: 100%; padding: 16px; background: white; color: black; font-weight: 800; border-radius: 8px; text-transform: uppercase; cursor: pointer;
-        }
-        
-        .media-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 25px; }
-        .thumb { position: relative; aspect-ratio: 1; background: #222; overflow: hidden; border-radius: 6px; }
-        .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
-        .thumb-actions {
-            position: absolute;
-            left: 8px;
-            right: 8px;
-            bottom: 8px;
-            display: flex;
-            gap: 8px;
-            z-index: 2;
-        }
-        .thumb-btn {
-            flex: 1;
-            background: rgba(255,255,255,0.92);
-            border-radius: 10px;
-            padding: 10px 10px;
-            font-weight: 900;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-        .del-btn {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(200,0,0,0.6); color: white; display: flex; align-items: center; justify-content: center;
-            opacity: 0; cursor: pointer; transition: 0.2s; font-size: 1.5rem;
-            z-index: 3;
-        }
-        .thumb:hover .del-btn { opacity: 1; }
-
-        @media (min-width: 769px) {
-            .hero { align-items: flex-start; text-align: left; padding-left: 100px; }
-            .hero-content { margin-left: 0; max-width: 80%; }
-            .hero-title { font-size: 160px; letter-spacing: -6px; line-height: 0.85; }
-            .scroll-indicator { left: 100px; transform: translateX(0); }
-            .desktop-links { display: flex; }
-        }
-
-        @media (max-width: 768px) {
-            .container { padding: 0 25px; }
-            .hero-title { font-size: 14vw; letter-spacing: -2px; }
-            .hero { padding: 0 30px; }
-            .desktop-links { display: none !important; }
-            .about-grid { grid-template-columns: 1fr; gap: 50px; }
-            .gallery-grid { grid-template-columns: 1fr; }
-            .admin-grid { grid-template-columns: 1fr; }
-            .media-thumbs { grid-template-columns: repeat(2, 1fr); }
-            nav { padding: 0 20px; }
-            .nav-right-side { gap: 20px; }
-            .section-artist { padding: 80px 0; }
-            .cta-big { font-size: 3rem; }
-        }
-    </style>
+    @media (min-width:769px){
+      .hero{align-items:flex-start;text-align:left;padding-left:100px;}
+      .hero-content{max-width:80%;}
+      .hero-title{font-size:160px;letter-spacing:-6px;line-height:.85;}
+      .scroll-indicator{left:100px;transform:translateX(0);}
+      .desktop-links{display:flex;}
+    }
+    @media (max-width:768px){
+      .container{padding:0 25px;}
+      .hero-title{font-size:14vw;letter-spacing:-2px;}
+      .hero{padding:0 30px;}
+      .desktop-links{display:none!important;}
+      .about-grid{grid-template-columns:1fr;gap:50px;}
+      .gallery-grid{grid-template-columns:1fr;}
+      .admin-grid{grid-template-columns:1fr;}
+      .media-thumbs{grid-template-columns:repeat(2,1fr);}
+      nav{padding:0 20px;}
+      .nav-right-side{gap:20px;}
+    }
+  </style>
 </head>
+
 <body class="protected" oncontextmenu="return false" ondragstart="return false">
+  <div class="film-grain"></div>
 
-    <div class="film-grain"></div>
-
-    <div id="preloader">
-        <div class="loader-logo">VISUAL STORIES</div>
-        <div class="loader-line-wrap"><div class="loader-line-fill"></div></div>
+  <div id="preloader">
+    <div class="loader-logo">
+      <span id="loader-w1" class="w1">CYRIS</span>
+      <span id="loader-w2" class="w2">STUDIO</span>
     </div>
+    <div class="loader-line-wrap"><div class="loader-line-fill"></div></div>
+  </div>
 
-    <div id="wrapper">
-        
-        <nav id="navbar">
-            <div class="logo" id="disp-brand">PORTFOLIO.</div>
-            
-            <div class="nav-right-side">
-                <div class="desktop-links">
-                    <div onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})" class="nav-link">Work</div>
-                    <div onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" class="nav-link">About</div>
-                </div>
-                <div onclick="core.scrollToFooter()" class="btn-contact">Contact</div>
-                
-                <div class="admin-trigger" onclick="core.checkRoute()"></div>
-            </div>
-        </nav>
+  <div id="wrapper">
+    <nav id="navbar">
+      <div class="logo" id="disp-brand">PORTFOLIO.</div>
+      <div class="nav-right-side">
+        <div class="desktop-links">
+          <div onclick="document.getElementById('work').scrollIntoView({behavior:'smooth'})" class="nav-link">Work</div>
+          <div onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})" class="nav-link">About</div>
+        </div>
+        <div onclick="core.scrollToFooter()" class="btn-contact">Contact</div>
+        <div class="admin-trigger" onclick="core.checkRoute()"></div>
+      </div>
+    </nav>
 
-        <header class="hero">
-            <div class="hero-bg-wrapper">
-                <img src="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2000" class="hero-img" id="hero-bg-el" alt="Cinematic Wallpaper">
-            </div>
-            
-            <div class="hero-vignette-overlay"></div>
-            <div class="hero-top-fade"></div>
-            <div class="hero-bottom-fade"></div>
-            
-            <div class="hero-content">
-                <h1 id="disp-hero-title" class="hero-title">VISUAL<br>STORIES.</h1>
-                <p id="disp-hero-subtitle" class="hero-subtitle">PHOTOGRAPHY & VIDEOGRAPHY</p>
-            </div>
+    <header class="hero">
+      <div class="hero-bg-wrapper">
+        <img src="https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2000" class="hero-img" id="hero-bg-el" alt="Cinematic Wallpaper">
+      </div>
 
-            <div class="scroll-indicator" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">
-                <i class="fas fa-chevron-down"></i>
-            </div>
-        </header>
+      <div class="hero-vignette-overlay"></div>
+      <div class="hero-top-fade"></div>
+      <div class="hero-bottom-fade"></div>
 
-        <section id="about" class="section-artist">
-            <div class="container about-grid">
-                <div class="artist-img-wrapper">
-                    <img id="disp-artist-img" class="artist-img" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=800" alt="Artist Profile">
-                </div>
-                <div class="about-text-col">
-                    <span class="tag" id="disp-about-title">The Artist</span>
-                    <h2 id="disp-artist-name" class="about-head">Creative Vision.</h2>
-                    <p id="disp-about-text" class="about-body">
-                        I am an observer of light and shadow. In a world of noise, I seek the quiet moments that tell the loudest stories.
-                    </p>
-                </div>
-            </div>
-        </section>
+      <div class="hero-content">
+        <h1 id="disp-hero-title" class="hero-title">VISUAL<br>STORIES.</h1>
+        <p id="disp-hero-subtitle" class="hero-subtitle">PHOTOGRAPHY & VIDEOGRAPHY</p>
+      </div>
 
-        <section id="work" class="section-work">
-            <div class="container">
-                <div class="work-header">
-                    <span class="tag" style="margin:0; border:none;">Selected Works</span>
-                    <span style="font-size:0.8rem; color:#666;" id="gallery-counter">Loading...</span>
-                </div>
-                
-                <div class="gallery-grid" id="gallery-feed"></div>
-            </div>
-        </section>
+      <div class="scroll-indicator" onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">
+        <i class="fas fa-chevron-down"></i>
+      </div>
+    </header>
 
-        <footer id="contact" class="section-footer">
-            <div class="container">
-                <h2 class="cta-big">Let's Create.</h2>
-                <p style="color:#666; max-width:500px; margin:0 auto 40px;">
-                    Open for collaborations worldwide.
-                </p>
+    <section id="about" class="section-artist">
+      <div class="container about-grid">
+        <div class="artist-img-wrapper">
+          <img id="disp-artist-img" class="artist-img" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=800" alt="Artist Profile">
+        </div>
+        <div class="about-text-col">
+          <span class="tag" id="disp-about-title">The Artist</span>
+          <h2 id="disp-artist-name" class="about-head">Creative Vision.</h2>
+          <p id="disp-about-text" class="about-body">
+            I am an observer of light and shadow. In a world of noise, I seek the quiet moments that tell the loudest stories.
+          </p>
+        </div>
+      </div>
+    </section>
 
-                <div class="socials">
-                    <a id="link-insta" href="#" target="_blank"><i class="fab fa-instagram social-icon"></i></a>
-                    <a id="link-yt" href="#" target="_blank"><i class="fab fa-youtube social-icon"></i></a>
-                    <a id="link-wa" href="#" target="_blank"><i class="fab fa-whatsapp social-icon"></i></a>
-                    <a id="btn-email-main" href="#"><i class="fas fa-envelope social-icon"></i></a>
-                </div>
+    <section id="work" class="section-work">
+      <div class="container">
+        <div class="work-header">
+          <span class="tag" style="margin:0;border:none;">Selected Works</span>
+          <span style="font-size:0.8rem;color:#666;" id="gallery-counter">Loading...</span>
+        </div>
+        <div class="gallery-grid" id="gallery-feed"></div>
+      </div>
+    </section>
 
-                <button class="btn-share" onclick="core.shareProfile()">
-                    <i class="fas fa-share-alt"></i> Share Portfolio
-                </button>
+    <footer id="contact" class="section-footer">
+      <div class="container">
+        <h2 class="cta-big">Let's Create.</h2>
+        <p style="color:#666;max-width:500px;margin:0 auto 40px;">Open for collaborations worldwide.</p>
 
-                <div class="copyright">
-                    &copy; 2026 <span id="disp-footer-brand">PORTFOLIO</span>.
-                    <br><span style="color:#333;">Views: <span id="disp-views">...</span></span>
-                </div>
-            </div>
-        </footer>
-
-        <div id="btn-top" class="back-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">
-            <i class="fas fa-arrow-up"></i>
+        <div class="socials">
+          <a id="link-insta" href="#" target="_blank"><i class="fab fa-instagram social-icon"></i></a>
+          <a id="link-yt" href="#" target="_blank"><i class="fab fa-youtube social-icon"></i></a>
+          <a id="link-wa" href="#" target="_blank"><i class="fab fa-whatsapp social-icon"></i></a>
+          <a id="btn-email-main" href="#"><i class="fas fa-envelope social-icon"></i></a>
         </div>
 
-    </div>
+        <button class="btn-share" onclick="core.shareProfile()">
+          <i class="fas fa-share-alt"></i> Share Portfolio
+        </button>
 
-    <div id="lightbox">
-        <div class="lightbox-close" onclick="core.closeLightbox()">&times;</div>
-        <div id="lightbox-content" class="lightbox-content" onclick="event.stopPropagation()"></div>
-    </div>
-
-    <div id="login-modal">
-        <div class="login-box">
-            <h3 style="color:white; margin-bottom:30px;">SYSTEM ACCESS</h3>
-            <input type="email" id="auth-email" class="admin-input" placeholder="admin@example.com">
-            <input type="password" id="auth-pass" class="admin-input" placeholder="Password">
-            <button class="btn-action" onclick="core.login()">LOGIN</button>
-            <p id="login-error" style="color:var(--signal-danger); font-size:0.8rem; margin-top:20px;"></p>
-            <p onclick="core.exitAdmin()" style="margin-top:25px; color:#666; font-size:0.8rem; cursor:pointer;">Cancel</p>
+        <div class="copyright">
+          &copy; 2026 <span id="disp-footer-brand">PORTFOLIO</span>.
+          <br><span style="color:#333;">Views: <span id="disp-views">...</span></span>
         </div>
+      </div>
+    </footer>
+
+    <div id="btn-top" class="back-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+      <i class="fas fa-arrow-up"></i>
+    </div>
+  </div>
+
+  <div id="lightbox">
+    <div class="lightbox-close" onclick="core.closeLightbox()">&times;</div>
+    <div id="lightbox-content" class="lightbox-content" onclick="event.stopPropagation()"></div>
+  </div>
+
+  <div id="login-modal">
+    <div class="login-box">
+      <h3 style="color:white;margin-bottom:30px;">SYSTEM ACCESS</h3>
+      <input type="email" id="auth-email" class="admin-input" placeholder="admin@example.com">
+      <input type="password" id="auth-pass" class="admin-input" placeholder="Password">
+      <button class="btn-action" onclick="core.login()">LOGIN</button>
+      <p id="login-error" style="color:var(--signal-danger);font-size:0.8rem;margin-top:20px;"></p>
+      <p onclick="core.exitAdmin()" style="margin-top:25px;color:#666;font-size:0.8rem;cursor:pointer;">Cancel</p>
+    </div>
+  </div>
+
+  <div id="admin-panel">
+    <div class="admin-head">
+      <h2 style="color:white;">Command Center</h2>
+      <div style="display:flex;gap:15px;">
+        <button onclick="core.exitAdmin()" style="background:transparent;color:white;border:1px solid #333;padding:10px 20px;border-radius:6px;">View Site</button>
+        <button onclick="core.logout()" style="background:#330000;color:var(--signal-danger);border:none;padding:10px 20px;border-radius:6px;">Logout</button>
+      </div>
     </div>
 
-    <div id="admin-panel">
-        <div class="admin-head">
-            <h2 style="color:white;">Command Center</h2>
-            <div style="display:flex; gap:15px;">
-                <button onclick="core.exitAdmin()" style="background:transparent; color:white; border:1px solid #333; padding:10px 20px; border-radius:6px;">View Site</button>
-                <button onclick="core.logout()" style="background:#330000; color:var(--signal-danger); border:none; padding:10px 20px; border-radius:6px;">Logout</button>
-            </div>
+    <div class="admin-grid">
+      <div class="admin-card">
+        <h3>Branding</h3>
+        <span class="admin-label">Website Name</span>
+        <input type="text" id="edit-brand" class="admin-input">
+        <button class="btn-action" onclick="core.saveBranding()">Update Name</button>
+      </div>
+
+      <div class="admin-card">
+        <h3>Hero Section</h3>
+        <span class="admin-label">Main Title</span>
+        <input type="text" id="edit-title" class="admin-input">
+        <span class="admin-label">Subtitle</span>
+        <input type="text" id="edit-subtitle" class="admin-input">
+        <button class="btn-action" onclick="core.saveHero()">Update Hero</button>
+      </div>
+
+      <div class="admin-card">
+        <h3>Visual Assets</h3>
+        <span class="admin-label">Hero Wallpaper</span>
+        <input type="file" id="upload-hero" class="admin-input" accept="image/*">
+        <button class="btn-action" onclick="core.uploadHeroWallpaper()">Update Wallpaper</button>
+      </div>
+
+      <div class="admin-card">
+        <h3>Artist Profile</h3>
+        <span class="admin-label">Section Title</span>
+        <input type="text" id="edit-about-title" class="admin-input">
+        <span class="admin-label">Bio Text</span>
+        <textarea id="edit-bio" class="admin-input" rows="5"></textarea>
+        <span class="admin-label">Profile Picture</span>
+        <input type="file" id="upload-artist" class="admin-input" accept="image/*">
+        <button class="btn-action" onclick="core.uploadArtistPic()">Update Profile</button>
+      </div>
+
+      <div class="admin-card">
+        <h3>Connections</h3>
+        <input type="text" id="edit-insta" class="admin-input" placeholder="Instagram URL">
+        <input type="text" id="edit-yt" class="admin-input" placeholder="YouTube URL">
+        <input type="text" id="edit-wa" class="admin-input" placeholder="WhatsApp URL (Footer Icon)">
+        <input type="text" id="edit-email" class="admin-input" placeholder="Email Address">
+        <button class="btn-action" onclick="core.saveLinks()">Update Links</button>
+      </div>
+
+      <div class="admin-card">
+        <h3>WhatsApp Contact Button</h3>
+        <span class="admin-label">WhatsApp Phone (digits only)</span>
+        <input type="text" id="edit-wa-phone" class="admin-input" placeholder="e.g. 2348012345678">
+        <span class="admin-label">Message Template</span>
+        <textarea id="edit-wa-template" class="admin-input" rows="6" placeholder="Use {title}, {url}, {type}"></textarea>
+        <button class="btn-action" onclick="core.saveWhatsAppSettings()">Save WhatsApp Settings</button>
+      </div>
+
+      <div class="admin-card">
+        <h3>Loader (Preloader)</h3>
+        <span class="admin-label">Word 1 Text</span>
+        <input type="text" id="edit-loader-w1" class="admin-input" placeholder="e.g. CYRIS">
+        <span class="admin-label">Word 1 Color</span>
+        <input type="text" id="edit-loader-c1" class="admin-input" placeholder="#ffffff">
+        <span class="admin-label">Word 2 Text</span>
+        <input type="text" id="edit-loader-w2" class="admin-input" placeholder="e.g. STUDIO">
+        <span class="admin-label">Word 2 Color</span>
+        <input type="text" id="edit-loader-c2" class="admin-input" placeholder="#a0a0a0">
+        <button class="btn-action" onclick="core.saveLoader()">Save Loader</button>
+      </div>
+
+      <div class="admin-card">
+        <h3>UI Options</h3>
+        <span class="admin-label">Enable Lightbox Next/Prev (1=yes, 0=no)</span>
+        <input type="text" id="edit-ui-nav" class="admin-input" placeholder="1">
+        <span class="admin-label">Enable Watermark (1=yes, 0=no)</span>
+        <input type="text" id="edit-ui-wm" class="admin-input" placeholder="0">
+        <span class="admin-label">Watermark Text</span>
+        <input type="text" id="edit-ui-wm-text" class="admin-input" placeholder="© 2026 PORTFOLIO">
+        <span class="admin-label">Watermark Opacity (0.05 - 0.4)</span>
+        <input type="text" id="edit-ui-wm-opacity" class="admin-input" placeholder="0.15">
+        <button class="btn-action" onclick="core.saveUI()">Save UI</button>
+      </div>
+
+      <div class="admin-card" style="grid-column: 1 / -1;">
+        <h3>Gallery Manager</h3>
+        <div style="background:#050505;padding:30px;border-radius:12px;border:1px dashed #333;margin-bottom:30px;">
+          <span class="admin-label" style="color:white;">Upload Media (Images / Videos)</span>
+          <input type="file" id="upload-media" class="admin-input" accept="image/*,video/*" capture="environment">
+          <button class="btn-action" id="btn-upload-media" onclick="core.uploadMedia()">Upload to Gallery</button>
         </div>
+        <span class="admin-label">Current Gallery (Edit title/description)</span>
+        <div class="media-thumbs" id="admin-list"></div>
+      </div>
+    </div>
+  </div>
 
-        <div class="admin-grid">
-            <div class="admin-card">
-                <h3>Branding</h3>
-                <span class="admin-label">Website Name</span>
-                <input type="text" id="edit-brand" class="admin-input">
-                <button class="btn-action" onclick="core.saveBranding()">Update Name</button>
+  <script>
+    const core = (() => {
+      const URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
+      const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
+      const supabase = window.supabase.createClient(URL, KEY);
+
+      const state = {
+        whatsappPhone: '',
+        whatsappTemplate: 'Hello, I am interested in this {type}:\nTitle: {title}\nLink: {url}',
+
+        loaderWord1: 'CYRIS',
+        loaderWord2: 'STUDIO',
+        loaderColor1: '#ffffff',
+        loaderColor2: '#a0a0a0',
+
+        uiEnableLightboxNav: true,
+        uiEnableWatermark: false,
+        uiWatermarkText: '© 2026 PORTFOLIO',
+        uiWatermarkOpacity: 0.15,
+
+        galleryItems: [],
+        currentIndex: 0
+      };
+
+      const zoom = {
+        scale: 1,
+        minScale: 1,
+        maxScale: 6,
+        x: 0,
+        y: 0,
+        dragging: false,
+        pointerX: 0,
+        pointerY: 0
+      };
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const escapeForTemplate = (v) => (v ?? '').toString();
+
+      const buildWhatsAppUrl = ({ phone, template, title, url, type }) => {
+        const p = (phone || '').replace(/[^\d]/g, '');
+        if (!p) return null;
+        const msg = (template || '')
+          .replaceAll('{title}', escapeForTemplate(title || 'Untitled'))
+          .replaceAll('{url}', escapeForTemplate(url))
+          .replaceAll('{type}', escapeForTemplate(type));
+        return `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
+      };
+
+      const applyLoaderToDom = () => {
+        document.getElementById('loader-w1').innerText = state.loaderWord1 || 'CYRIS';
+        document.getElementById('loader-w2').innerText = state.loaderWord2 || 'STUDIO';
+        document.documentElement.style.setProperty('--loader-color1', state.loaderColor1 || '#ffffff');
+        document.documentElement.style.setProperty('--loader-color2', state.loaderColor2 || '#a0a0a0');
+      };
+
+      const init = async () => {
+        applyLoaderToDom();
+        setTimeout(() => document.getElementById('preloader').classList.add('vanish'), 1500);
+
+        const lenis = new Lenis({ duration: 1.2, smooth: true });
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        setupAnimations();
+        setupTilt();
+        await fetchData();
+        document.getElementById('preloader').classList.add('vanish');
+
+        checkRoute();
+        window.addEventListener('hashchange', checkRoute);
+        window.addEventListener('scroll', handleScroll);
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('dragstart', e => e.preventDefault());
+
+        // Lightbox global controls
+        document.getElementById('lightbox').addEventListener('click', closeLightbox);
+        window.addEventListener('keydown', onKeydown);
+      };
+
+      const setupAnimations = () => {
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.to("#hero-bg-el", { yPercent: 10, ease: "none", scrollTrigger: { trigger: ".hero", scrub: true } });
+        gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: "power3.out" });
+      };
+
+      const setupTilt = () => {
+        document.addEventListener('mousemove', (e) => {
+          document.querySelectorAll('.tilt-card').forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if(x > 0 && x < rect.width && y > 0 && y < rect.height) {
+              const centerX = rect.width / 2;
+              const centerY = rect.height / 2;
+              const rotateX = ((y - centerY) / centerY) * -3;
+              const rotateY = ((x - centerX) / centerX) * 3;
+              card.querySelector('.card-inner').style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            } else {
+              card.querySelector('.card-inner').style.transform = `rotateX(0) rotateY(0)`;
+            }
+          });
+        });
+      };
+
+      const handleScroll = () => {
+        const btn = document.getElementById('btn-top');
+        if(window.scrollY > 600) btn.classList.add('visible');
+        else btn.classList.remove('visible');
+      };
+
+      const scrollToFooter = () => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+
+      const fetchData = async () => {
+        try {
+          const { data: content } = await supabase.from('site_content').select('*');
+          if(content) {
+            const map = {};
+            content.forEach(c => map[c.id] = c.content);
+
+            setText('disp-brand', map.site_name);
+            setText('disp-footer-brand', map.site_name);
+            setText('disp-hero-title', map.hero_title);
+            setText('disp-hero-subtitle', map.hero_subtitle);
+            setText('disp-about-text', map.about_text);
+            setText('disp-about-title', map.about_title || 'The Artist');
+            setText('disp-artist-name', map.about_name || 'Creative Vision.');
+            setText('disp-views', map.view_count);
+
+            if(map.artist_image) document.getElementById('disp-artist-img').src = map.artist_image;
+            if(map.hero_bg) document.getElementById('hero-bg-el').src = map.hero_bg;
+
+            setHref('link-insta', map.instagram);
+            setHref('link-yt', map.youtube);
+            setHref('link-wa', map.whatsapp);
+            if(map.email) document.getElementById('btn-email-main').href = "mailto:" + map.email;
+
+            state.whatsappPhone = map.whatsapp_phone || '';
+            state.whatsappTemplate = map.whatsapp_template || state.whatsappTemplate;
+
+            state.loaderWord1 = map.loader_word1 || state.loaderWord1;
+            state.loaderWord2 = map.loader_word2 || state.loaderWord2;
+            state.loaderColor1 = map.loader_color1 || state.loaderColor1;
+            state.loaderColor2 = map.loader_color2 || state.loaderColor2;
+            applyLoaderToDom();
+
+            state.uiEnableLightboxNav = (map.ui_enable_lightbox_nav || '1') === '1';
+            state.uiEnableWatermark = (map.ui_enable_watermark || '0') === '1';
+            state.uiWatermarkText = map.ui_watermark_text || state.uiWatermarkText;
+            state.uiWatermarkOpacity = parseFloat(map.ui_watermark_opacity || state.uiWatermarkOpacity);
+
+            document.documentElement.style.setProperty('--wm-opacity', String(clamp(state.uiWatermarkOpacity, 0.05, 0.4)));
+
+            incrementView(map.view_count);
+          }
+
+          const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+          renderGallery(gallery || []);
+        } catch(e) {
+          console.error("API Error:", e);
+        }
+      };
+
+      const setText = (id, val) => { if(val !== undefined && val !== null && val !== '') document.getElementById(id).innerText = val; };
+      const setHref = (id, val) => {
+        const el = document.getElementById(id);
+        if(val && val.length > 2) { el.href = val; el.style.display = 'inline-block'; }
+        else el.style.display = 'none';
+      };
+      const incrementView = async (curr) => {
+        const n = parseInt(curr || 0) + 1;
+        await supabase.from('site_content').update({ content: n }).eq('id', 'view_count');
+        document.getElementById('disp-views').innerText = n;
+      };
+
+      const resetZoom = () => { zoom.scale = 1; zoom.x = 0; zoom.y = 0; };
+
+      const applyZoomTransform = (mediaEl) => {
+        mediaEl.style.transform = `translate(calc(-50% + ${zoom.x}px), calc(-50% + ${zoom.y}px)) scale(${zoom.scale})`;
+      };
+
+      const openLightboxByIndex = (idx) => {
+        state.currentIndex = idx;
+        const item = state.galleryItems[idx];
+        if (!item) return;
+
+        const url = item.image_url;
+        const title = item.title || 'Untitled';
+        const description = item.description || '';
+        const isVid = ['mp4','mov','webm'].some(ext => (url || '').toLowerCase().includes(ext));
+        openLightbox(url, isVid, { title, description });
+      };
+
+      const openLightbox = (url, isVid, meta = {}) => {
+        const box = document.getElementById('lightbox');
+        const wrap = document.getElementById('lightbox-content');
+
+        const title = meta.title || 'Untitled';
+        const type = isVid ? 'video' : 'photo';
+
+        const waHref = buildWhatsAppUrl({
+          phone: state.whatsappPhone,
+          template: state.whatsappTemplate,
+          title,
+          url,
+          type
+        });
+
+        resetZoom();
+
+        const navHtml = state.uiEnableLightboxNav ? `
+          <button class="nav-arrow" id="lb-prev" type="button" title="Previous"><i class="fas fa-chevron-left"></i></button>
+          <button class="nav-arrow" id="lb-next" type="button" title="Next"><i class="fas fa-chevron-right"></i></button>
+        ` : '';
+
+        const mediaHtml = isVid
+          ? `<video class="zoom-media" src="${url}" controls autoplay playsinline style="background:#000;"></video>`
+          : `<img class="zoom-media" src="${url}" alt="${title}" decoding="async" loading="eager" style="background:#000;">`;
+
+        wrap.innerHTML = `
+          <div class="zoom-stage" id="zoom-stage">
+            ${mediaHtml}
+
+            <div class="lightbox-bottombar">
+              <div class="left">
+                <div class="pill">${title}</div>
+                ${!isVid ? `<div class="pill">Wheel/Pinch to zoom • Drag to pan</div>` : `<div class="pill">Video</div>`}
+              </div>
+              <div class="right">
+                ${waHref ? `<a class="btn-wa" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>` : ``}
+                <button class="pill" id="btn-reset-zoom" type="button">Reset</button>
+              </div>
             </div>
 
-            <div class="admin-card">
-                <h3>Hero Section</h3>
-                <span class="admin-label">Main Title</span>
-                <input type="text" id="edit-title" class="admin-input">
-                <span class="admin-label">Subtitle</span>
-                <input type="text" id="edit-subtitle" class="admin-input">
-                <button class="btn-action" onclick="core.saveHero()">Update Hero</button>
+            <div style="position:absolute;left:16px;top:16px;z-index:16;display:flex;gap:10px;">
+              ${navHtml}
             </div>
+          </div>
+        `;
 
-            <div class="admin-card">
-                <h3>Visual Assets</h3>
-                <span class="admin-label">Hero Wallpaper</span>
-                <input type="file" id="upload-hero" class="admin-input" accept="image/*">
-                <button class="btn-action" onclick="core.uploadHeroWallpaper()">Update Wallpaper</button>
-            </div>
+        wrap.addEventListener('click', (e) => e.stopPropagation(), { once: true });
 
-            <div class="admin-card">
-                <h3>Artist Profile</h3>
-                <span class="admin-label">Section Title</span>
-                <input type="text" id="edit-about-title" class="admin-input">
-                <span class="admin-label">Bio Text</span>
-                <textarea id="edit-bio" class="admin-input" rows="5"></textarea>
-                <span class="admin-label">Profile Picture</span>
-                <input type="file" id="upload-artist" class="admin-input" accept="image/*">
-                <button class="btn-action" onclick="core.uploadArtistPic()">Update Profile</button>
-            </div>
+        const stage = document.getElementById('zoom-stage');
+        const mediaEl = stage.querySelector('.zoom-media');
 
-            <div class="admin-card">
-                <h3>Connections</h3>
-                <input type="text" id="edit-insta" class="admin-input" placeholder="Instagram URL">
-                <input type="text" id="edit-yt" class="admin-input" placeholder="YouTube URL">
-                <input type="text" id="edit-wa" class="admin-input" placeholder="WhatsApp URL (Footer Icon)">
-                <input type="text" id="edit-email" class="admin-input" placeholder="Email Address">
-                <button class="btn-action" onclick="core.saveLinks()">Update Links</button>
-            </div>
+        applyZoomTransform(mediaEl);
 
-            <div class="admin-card">
-                <h3>WhatsApp Contact Button</h3>
-                <span class="admin-label">WhatsApp Phone (digits only, international format)</span>
-                <input type="text" id="edit-wa-phone" class="admin-input" placeholder="e.g. 2348012345678">
+        // Wheel zoom for images only
+        stage.addEventListener('wheel', (e) => {
+          if (isVid) return;
+          e.preventDefault();
+          const delta = -e.deltaY;
+          const step = delta > 0 ? 0.12 : -0.12;
+          zoom.scale = clamp(zoom.scale + step, zoom.minScale, zoom.maxScale);
+          if (zoom.scale === 1) { zoom.x = 0; zoom.y = 0; }
+          applyZoomTransform(mediaEl);
+        }, { passive: false });
 
-                <span class="admin-label">Pre-typed Message Template (multi-line)</span>
-                <textarea id="edit-wa-template" class="admin-input" rows="6" placeholder="Use {title}, {url}, {type}"></textarea>
+        // Pointer drag pan for images only
+        stage.addEventListener('pointerdown', (e) => {
+          if (isVid) return;
+          zoom.dragging = true;
+          stage.classList.add('dragging');
+          zoom.pointerX = e.clientX;
+          zoom.pointerY = e.clientY;
+          stage.setPointerCapture(e.pointerId);
+        });
 
-                <button class="btn-action" onclick="core.saveWhatsAppSettings()">Save WhatsApp Settings</button>
-            </div>
+        stage.addEventListener('pointermove', (e) => {
+          if (isVid) return;
+          if (!zoom.dragging) return;
+          if (zoom.scale <= 1) return;
 
-            <div class="admin-card" style="grid-column: 1 / -1;">
-                <h3>Gallery Manager</h3>
-                <div style="background:#050505; padding:30px; border-radius:12px; border:1px dashed #333; margin-bottom:30px;">
-                    <span class="admin-label" style="color:white;">Upload Media (Images / Videos)</span>
-                    <input type="file" id="upload-media" class="admin-input" accept="image/*,video/*" capture="environment">
-                    <button class="btn-action" id="btn-upload-media" onclick="core.uploadMedia()">Upload to Gallery</button>
+          const dx = e.clientX - zoom.pointerX;
+          const dy = e.clientY - zoom.pointerY;
+          zoom.pointerX = e.clientX;
+          zoom.pointerY = e.clientY;
+          zoom.x += dx;
+          zoom.y += dy;
+          applyZoomTransform(mediaEl);
+        });
+
+        stage.addEventListener('pointerup', () => {
+          zoom.dragging = false;
+          stage.classList.remove('dragging');
+        });
+
+        // Pinch-to-zoom (touch)
+        let lastDist = null;
+        stage.addEventListener('touchmove', (e) => {
+          if (isVid) return;
+          if (e.touches.length !== 2) { lastDist = null; return; }
+          e.preventDefault();
+
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+
+          if (lastDist) {
+            const diff = dist - lastDist;
+            zoom.scale = clamp(zoom.scale + diff * 0.002, zoom.minScale, zoom.maxScale);
+            if (zoom.scale === 1) { zoom.x = 0; zoom.y = 0; }
+            applyZoomTransform(mediaEl);
+          }
+          lastDist = dist;
+        }, { passive: false });
+
+        document.getElementById('btn-reset-zoom').addEventListener('click', (e) => {
+          e.stopPropagation();
+          resetZoom();
+          applyZoomTransform(mediaEl);
+        });
+
+        if (state.uiEnableLightboxNav) {
+          document.getElementById('lb-prev')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            prevItem();
+          });
+          document.getElementById('lb-next')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            nextItem();
+          });
+        }
+
+        box.classList.add('active');
+      };
+
+      const closeLightbox = () => {
+        const box = document.getElementById('lightbox');
+        box.classList.remove('active');
+        setTimeout(() => document.getElementById('lightbox-content').innerHTML = '', 200);
+      };
+
+      const prevItem = () => {
+        if (!state.galleryItems.length) return;
+        const idx = (state.currentIndex - 1 + state.galleryItems.length) % state.galleryItems.length;
+        openLightboxByIndex(idx);
+      };
+
+      const nextItem = () => {
+        if (!state.galleryItems.length) return;
+        const idx = (state.currentIndex + 1) % state.galleryItems.length;
+        openLightboxByIndex(idx);
+      };
+
+      const onKeydown = (e) => {
+        const box = document.getElementById('lightbox');
+        const active = box.classList.contains('active');
+
+        if (!active) return;
+
+        if (e.key === 'Escape') closeLightbox();
+        if (!state.uiEnableLightboxNav) return;
+
+        if (e.key === 'ArrowLeft') prevItem();
+        if (e.key === 'ArrowRight') nextItem();
+      };
+
+      const renderGallery = (items) => {
+        state.galleryItems = items;
+
+        const feed = document.getElementById('gallery-feed');
+        const adminList = document.getElementById('admin-list');
+
+        feed.innerHTML = '';
+        adminList.innerHTML = '';
+        document.getElementById('gallery-counter').innerText = `${items.length} Works`;
+
+        items.forEach((item, i) => {
+          const url = item.image_url;
+          const title = item.title || 'Untitled';
+          const description = item.description || '';
+          const isVid = ['mp4','mov','webm'].some(ext => (url || '').toLowerCase().includes(ext));
+          const type = isVid ? 'video' : 'photo';
+
+          const card = document.createElement('div');
+          card.className = 'tilt-card';
+
+          const mediaHtml = isVid
+            ? `<video src="${url}#t=0.1" preload="metadata" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video><div class="play-badge"><i class="fas fa-play"></i></div>`
+            : `<img src="${url}" loading="lazy" decoding="async" alt="${title}">`;
+
+          const waHref = buildWhatsAppUrl({
+            phone: state.whatsappPhone,
+            template: state.whatsappTemplate,
+            title,
+            url,
+            type
+          });
+
+          const watermarkHtml = state.uiEnableWatermark
+            ? `<div class="watermark">${state.uiWatermarkText}</div>`
+            : '';
+
+          card.innerHTML = `
+            <div class="card-inner">
+              ${mediaHtml}
+              ${watermarkHtml}
+              <div class="card-overlay">
+                <div class="card-title">${title}</div>
+                ${description ? `<div class="card-desc">${description}</div>` : ``}
+                <div class="card-actions">
+                  ${waHref ? `
+                    <a class="btn-wa" href="${waHref}" target="_blank" rel="noopener">
+                      <i class="fab fa-whatsapp"></i> Contact
+                    </a>
+                  ` : `
+                    <span style="color:#666;font-size:0.8rem;">(Admin: set WhatsApp phone to enable contact)</span>
+                  `}
                 </div>
-                <span class="admin-label">Current Gallery (Edit title/description)</span>
-                <div class="media-thumbs" id="admin-list"></div>
+              </div>
             </div>
-        </div>
-    </div>
-
-    <script>
-        const core = (() => {
-            const URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
-            const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
-            const supabase = window.supabase.createClient(URL, KEY);
-
-            const state = {
-                whatsappPhone: '',
-                whatsappTemplate: 'Hello, I am interested in this {type}:\nTitle: {title}\nLink: {url}',
-            };
-
-            const escapeForTemplate = (v) => (v ?? '').toString();
-
-            const buildWhatsAppUrl = ({ phone, template, title, url, type }) => {
-                const p = (phone || '').replace(/[^\d]/g, '');
-                if (!p) return null;
-
-                const msg = (template || '')
-                    .replaceAll('{title}', escapeForTemplate(title || 'Untitled'))
-                    .replaceAll('{url}', escapeForTemplate(url))
-                    .replaceAll('{type}', escapeForTemplate(type));
-
-                return `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
-            };
-
-            const init = async () => {
-                setTimeout(() => document.getElementById('preloader').classList.add('vanish'), 1500);
-                
-                const lenis = new Lenis({ duration: 1.2, smooth: true });
-                function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
-                requestAnimationFrame(raf);
-
-                setupAnimations();
-                setupTilt();
-                await fetchData();
-                document.getElementById('preloader').classList.add('vanish');
-
-                checkRoute();
-                window.addEventListener('hashchange', checkRoute);
-                window.addEventListener('scroll', handleScroll);
-                
-                document.addEventListener('contextmenu', e => e.preventDefault());
-                document.addEventListener('dragstart', e => e.preventDefault());
-            };
-
-            const setupAnimations = () => {
-                gsap.registerPlugin(ScrollTrigger);
-                gsap.to("#hero-bg-el", { yPercent: 10, ease: "none", scrollTrigger: { trigger: ".hero", scrub: true } });
-                gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: "power3.out" });
-            };
-
-            const setupTilt = () => {
-                document.addEventListener('mousemove', (e) => {
-                    document.querySelectorAll('.tilt-card').forEach(card => {
-                        const rect = card.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const y = e.clientY - rect.top;
-                        
-                        if(x > 0 && x < rect.width && y > 0 && y < rect.height) {
-                            const centerX = rect.width / 2;
-                            const centerY = rect.height / 2;
-                            const rotateX = ((y - centerY) / centerY) * -5;
-                            const rotateY = ((x - centerX) / centerX) * 5;
-                            card.querySelector('.card-inner').style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                        } else {
-                            card.querySelector('.card-inner').style.transform = `rotateX(0) rotateY(0)`;
-                        }
-                    });
-                });
-            };
-
-            const handleScroll = () => {
-                const nav = document.getElementById('navbar');
-                const btn = document.getElementById('btn-top');
-                if(window.scrollY > 50) nav.classList.add('scrolled');
-                else nav.classList.remove('scrolled');
-                if(window.scrollY > 600) btn.classList.add('visible');
-                else btn.classList.remove('visible');
-            };
-
-            const scrollToFooter = () => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
-
-            const fetchData = async () => {
-                try {
-                    const { data: content } = await supabase.from('site_content').select('*');
-                    if(content) {
-                        const map = {}; content.forEach(c => map[c.id] = c.content);
-
-                        setText('disp-brand', map.site_name);
-                        setText('disp-footer-brand', map.site_name);
-                        setText('disp-hero-title', map.hero_title);
-                        setText('disp-hero-subtitle', map.hero_subtitle);
-                        setText('disp-about-text', map.about_text);
-                        setText('disp-about-title', map.about_title || 'The Artist');
-                        setText('disp-artist-name', map.about_name || 'Creative Vision.');
-                        setText('disp-views', map.view_count);
-
-                        if(map.artist_image) document.getElementById('disp-artist-img').src = map.artist_image;
-                        if(map.hero_bg) document.getElementById('hero-bg-el').src = map.hero_bg;
-
-                        setHref('link-insta', map.instagram);
-                        setHref('link-yt', map.youtube);
-                        setHref('link-wa', map.whatsapp);
-                        if(map.email) document.getElementById('btn-email-main').href = "mailto:" + map.email;
-
-                        state.whatsappPhone = map.whatsapp_phone || '';
-                        state.whatsappTemplate = map.whatsapp_template || state.whatsappTemplate;
-
-                        incrementView(map.view_count);
-                    }
-
-                    const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
-                    renderGallery(gallery || []);
-                } catch(e) { console.error("API Error:", e); }
-            };
-
-            const setText = (id, val) => { if(val) document.getElementById(id).innerText = val; };
-            const setHref = (id, val) => {
-                const el = document.getElementById(id);
-                if(val && val.length > 2) { el.href = val; el.style.display = 'inline-block'; }
-                else el.style.display = 'none';
-            };
-            const incrementView = async (curr) => { 
-                const n = parseInt(curr || 0) + 1; 
-                await supabase.from('site_content').update({ content: n }).eq('id', 'view_count');
-                document.getElementById('disp-views').innerText = n; 
-            };
-
-            const openLightbox = (url, isVid, meta = {}) => {
-                const box = document.getElementById('lightbox');
-                const wrap = document.getElementById('lightbox-content');
-                wrap.classList.remove('zoomed');
-
-                const title = meta.title || 'Untitled';
-                const type = isVid ? 'video' : 'photo';
-
-                const waHref = buildWhatsAppUrl({
-                    phone: state.whatsappPhone,
-                    template: state.whatsappTemplate,
-                    title,
-                    url,
-                    type,
-                });
-
-                wrap.onclick = (e) => { if(!isVid) { e.stopPropagation(); wrap.classList.toggle('zoomed'); } };
-
-                const media = isVid
-                    ? `<video src="${url}" controls autoplay style="width:100%; height:100%; object-fit:contain; background:#000;"></video>`
-                    : `<img src="${url}" style="width:100%; height:100%; object-fit:contain; background:#000;">`;
-
-                wrap.innerHTML = `
-                    <div style="display:flex; flex-direction:column; gap:14px; align-items:center;">
-                        <div style="max-width:95vw; max-height:80vh; width:95vw;">
-                            ${media}
-                        </div>
-                        ${waHref ? `
-                            <a class="btn-wa" href="${waHref}" target="_blank" rel="noopener" style="margin-bottom:10px;">
-                                <i class="fab fa-whatsapp"></i> Contact about this ${type}
-                            </a>
-                        ` : `
-                            <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">
-                                Admin: set WhatsApp phone in Dashboard to enable Contact button.
-                            </div>
-                        `}
-                    </div>
-                `;
-
-                wrap.querySelector('.btn-wa')?.addEventListener('click', (e) => e.stopPropagation());
-
-                box.classList.add('active');
-            };
-
-            const renderGallery = (items) => {
-                const feed = document.getElementById('gallery-feed');
-                const adminList = document.getElementById('admin-list');
-                feed.innerHTML = '';
-                adminList.innerHTML = '';
-                document.getElementById('gallery-counter').innerText = `${items.length} Works`;
-
-                items.forEach((item, i) => {
-                    const url = item.image_url;
-                    const title = item.title || 'Untitled';
-                    const description = item.description || '';
-                    const isVid = ['mp4','mov','webm'].some(ext => (url || '').toLowerCase().includes(ext));
-                    const type = isVid ? 'video' : 'photo';
-
-                    const card = document.createElement('div');
-                    card.className = 'tilt-card';
-                    
-                    const mediaHtml = isVid 
-                        ? `<video src="${url}#t=0.1" preload="metadata" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video><div class="play-badge"><i class="fas fa-play"></i></div>` 
-                        : `<img src="${url}" loading="lazy" alt="${title}">`;
-
-                    const waHref = buildWhatsAppUrl({
-                        phone: state.whatsappPhone,
-                        template: state.whatsappTemplate,
-                        title,
-                        url,
-                        type,
-                    });
-                    
-                    card.innerHTML = `
-                        <div class="card-inner">
-                            ${mediaHtml}
-                            <div class="card-overlay">
-                                <div class="card-title">${title}</div>
-                                ${description ? `<div class="card-desc">${description}</div>` : ``}
-                                <div class="card-actions">
-                                    ${waHref ? `
-                                        <a class="btn-wa" href="${waHref}" target="_blank" rel="noopener">
-                                            <i class="fab fa-whatsapp"></i> Contact
-                                        </a>
-                                    ` : `
-                                        <span style="color:#666; font-size:0.8rem;">(Admin: set WhatsApp phone to enable contact)</span>
-                                    `}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    card.addEventListener('click', () => openLightbox(url, isVid, { title, description }));
-                    card.querySelector('.btn-wa')?.addEventListener('click', (e) => e.stopPropagation());
-                    
-                    gsap.from(card, {
-                        scrollTrigger: { trigger: card, start: "top 90%" },
-                        opacity: 0,
-                        y: 30,
-                        duration: 0.8,
-                        delay: (i % 3) * 0.1
-                    });
-                    feed.appendChild(card);
-
-                    const thumb = document.createElement('div');
-                    thumb.className = 'thumb';
-                    thumb.innerHTML = `
-                        ${isVid ? `<video src="${url}#t=0.1" preload="metadata"></video>` : `<img src="${url}">`}
-                        <div class="thumb-actions">
-                            <button class="thumb-btn" data-action="edit">Edit</button>
-                        </div>
-                        <div class="del-btn" data-action="delete"><i class="fas fa-trash"></i></div>
-                    `;
-
-                    thumb.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteMedia(item.id);
-                    });
-
-                    thumb.querySelector('[data-action="edit"]').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        editMediaMeta(item.id, item.title || '', item.description || '');
-                    });
-
-                    adminList.appendChild(thumb);
-                });
-            };
-
-            const closeLightbox = () => {
-                document.getElementById('lightbox').classList.remove('active');
-                setTimeout(() => document.getElementById('lightbox-content').innerHTML = '', 300);
-            };
-
-            const checkRoute = () => {
-                const h = window.location.hash;
-                if(h === '#adminonly') {
-                    document.getElementById('wrapper').style.display='none';
-                    document.getElementById('login-modal').style.display='flex';
-                }
-                else if(h === '#dashboard') {
-                    document.getElementById('wrapper').style.display='none';
-                    document.getElementById('login-modal').style.display='none';
-                    document.getElementById('admin-panel').style.display='block';
-                    loadAdminData();
-                }
-                else exitAdmin();
-            };
-
-            const login = async () => {
-                const email = document.getElementById('auth-email').value;
-                const pass = document.getElementById('auth-pass').value;
-                const msg = document.getElementById('login-error');
-                msg.innerText = "Verifying Credentials...";
-                const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-                if(error) msg.innerText = error.message; else window.location.hash = '#dashboard';
-            };
-            const logout = async () => { await supabase.auth.signOut(); exitAdmin(); };
-            const exitAdmin = () => {
-                window.location.hash = '';
-                document.getElementById('wrapper').style.display='block';
-                document.getElementById('login-modal').style.display='none';
-                document.getElementById('admin-panel').style.display='none';
-            };
-
-            const loadAdminData = () => {
-                const getTxt = (id) => document.getElementById(id).innerText;
-
-                document.getElementById('edit-brand').value = getTxt('disp-brand');
-                document.getElementById('edit-title').value = getTxt('disp-hero-title');
-                document.getElementById('edit-subtitle').value = getTxt('disp-hero-subtitle');
-                document.getElementById('edit-bio').value = getTxt('disp-about-text');
-                document.getElementById('edit-about-title').value = getTxt('disp-about-title');
-
-                const insta = document.getElementById('link-insta'); if(insta) document.getElementById('edit-insta').value = insta.href;
-                const yt = document.getElementById('link-yt'); if(yt) document.getElementById('edit-yt').value = yt.href;
-                const wa = document.getElementById('link-wa'); if(wa) document.getElementById('edit-wa').value = wa.href;
-                const mail = document.getElementById('btn-email-main'); if(mail) document.getElementById('edit-email').value = mail.href.replace('mailto:', '');
-
-                document.getElementById('edit-wa-phone').value = state.whatsappPhone || '';
-                document.getElementById('edit-wa-template').value = state.whatsappTemplate || '';
-            };
-
-            const saveBranding = async () => {
-                await supabase.from('site_content').upsert({ id: 'site_name', content: document.getElementById('edit-brand').value });
-                alert("Saved!");
-                fetchData();
-            };
-
-            const saveHero = async () => {
-                await supabase.from('site_content').upsert([
-                    { id: 'hero_title', content: document.getElementById('edit-title').value },
-                    { id: 'hero_subtitle', content: document.getElementById('edit-subtitle').value }
-                ]);
-                alert("Saved!");
-                fetchData();
-            };
-
-            const saveLinks = async () => {
-                await supabase.from('site_content').upsert([
-                    { id: 'instagram', content: document.getElementById('edit-insta').value },
-                    { id: 'youtube', content: document.getElementById('edit-yt').value },
-                    { id: 'whatsapp', content: document.getElementById('edit-wa').value },
-                    { id: 'email', content: document.getElementById('edit-email').value }
-                ]);
-                alert("Saved!");
-                fetchData();
-            };
-
-            const saveWhatsAppSettings = async () => {
-                await supabase.from('site_content').upsert([
-                    { id: 'whatsapp_phone', content: document.getElementById('edit-wa-phone').value },
-                    { id: 'whatsapp_template', content: document.getElementById('edit-wa-template').value }
-                ]);
-                alert("WhatsApp settings saved!");
-                fetchData();
-            };
-
-            const editMediaMeta = async (id, currentTitle, currentDesc) => {
-                const newTitle = prompt("Title for this photo/video:", currentTitle || '');
-                if (newTitle === null) return;
-
-                const newDescRaw = prompt(
-                    "Description (multi-line: type \\n for new lines):",
-                    (currentDesc || '').replaceAll('\n', '\\n')
-                );
-                if (newDescRaw === null) return;
-
-                const newDesc = newDescRaw.replaceAll('\\n', '\n');
-
-                await supabase.from('gallery').update({ title: newTitle, description: newDesc }).eq('id', id);
-
-                alert("Updated media details!");
-                fetchData();
-            };
-
-            const uploadArtistPic = async () => {
-                const file = document.getElementById('upload-artist').files[0];
-                await supabase.from('site_content').upsert([
-                    { id: 'about_text', content: document.getElementById('edit-bio').value },
-                    { id: 'about_title', content: document.getElementById('edit-about-title').value }
-                ]);
-
-                if(file) {
-                    const name = `profile_${Date.now()}`;
-                    await supabase.storage.from('portfolio').upload(name, file);
-                    const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
-                    await supabase.from('site_content').upsert({ id: 'artist_image', content: data.publicUrl });
-                }
-
-                alert("Updated!");
-                fetchData();
-            };
-
-            const uploadHeroWallpaper = async () => {
-                const file = document.getElementById('upload-hero').files[0];
-                if(file) {
-                    const name = `hero_${Date.now()}`;
-                    await supabase.storage.from('portfolio').upload(name, file);
-                    const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
-                    await supabase.from('site_content').upsert({ id: 'hero_bg', content: data.publicUrl });
-                    alert("Wallpaper Updated!");
-                    fetchData();
-                } else alert("Select file!");
-            };
-
-            const uploadMedia = async () => {
-                const file = document.getElementById('upload-media').files[0];
-                if(!file) return alert("Select File First!");
-
-                document.getElementById('btn-upload-media').innerText = "Uploading...";
-
-                const ext = file.name.split('.').pop();
-                const name = `media_${Date.now()}.${ext}`;
-
-                const { error } = await supabase.storage.from('portfolio').upload(name, file);
-                if(error) { alert(error.message); return; }
-
-                const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
-
-                await supabase.from('gallery').insert([{
-                    image_url: data.publicUrl,
-                    title: '',
-                    description: ''
-                }]);
-
-                document.getElementById('btn-upload-media').innerText = "Upload to Gallery";
-                alert("Success!");
-                fetchData();
-            };
-
-            const deleteMedia = async (id) => {
-                if(confirm("Delete item?")) {
-                    await supabase.from('gallery').delete().eq('id', id);
-                    fetchData();
-                }
-            };
-
-            const shareProfile = () => {
-                if(navigator.share) navigator.share({ title: 'Portfolio', url: window.location.href });
-                else { navigator.clipboard.writeText(window.location.href); alert("Copied!"); }
-            };
-
-            return {
-                init,
-                checkRoute,
-                login,
-                logout,
-                exitAdmin,
-                scrollToFooter,
-                closeLightbox,
-                saveBranding,
-                saveHero,
-                saveLinks,
-                saveWhatsAppSettings,
-                uploadArtistPic,
-                uploadHeroWallpaper,
-                uploadMedia,
-                deleteMedia,
-                shareProfile
-            };
-        })();
-
-        core.init();
-    </script>
+          `;
+
+          // Card click opens lightbox for this index
+          card.addEventListener('click', () => openLightboxByIndex(i));
+          card.querySelector('.btn-wa')?.addEventListener('click', (e) => e.stopPropagation());
+
+          gsap.from(card, {
+            scrollTrigger: { trigger: card, start: "top 90%" },
+            opacity: 0, y: 30, duration: 0.8,
+            delay: (i % 3) * 0.1
+          });
+
+          feed.appendChild(card);
+
+          // ADMIN thumb
+          const thumb = document.createElement('div');
+          thumb.className = 'thumb';
+          thumb.innerHTML = `
+            ${isVid ? `<video src="${url}#t=0.1" preload="metadata" muted></video>` : `<img src="${url}">`}
+            <button class="thumb-del" type="button" title="Delete"><i class="fas fa-trash"></i></button>
+            <div class="thumb-edit">
+              <button class="thumb-btn" type="button">Edit</button>
+            </div>
+          `;
+
+          thumb.querySelector('.thumb-del').addEventListener('click', (e) => { e.stopPropagation(); deleteMedia(item.id); });
+          thumb.querySelector('.thumb-btn').addEventListener('click', (e) => { e.stopPropagation(); editMediaMeta(item.id, item.title || '', item.description || ''); });
+
+          adminList.appendChild(thumb);
+        });
+      };
+
+      const checkRoute = () => {
+        const h = window.location.hash;
+        if(h === '#adminonly') {
+          document.getElementById('wrapper').style.display='none';
+          document.getElementById('login-modal').style.display='flex';
+        } else if(h === '#dashboard') {
+          document.getElementById('wrapper').style.display='none';
+          document.getElementById('login-modal').style.display='none';
+          document.getElementById('admin-panel').style.display='block';
+          loadAdminData();
+        } else exitAdmin();
+      };
+
+      const login = async () => {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-pass').value;
+        const msg = document.getElementById('login-error');
+        msg.innerText = "Verifying Credentials...";
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        if(error) msg.innerText = error.message;
+        else window.location.hash = '#dashboard';
+      };
+
+      const logout = async () => { await supabase.auth.signOut(); exitAdmin(); };
+
+      const exitAdmin = () => {
+        window.location.hash = '';
+        document.getElementById('wrapper').style.display='block';
+        document.getElementById('login-modal').style.display='none';
+        document.getElementById('admin-panel').style.display='none';
+      };
+
+      const loadAdminData = () => {
+        const getTxt = (id) => document.getElementById(id).innerText;
+
+        document.getElementById('edit-brand').value = getTxt('disp-brand');
+        document.getElementById('edit-title').value = getTxt('disp-hero-title');
+        document.getElementById('edit-subtitle').value = getTxt('disp-hero-subtitle');
+        document.getElementById('edit-bio').value = getTxt('disp-about-text');
+        document.getElementById('edit-about-title').value = getTxt('disp-about-title');
+
+        const insta = document.getElementById('link-insta'); if(insta) document.getElementById('edit-insta').value = insta.href;
+        const yt = document.getElementById('link-yt'); if(yt) document.getElementById('edit-yt').value = yt.href;
+        const wa = document.getElementById('link-wa'); if(wa) document.getElementById('edit-wa').value = wa.href;
+        const mail = document.getElementById('btn-email-main'); if(mail) document.getElementById('edit-email').value = mail.href.replace('mailto:', '');
+
+        document.getElementById('edit-wa-phone').value = state.whatsappPhone || '';
+        document.getElementById('edit-wa-template').value = state.whatsappTemplate || '';
+
+        document.getElementById('edit-loader-w1').value = state.loaderWord1 || '';
+        document.getElementById('edit-loader-w2').value = state.loaderWord2 || '';
+        document.getElementById('edit-loader-c1').value = state.loaderColor1 || '';
+        document.getElementById('edit-loader-c2').value = state.loaderColor2 || '';
+
+        document.getElementById('edit-ui-nav').value = state.uiEnableLightboxNav ? '1' : '0';
+        document.getElementById('edit-ui-wm').value = state.uiEnableWatermark ? '1' : '0';
+        document.getElementById('edit-ui-wm-text').value = state.uiWatermarkText || '';
+        document.getElementById('edit-ui-wm-opacity').value = String(state.uiWatermarkOpacity || 0.15);
+      };
+
+      const saveBranding = async () => {
+        await supabase.from('site_content').upsert({ id: 'site_name', content: document.getElementById('edit-brand').value });
+        alert("Saved!");
+        fetchData();
+      };
+
+      const saveHero = async () => {
+        await supabase.from('site_content').upsert([
+          { id: 'hero_title', content: document.getElementById('edit-title').value },
+          { id: 'hero_subtitle', content: document.getElementById('edit-subtitle').value }
+        ]);
+        alert("Saved!");
+        fetchData();
+      };
+
+      const saveLinks = async () => {
+        await supabase.from('site_content').upsert([
+          { id: 'instagram', content: document.getElementById('edit-insta').value },
+          { id: 'youtube', content: document.getElementById('edit-yt').value },
+          { id: 'whatsapp', content: document.getElementById('edit-wa').value },
+          { id: 'email', content: document.getElementById('edit-email').value }
+        ]);
+        alert("Saved!");
+        fetchData();
+      };
+
+      const saveWhatsAppSettings = async () => {
+        await supabase.from('site_content').upsert([
+          { id: 'whatsapp_phone', content: document.getElementById('edit-wa-phone').value },
+          { id: 'whatsapp_template', content: document.getElementById('edit-wa-template').value }
+        ]);
+        alert("WhatsApp saved!");
+        fetchData();
+      };
+
+      const saveLoader = async () => {
+        await supabase.from('site_content').upsert([
+          { id: 'loader_word1', content: document.getElementById('edit-loader-w1').value },
+          { id: 'loader_word2', content: document.getElementById('edit-loader-w2').value },
+          { id: 'loader_color1', content: document.getElementById('edit-loader-c1').value },
+          { id: 'loader_color2', content: document.getElementById('edit-loader-c2').value }
+        ]);
+        alert("Loader saved!");
+        fetchData();
+      };
+
+      const saveUI = async () => {
+        await supabase.from('site_content').upsert([
+          { id: 'ui_enable_lightbox_nav', content: document.getElementById('edit-ui-nav').value },
+          { id: 'ui_enable_watermark', content: document.getElementById('edit-ui-wm').value },
+          { id: 'ui_watermark_text', content: document.getElementById('edit-ui-wm-text').value },
+          { id: 'ui_watermark_opacity', content: document.getElementById('edit-ui-wm-opacity').value }
+        ]);
+        alert("UI saved!");
+        fetchData();
+      };
+
+      const editMediaMeta = async (id, currentTitle, currentDesc) => {
+        const newTitle = prompt("Title:", currentTitle || '');
+        if (newTitle === null) return;
+
+        const newDescRaw = prompt("Description (use \\n for new lines):", (currentDesc || '').replaceAll('\n', '\\n'));
+        if (newDescRaw === null) return;
+
+        const newDesc = newDescRaw.replaceAll('\\n', '\n');
+
+        await supabase.from('gallery').update({ title: newTitle, description: newDesc }).eq('id', id);
+        alert("Updated!");
+        fetchData();
+      };
+
+      const uploadArtistPic = async () => {
+        const file = document.getElementById('upload-artist').files[0];
+        await supabase.from('site_content').upsert([
+          { id: 'about_text', content: document.getElementById('edit-bio').value },
+          { id: 'about_title', content: document.getElementById('edit-about-title').value }
+        ]);
+        if(file) {
+          const name = `profile_${Date.now()}`;
+          await supabase.storage.from('portfolio').upload(name, file);
+          const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
+          await supabase.from('site_content').upsert({ id: 'artist_image', content: data.publicUrl });
+        }
+        alert("Updated!");
+        fetchData();
+      };
+
+      const uploadHeroWallpaper = async () => {
+        const file = document.getElementById('upload-hero').files[0];
+        if(!file) return alert("Select file!");
+        const name = `hero_${Date.now()}`;
+        await supabase.storage.from('portfolio').upload(name, file);
+        const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
+        await supabase.from('site_content').upsert({ id: 'hero_bg', content: data.publicUrl });
+        alert("Wallpaper updated!");
+        fetchData();
+      };
+
+      const uploadMedia = async () => {
+        const file = document.getElementById('upload-media').files[0];
+        if(!file) return alert("Select file first!");
+        document.getElementById('btn-upload-media').innerText = "Uploading...";
+
+        const ext = file.name.split('.').pop();
+        const name = `media_${Date.now()}.${ext}`;
+        const { error } = await supabase.storage.from('portfolio').upload(name, file);
+        if(error) { alert(error.message); return; }
+
+        const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
+
+        await supabase.from('gallery').insert([{ image_url: data.publicUrl, title: '', description: '' }]);
+
+        document.getElementById('btn-upload-media').innerText = "Upload to Gallery";
+        alert("Success!");
+        fetchData();
+      };
+
+      const deleteMedia = async (id) => {
+        if(confirm("Delete item?")) {
+          await supabase.from('gallery').delete().eq('id', id);
+          fetchData();
+        }
+      };
+
+      const shareProfile = () => {
+        if(navigator.share) navigator.share({ title: 'Portfolio', url: window.location.href });
+        else { navigator.clipboard.writeText(window.location.href); alert("Copied!"); }
+      };
+
+      return {
+        init,
+        checkRoute,
+        login,
+        logout,
+        exitAdmin,
+        scrollToFooter,
+        closeLightbox,
+        saveBranding,
+        saveHero,
+        saveLinks,
+        saveWhatsAppSettings,
+        saveLoader,
+        saveUI,
+        uploadArtistPic,
+        uploadHeroWallpaper,
+        uploadMedia,
+        deleteMedia,
+        shareProfile
+      };
+    })();
+
+    core.init();
+  </script>
 </body>
 </html>
