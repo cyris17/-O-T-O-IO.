@@ -25,24 +25,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     
     <style>
-        /* ====================================================================================================
-           2. ADVANCED CSS VARIABLES (DESIGN TOKENS)
-           
-           Centralized control for the application's physics, colors, and layout engine.
-           ====================================================================================================
-        */
         :root {
-            /* --- COLOR PALETTE --- */
-            --bg-master: #000000;       /* True Pitch Black */
-            --bg-surface: #050505;      /* Secondary Layer */
-            --bg-card: #0a0a0a;         /* Card Background */
-            --bg-panel: #0f0f0f;        /* Admin Interface */
+            --bg-master: #000000;
+            --bg-surface: #050505;
+            --bg-card: #0a0a0a;
+            --bg-panel: #0f0f0f;
             
-            /* --- HEADER TRANSPARENCY (40% Black as requested) --- */
             --header-bg: rgba(0, 0, 0, 0.4); 
             --header-blur: 10px;
             
-            /* --- TYPOGRAPHY --- */
             --font-sans: 'Inter', sans-serif;
             --font-serif: 'Playfair Display', serif;
             
@@ -50,26 +41,22 @@
             --text-secondary: #a0a0a0;
             --text-muted: #555555;
             
-            /* --- ACCENTS --- */
             --accent: #ffffff;
             --border-light: rgba(255, 255, 255, 0.08);
             --border-hover: rgba(255, 255, 255, 0.25);
             --signal-success: #00cc66;
             --signal-danger: #ff4444;
             
-            /* --- LAYOUT CONFIGURATION --- */
             --nav-height: 85px;
             --max-width: 1400px;
             --padding-mobile: 25px;
             --padding-desktop: 80px;
             
-            /* --- ANIMATION PHYSICS --- */
             --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
             --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
             --trans-fast: 0.3s;
             --trans-slow: 0.8s;
             
-            /* --- Z-INDEX STRATOSPHERE --- */
             --z-grain: 9000;
             --z-loader: 9999;
             --z-cursor: 9500;
@@ -81,18 +68,12 @@
             --z-back: -1;
         }
 
-        /* ====================================================================================================
-           3. GLOBAL RESET & BASE STYLES
-           ====================================================================================================
-        */
         *, *::before, *::after {
             margin: 0; padding: 0; box-sizing: border-box;
             -webkit-tap-highlight-color: transparent; outline: none;
         }
 
-        html {
-            font-size: 16px; scroll-behavior: auto; /* Handled by Lenis */
-        }
+        html { font-size: 16px; scroll-behavior: auto; }
 
         body {
             background-color: var(--bg-master);
@@ -104,7 +85,6 @@
             overscroll-behavior: none;
         }
 
-        /* PROTECTION: Prevent downloads */
         body.protected {
             -webkit-user-select: none; user-select: none;
             -webkit-touch-callout: none;
@@ -118,13 +98,11 @@
         img, video { display: block; width: 100%; height: auto; }
         ul { list-style: none; }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-        /* Film Grain Effect */
         .film-grain {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: var(--z-grain);
@@ -132,10 +110,6 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* ====================================================================================================
-           4. PRELOADER SYSTEM
-           ====================================================================================================
-        */
         #preloader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #000; z-index: var(--z-loader);
@@ -159,16 +133,10 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes loadFill { to { width: 100%; } }
 
-        /* ====================================================================================================
-           5. NAVIGATION (RESPONSIVE VISIBILITY)
-           ====================================================================================================
-        */
         nav {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height);
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 5%; z-index: var(--z-nav);
-            
-            /* 40% Transparent Black as requested */
             background: var(--header-bg);
             backdrop-filter: blur(var(--header-blur));
             -webkit-backdrop-filter: blur(var(--header-blur));
@@ -181,14 +149,9 @@
             text-transform: uppercase; color: white; white-space: nowrap;
         }
 
-        .nav-right-side {
-            display: flex; align-items: center; gap: 40px;
-        }
+        .nav-right-side { display: flex; align-items: center; gap: 40px; }
 
-        /* Desktop Menu Links */
-        .desktop-links {
-            display: flex; gap: 30px; align-items: center;
-        }
+        .desktop-links { display: flex; gap: 30px; align-items: center; }
 
         .nav-link {
             font-size: 0.85rem; font-weight: 600; color: white;
@@ -203,7 +166,6 @@
         }
         .nav-link:hover::after { width: 100%; }
 
-        /* Contact Button (Visible Always) */
         .btn-contact {
             background: white; color: black; padding: 10px 28px;
             border-radius: 100px; font-size: 0.75rem; font-weight: 800;
@@ -216,13 +178,8 @@
 
         .admin-trigger { width: 20px; height: 20px; opacity: 0; cursor: default; }
 
-        /* ====================================================================================================
-           6. HERO SECTION (FULLSCREEN & PARALLAX)
-           ====================================================================================================
-        */
         .hero {
             position: relative;
-            /* CRITICAL: 100dvh ensures it covers full mobile screen including address bar area */
             height: 100dvh; 
             width: 100%;
             display: flex; flex-direction: column; justify-content: center;
@@ -230,27 +187,24 @@
             overflow: hidden; padding: 0 var(--padding-mobile);
         }
 
-        /* BACKGROUND LAYER - Covers Entire Screen */
         .hero-bg-wrapper {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: var(--z-back); pointer-events: none;
             background: #000;
         }
         
-        /* UPDATED: show wallpaper in original framing (no crop) and keep HD */
+        /* UPDATED: hero wallpaper original framing + HD */
         .hero-img {
             width: 100%;
             height: 100%;
-            object-fit: contain;         /* was: cover */
+            object-fit: contain;
             object-position: center;
-            transform: none;             /* was: scale(1.2) */
+            transform: none;
             background: #000;
         }
 
-        /* VIGNETTE & GRADIENTS (The "Black Gradient" Request) */
         .hero-vignette-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            /* Complex gradient to darken ALL edges (Top, Bottom, Left, Right) */
             background: radial-gradient(
                 circle at center,
                 transparent 40%,
@@ -261,14 +215,12 @@
             z-index: 2; pointer-events: none;
         }
         
-        /* Specific Top Fade to blend with Header */
         .hero-top-fade {
             position: absolute; top: 0; left: 0; width: 100%; height: 180px;
             background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
             z-index: 3; pointer-events: none;
         }
 
-        /* Specific Bottom Fade to blend with Content */
         .hero-bottom-fade {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 300px;
             background: linear-gradient(to top, var(--bg-master) 10%, transparent 100%);
@@ -300,10 +252,6 @@
         }
         @keyframes bounce { 0%,100% { transform: translate(-50%,0); } 50% { transform: translate(-50%,15px); } }
 
-        /* ====================================================================================================
-           7. ARTIST SECTION (UPDATED LAYOUT)
-           ====================================================================================================
-        */
         .section-artist {
             padding: 120px 0; background: var(--bg-master); position: relative; z-index: 5;
         }
@@ -314,16 +262,12 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
         }
 
-        /* Artist Image - Made Larger */
-        .artist-img-wrapper {
-            width: 100%; display: flex; justify-content: center;
-        }
+        .artist-img-wrapper { width: 100%; display: flex; justify-content: center; }
         
         .artist-img {
-            width: 100%; max-width: 600px; /* Increased size */
+            width: 100%; max-width: 600px;
             border-radius: 4px;
             filter: grayscale(100%) contrast(1.1); transition: 0.8s ease;
-            /* Ghost Mask */
             -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
             mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
         }
@@ -342,14 +286,8 @@
             font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 800;
             margin-bottom: 30px; line-height: 1; letter-spacing: -1px;
         }
-        .about-body {
-            font-size: 1.2rem; color: #b0b0b0; line-height: 1.7; margin-bottom: 0;
-        }
+        .about-body { font-size: 1.2rem; color: #b0b0b0; line-height: 1.7; margin-bottom: 0; }
 
-        /* ====================================================================================================
-           8. GALLERY SECTION (3D TILT & VIDEO)
-           ====================================================================================================
-        */
         .section-work { padding: 50px 0 150px; background: var(--bg-master); }
         
         .work-header {
@@ -361,10 +299,9 @@
             display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 40px;
         }
 
-        /* 3D TILT CARD */
         .tilt-card {
             position: relative; aspect-ratio: 4/5; background: #111;
-            border-radius: 6px; cursor: pointer; opacity: 0; /* Animated in */
+            border-radius: 6px; cursor: pointer; opacity: 0;
             transform-style: preserve-3d; perspective: 1000px;
         }
 
@@ -373,20 +310,17 @@
             transform: translateZ(0); transition: transform 0.1s;
         }
 
-        /* UPDATED: show media in full color and original framing (no crop) */
+        /* UPDATED: color by default + original framing */
         .card-inner img, .card-inner video {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* was: cover */
+            object-fit: contain;
             transition: transform 0.8s var(--ease-out-expo), filter 0.5s;
-            filter: none; /* was: grayscale(100%) */
+            filter: none;
             background: #000;
         }
 
-        .tilt-card:hover img, .tilt-card:hover video {
-            transform: scale(1.03); /* softer hover zoom */
-            filter: none;
-        }
+        .tilt-card:hover img, .tilt-card:hover video { transform: scale(1.03); filter: none; }
 
         .play-badge {
             position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
@@ -396,13 +330,10 @@
             z-index: 3;
         }
 
-        /* UPDATED: overlay always visible + supports title + multiline description + whatsapp button */
         .card-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%;
             padding: 18px 18px 16px;
             background: linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.15), transparent);
-            transform: translateY(0); /* was hidden */
-            transition: transform 0.4s var(--ease-out-expo);
             z-index: 2;
             display: flex;
             flex-direction: column;
@@ -421,14 +352,10 @@
             color: rgba(255,255,255,0.78);
             font-size: 0.85rem;
             line-height: 1.35;
-            white-space: pre-line; /* multiline */
+            white-space: pre-line;
         }
 
-        .card-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 6px;
-        }
+        .card-actions { display: flex; gap: 10px; margin-top: 6px; }
 
         .btn-wa {
             display: inline-flex;
@@ -446,10 +373,6 @@
         }
         .btn-wa:hover { filter: brightness(1.05); }
 
-        /* ====================================================================================================
-           9. FOOTER
-           ====================================================================================================
-        */
         .section-footer {
             padding: 120px 0 60px; background: #080808; border-top: 1px solid var(--border-light); text-align: center;
         }
@@ -467,14 +390,8 @@
         }
         .btn-share:hover { border-color: white; color: white; }
 
-        .copyright {
-            margin-top: 80px; font-size: 0.75rem; color: #444; text-transform: uppercase; letter-spacing: 1px;
-        }
+        .copyright { margin-top: 80px; font-size: 0.75rem; color: #444; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* ====================================================================================================
-           10. INTERACTIVE ELEMENTS (LIGHTBOX, MODALS)
-           ====================================================================================================
-        */
         #lightbox {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.98); z-index: var(--z-modal); display: none;
@@ -489,11 +406,9 @@
         .lightbox-content img { cursor: zoom-in; }
         .lightbox-close { position: absolute; top: 30px; right: 30px; font-size: 2rem; color: white; cursor: pointer; }
 
-        /* Login Modal */
         #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 6000; display: none; justify-content: center; align-items: center; }
         .login-box { width: 340px; background: #111; padding: 50px; border: 1px solid #333; border-radius: 16px; text-align: center; }
 
-        /* Back to Top */
         .back-top {
             position: fixed; bottom: 30px; right: 30px; width: 55px; height: 55px;
             background: white; color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -502,10 +417,6 @@
         }
         .back-top.visible { opacity: 1; transform: translateY(0); }
 
-        /* ====================================================================================================
-           11. ADMIN DASHBOARD
-           ====================================================================================================
-        */
         #admin-panel {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #050505; z-index: 5000; overflow-y: auto; padding: 50px 30px;
@@ -551,7 +462,6 @@
             text-transform: uppercase;
             letter-spacing: 0.6px;
         }
-
         .del-btn {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(200,0,0,0.6); color: white; display: flex; align-items: center; justify-content: center;
@@ -560,41 +470,25 @@
         }
         .thumb:hover .del-btn { opacity: 1; }
 
-        /* ====================================================================================================
-           12. RESPONSIVE LOGIC (MEDIA QUERIES)
-           
-           Strict rules for Mobile vs Desktop layouts.
-           ====================================================================================================
-        */
-        
-        /* DESKTOP (Larger Screens) */
         @media (min-width: 769px) {
             .hero { align-items: flex-start; text-align: left; padding-left: 100px; }
             .hero-content { margin-left: 0; max-width: 80%; }
             .hero-title { font-size: 160px; letter-spacing: -6px; line-height: 0.85; }
             .scroll-indicator { left: 100px; transform: translateX(0); }
-            
-            /* Show all links */
             .desktop-links { display: flex; }
         }
 
-        /* MOBILE (Phones & Small Tablets) */
         @media (max-width: 768px) {
             .container { padding: 0 25px; }
             .hero-title { font-size: 14vw; letter-spacing: -2px; }
             .hero { padding: 0 30px; }
-            
-            /* HIDE Work/About on Mobile as requested */
             .desktop-links { display: none !important; }
-            
             .about-grid { grid-template-columns: 1fr; gap: 50px; }
             .gallery-grid { grid-template-columns: 1fr; }
             .admin-grid { grid-template-columns: 1fr; }
             .media-thumbs { grid-template-columns: repeat(2, 1fr); }
-            
             nav { padding: 0 20px; }
             .nav-right-side { gap: 20px; }
-            
             .section-artist { padding: 80px 0; }
             .cta-big { font-size: 3rem; }
         }
@@ -666,8 +560,7 @@
                     <span style="font-size:0.8rem; color:#666;" id="gallery-counter">Loading...</span>
                 </div>
                 
-                <div class="gallery-grid" id="gallery-feed">
-                </div>
+                <div class="gallery-grid" id="gallery-feed"></div>
             </div>
         </section>
 
@@ -771,7 +664,6 @@
                 <button class="btn-action" onclick="core.saveLinks()">Update Links</button>
             </div>
 
-            <!-- NEW: WhatsApp contact settings for per-photo button -->
             <div class="admin-card">
                 <h3>WhatsApp Contact Button</h3>
                 <span class="admin-label">WhatsApp Phone (digits only, international format)</span>
@@ -798,12 +690,10 @@
 
     <script>
         const core = (() => {
-            // --- CONFIGURATION ---
             const URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
             const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
             const supabase = window.supabase.createClient(URL, KEY);
 
-            // NEW: state for WhatsApp feature
             const state = {
                 whatsappPhone: '',
                 whatsappTemplate: 'Hello, I am interested in this {type}:\nTitle: {title}\nLink: {url}',
@@ -812,7 +702,7 @@
             const escapeForTemplate = (v) => (v ?? '').toString();
 
             const buildWhatsAppUrl = ({ phone, template, title, url, type }) => {
-                const p = (phone || '').replace(/[^\d]/g, ''); // digits only
+                const p = (phone || '').replace(/[^\d]/g, '');
                 if (!p) return null;
 
                 const msg = (template || '')
@@ -839,24 +729,16 @@
                 window.addEventListener('hashchange', checkRoute);
                 window.addEventListener('scroll', handleScroll);
                 
-                // FORT KNOX PROTECTION
                 document.addEventListener('contextmenu', e => e.preventDefault());
                 document.addEventListener('dragstart', e => e.preventDefault());
             };
 
             const setupAnimations = () => {
                 gsap.registerPlugin(ScrollTrigger);
-
-                // UPDATED: parallax is reduced because hero wallpaper is now "contain"
                 gsap.to("#hero-bg-el", { yPercent: 10, ease: "none", scrollTrigger: { trigger: ".hero", scrub: true } });
-
                 gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: "power3.out" });
-                gsap.utils.toArray('.about-text-col, .section-tag, .footer-cta').forEach(el => {
-                    gsap.from(el, { scrollTrigger: { trigger: el, start: "top 85%" }, y: 40, opacity: 0, duration: 1, ease: "power3.out" });
-                });
             };
 
-            // 3D TILT LOGIC
             const setupTilt = () => {
                 document.addEventListener('mousemove', (e) => {
                     document.querySelectorAll('.tilt-card').forEach(card => {
@@ -869,7 +751,6 @@
                             const centerY = rect.height / 2;
                             const rotateX = ((y - centerY) / centerY) * -5;
                             const rotateY = ((x - centerX) / centerX) * 5;
-                            
                             card.querySelector('.card-inner').style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
                         } else {
                             card.querySelector('.card-inner').style.transform = `rotateX(0) rotateY(0)`;
@@ -912,18 +793,13 @@
                         setHref('link-wa', map.whatsapp);
                         if(map.email) document.getElementById('btn-email-main').href = "mailto:" + map.email;
 
-                        // NEW: whatsapp settings for per-media button
                         state.whatsappPhone = map.whatsapp_phone || '';
                         state.whatsappTemplate = map.whatsapp_template || state.whatsappTemplate;
 
                         incrementView(map.view_count);
                     }
 
-                    const { data: gallery } = await supabase
-                        .from('gallery')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-
+                    const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
                     renderGallery(gallery || []);
                 } catch(e) { console.error("API Error:", e); }
             };
@@ -1032,7 +908,6 @@
                         </div>
                     `;
 
-                    // Clicking card opens lightbox; prevent button click from opening lightbox
                     card.addEventListener('click', () => openLightbox(url, isVid, { title, description }));
                     card.querySelector('.btn-wa')?.addEventListener('click', (e) => e.stopPropagation());
                     
@@ -1045,7 +920,6 @@
                     });
                     feed.appendChild(card);
 
-                    // Admin thumbnails
                     const thumb = document.createElement('div');
                     thumb.className = 'thumb';
                     thumb.innerHTML = `
@@ -1120,16 +994,12 @@
                 const wa = document.getElementById('link-wa'); if(wa) document.getElementById('edit-wa').value = wa.href;
                 const mail = document.getElementById('btn-email-main'); if(mail) document.getElementById('edit-email').value = mail.href.replace('mailto:', '');
 
-                // NEW: whatsapp contact button admin settings
                 document.getElementById('edit-wa-phone').value = state.whatsappPhone || '';
                 document.getElementById('edit-wa-template').value = state.whatsappTemplate || '';
             };
 
             const saveBranding = async () => {
-                await supabase.from('site_content').upsert({
-                    id: 'site_name',
-                    content: document.getElementById('edit-brand').value
-                });
+                await supabase.from('site_content').upsert({ id: 'site_name', content: document.getElementById('edit-brand').value });
                 alert("Saved!");
                 fetchData();
             };
@@ -1154,7 +1024,6 @@
                 fetchData();
             };
 
-            // NEW: save whatsapp phone & template used by per-photo Contact button
             const saveWhatsAppSettings = async () => {
                 await supabase.from('site_content').upsert([
                     { id: 'whatsapp_phone', content: document.getElementById('edit-wa-phone').value },
@@ -1164,8 +1033,6 @@
                 fetchData();
             };
 
-            // NEW: edit title + description per media (multi-line supported via prompt with \n)
-            // If you want a nicer modal editor, tell me and I’ll upgrade it.
             const editMediaMeta = async (id, currentTitle, currentDesc) => {
                 const newTitle = prompt("Title for this photo/video:", currentTitle || '');
                 if (newTitle === null) return;
@@ -1178,15 +1045,12 @@
 
                 const newDesc = newDescRaw.replaceAll('\\n', '\n');
 
-                await supabase
-                    .from('gallery')
-                    .update({ title: newTitle, description: newDesc })
-                    .eq('id', id);
+                await supabase.from('gallery').update({ title: newTitle, description: newDesc }).eq('id', id);
 
                 alert("Updated media details!");
                 fetchData();
             };
-            
+
             const uploadArtistPic = async () => {
                 const file = document.getElementById('upload-artist').files[0];
                 await supabase.from('site_content').upsert([
@@ -1200,6 +1064,7 @@
                     const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
                     await supabase.from('site_content').upsert({ id: 'artist_image', content: data.publicUrl });
                 }
+
                 alert("Updated!");
                 fetchData();
             };
@@ -1230,7 +1095,6 @@
 
                 const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
 
-                // NEW: insert with empty title/description columns (requires DB columns)
                 await supabase.from('gallery').insert([{
                     image_url: data.publicUrl,
                     title: '',
