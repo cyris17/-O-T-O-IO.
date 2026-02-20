@@ -234,12 +234,17 @@
         .hero-bg-wrapper {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: var(--z-back); pointer-events: none;
+            background: #000;
         }
         
+        /* UPDATED: show wallpaper in original framing (no crop) and keep HD */
         .hero-img {
-            width: 100%; height: 100%; object-fit: cover; object-position: center;
-            /* Will be animated by GSAP Parallax */
-            transform: scale(1.2); 
+            width: 100%;
+            height: 100%;
+            object-fit: contain;         /* was: cover */
+            object-position: center;
+            transform: none;             /* was: scale(1.2) */
+            background: #000;
         }
 
         /* VIGNETTE & GRADIENTS (The "Black Gradient" Request) */
@@ -368,14 +373,19 @@
             transform: translateZ(0); transition: transform 0.1s;
         }
 
+        /* UPDATED: show media in full color and original framing (no crop) */
         .card-inner img, .card-inner video {
-            width: 100%; height: 100%; object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* was: cover */
             transition: transform 0.8s var(--ease-out-expo), filter 0.5s;
-            filter: grayscale(100%);
+            filter: none; /* was: grayscale(100%) */
+            background: #000;
         }
 
         .tilt-card:hover img, .tilt-card:hover video {
-            transform: scale(1.1); filter: grayscale(0%);
+            transform: scale(1.03); /* softer hover zoom */
+            filter: none;
         }
 
         .play-badge {
@@ -383,14 +393,58 @@
             background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             color: white; font-size: 12px; pointer-events: none; border: 1px solid rgba(255,255,255,0.2);
+            z-index: 3;
         }
 
+        /* UPDATED: overlay always visible + supports title + multiline description + whatsapp button */
         .card-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%; padding: 25px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            transform: translateY(100%); transition: transform 0.4s var(--ease-out-expo);
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 18px 18px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.15), transparent);
+            transform: translateY(0); /* was hidden */
+            transition: transform 0.4s var(--ease-out-expo);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        .tilt-card:hover .card-overlay { transform: translateY(0); }
+
+        .card-title {
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 900;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+        }
+
+        .card-desc {
+            color: rgba(255,255,255,0.78);
+            font-size: 0.85rem;
+            line-height: 1.35;
+            white-space: pre-line; /* multiline */
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .btn-wa {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: #25D366;
+            color: #001b0c;
+            font-weight: 900;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .btn-wa:hover { filter: brightness(1.05); }
 
         /* ====================================================================================================
            9. FOOTER
@@ -477,11 +531,32 @@
         
         .media-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 25px; }
         .thumb { position: relative; aspect-ratio: 1; background: #222; overflow: hidden; border-radius: 6px; }
-        .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .thumb-actions {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+        .thumb-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.92);
+            border-radius: 10px;
+            padding: 10px 10px;
+            font-weight: 900;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
         .del-btn {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(200,0,0,0.6); color: white; display: flex; align-items: center; justify-content: center;
             opacity: 0; cursor: pointer; transition: 0.2s; font-size: 1.5rem;
+            z-index: 3;
         }
         .thumb:hover .del-btn { opacity: 1; }
 
@@ -515,7 +590,7 @@
             .about-grid { grid-template-columns: 1fr; gap: 50px; }
             .gallery-grid { grid-template-columns: 1fr; }
             .admin-grid { grid-template-columns: 1fr; }
-            .media-thumbs { grid-template-columns: repeat(3, 1fr); }
+            .media-thumbs { grid-template-columns: repeat(2, 1fr); }
             
             nav { padding: 0 20px; }
             .nav-right-side { gap: 20px; }
@@ -592,7 +667,7 @@
                 </div>
                 
                 <div class="gallery-grid" id="gallery-feed">
-                    </div>
+                </div>
             </div>
         </section>
 
@@ -691,9 +766,21 @@
                 <h3>Connections</h3>
                 <input type="text" id="edit-insta" class="admin-input" placeholder="Instagram URL">
                 <input type="text" id="edit-yt" class="admin-input" placeholder="YouTube URL">
-                <input type="text" id="edit-wa" class="admin-input" placeholder="WhatsApp URL">
+                <input type="text" id="edit-wa" class="admin-input" placeholder="WhatsApp URL (Footer Icon)">
                 <input type="text" id="edit-email" class="admin-input" placeholder="Email Address">
                 <button class="btn-action" onclick="core.saveLinks()">Update Links</button>
+            </div>
+
+            <!-- NEW: WhatsApp contact settings for per-photo button -->
+            <div class="admin-card">
+                <h3>WhatsApp Contact Button</h3>
+                <span class="admin-label">WhatsApp Phone (digits only, international format)</span>
+                <input type="text" id="edit-wa-phone" class="admin-input" placeholder="e.g. 2348012345678">
+
+                <span class="admin-label">Pre-typed Message Template (multi-line)</span>
+                <textarea id="edit-wa-template" class="admin-input" rows="6" placeholder="Use {title}, {url}, {type}"></textarea>
+
+                <button class="btn-action" onclick="core.saveWhatsAppSettings()">Save WhatsApp Settings</button>
             </div>
 
             <div class="admin-card" style="grid-column: 1 / -1;">
@@ -703,7 +790,7 @@
                     <input type="file" id="upload-media" class="admin-input" accept="image/*,video/*" capture="environment">
                     <button class="btn-action" id="btn-upload-media" onclick="core.uploadMedia()">Upload to Gallery</button>
                 </div>
-                <span class="admin-label">Current Gallery</span>
+                <span class="admin-label">Current Gallery (Edit title/description)</span>
                 <div class="media-thumbs" id="admin-list"></div>
             </div>
         </div>
@@ -715,6 +802,26 @@
             const URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
             const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
             const supabase = window.supabase.createClient(URL, KEY);
+
+            // NEW: state for WhatsApp feature
+            const state = {
+                whatsappPhone: '',
+                whatsappTemplate: 'Hello, I am interested in this {type}:\nTitle: {title}\nLink: {url}',
+            };
+
+            const escapeForTemplate = (v) => (v ?? '').toString();
+
+            const buildWhatsAppUrl = ({ phone, template, title, url, type }) => {
+                const p = (phone || '').replace(/[^\d]/g, ''); // digits only
+                if (!p) return null;
+
+                const msg = (template || '')
+                    .replaceAll('{title}', escapeForTemplate(title || 'Untitled'))
+                    .replaceAll('{url}', escapeForTemplate(url))
+                    .replaceAll('{type}', escapeForTemplate(type));
+
+                return `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
+            };
 
             const init = async () => {
                 setTimeout(() => document.getElementById('preloader').classList.add('vanish'), 1500);
@@ -739,7 +846,10 @@
 
             const setupAnimations = () => {
                 gsap.registerPlugin(ScrollTrigger);
-                gsap.to("#hero-bg-el", { yPercent: 30, ease: "none", scrollTrigger: { trigger: ".hero", scrub: true } });
+
+                // UPDATED: parallax is reduced because hero wallpaper is now "contain"
+                gsap.to("#hero-bg-el", { yPercent: 10, ease: "none", scrollTrigger: { trigger: ".hero", scrub: true } });
+
                 gsap.to(".hero-content", { opacity: 1, y: 0, duration: 1.5, delay: 0.5, ease: "power3.out" });
                 gsap.utils.toArray('.about-text-col, .section-tag, .footer-cta').forEach(el => {
                     gsap.from(el, { scrollTrigger: { trigger: el, start: "top 85%" }, y: 40, opacity: 0, duration: 1, ease: "power3.out" });
@@ -784,6 +894,7 @@
                     const { data: content } = await supabase.from('site_content').select('*');
                     if(content) {
                         const map = {}; content.forEach(c => map[c.id] = c.content);
+
                         setText('disp-brand', map.site_name);
                         setText('disp-footer-brand', map.site_name);
                         setText('disp-hero-title', map.hero_title);
@@ -792,68 +903,190 @@
                         setText('disp-about-title', map.about_title || 'The Artist');
                         setText('disp-artist-name', map.about_name || 'Creative Vision.');
                         setText('disp-views', map.view_count);
+
                         if(map.artist_image) document.getElementById('disp-artist-img').src = map.artist_image;
                         if(map.hero_bg) document.getElementById('hero-bg-el').src = map.hero_bg;
-                        setHref('link-insta', map.instagram); setHref('link-yt', map.youtube); setHref('link-wa', map.whatsapp);
+
+                        setHref('link-insta', map.instagram);
+                        setHref('link-yt', map.youtube);
+                        setHref('link-wa', map.whatsapp);
                         if(map.email) document.getElementById('btn-email-main').href = "mailto:" + map.email;
+
+                        // NEW: whatsapp settings for per-media button
+                        state.whatsappPhone = map.whatsapp_phone || '';
+                        state.whatsappTemplate = map.whatsapp_template || state.whatsappTemplate;
+
                         incrementView(map.view_count);
                     }
-                    const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+
+                    const { data: gallery } = await supabase
+                        .from('gallery')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
                     renderGallery(gallery || []);
                 } catch(e) { console.error("API Error:", e); }
             };
 
             const setText = (id, val) => { if(val) document.getElementById(id).innerText = val; };
-            const setHref = (id, val) => { const el = document.getElementById(id); if(val && val.length > 2) { el.href = val; el.style.display = 'inline-block'; } else el.style.display = 'none'; };
+            const setHref = (id, val) => {
+                const el = document.getElementById(id);
+                if(val && val.length > 2) { el.href = val; el.style.display = 'inline-block'; }
+                else el.style.display = 'none';
+            };
             const incrementView = async (curr) => { 
                 const n = parseInt(curr || 0) + 1; 
                 await supabase.from('site_content').update({ content: n }).eq('id', 'view_count');
                 document.getElementById('disp-views').innerText = n; 
             };
 
+            const openLightbox = (url, isVid, meta = {}) => {
+                const box = document.getElementById('lightbox');
+                const wrap = document.getElementById('lightbox-content');
+                wrap.classList.remove('zoomed');
+
+                const title = meta.title || 'Untitled';
+                const type = isVid ? 'video' : 'photo';
+
+                const waHref = buildWhatsAppUrl({
+                    phone: state.whatsappPhone,
+                    template: state.whatsappTemplate,
+                    title,
+                    url,
+                    type,
+                });
+
+                wrap.onclick = (e) => { if(!isVid) { e.stopPropagation(); wrap.classList.toggle('zoomed'); } };
+
+                const media = isVid
+                    ? `<video src="${url}" controls autoplay style="width:100%; height:100%; object-fit:contain; background:#000;"></video>`
+                    : `<img src="${url}" style="width:100%; height:100%; object-fit:contain; background:#000;">`;
+
+                wrap.innerHTML = `
+                    <div style="display:flex; flex-direction:column; gap:14px; align-items:center;">
+                        <div style="max-width:95vw; max-height:80vh; width:95vw;">
+                            ${media}
+                        </div>
+                        ${waHref ? `
+                            <a class="btn-wa" href="${waHref}" target="_blank" rel="noopener" style="margin-bottom:10px;">
+                                <i class="fab fa-whatsapp"></i> Contact about this ${type}
+                            </a>
+                        ` : `
+                            <div style="color:#666; font-size:0.85rem; margin-bottom:10px;">
+                                Admin: set WhatsApp phone in Dashboard to enable Contact button.
+                            </div>
+                        `}
+                    </div>
+                `;
+
+                wrap.querySelector('.btn-wa')?.addEventListener('click', (e) => e.stopPropagation());
+
+                box.classList.add('active');
+            };
+
             const renderGallery = (items) => {
                 const feed = document.getElementById('gallery-feed');
                 const adminList = document.getElementById('admin-list');
-                feed.innerHTML = ''; adminList.innerHTML = '';
+                feed.innerHTML = '';
+                adminList.innerHTML = '';
                 document.getElementById('gallery-counter').innerText = `${items.length} Works`;
 
                 items.forEach((item, i) => {
-                    const isVid = ['mp4','mov','webm'].some(ext => item.image_url.includes(ext));
+                    const url = item.image_url;
+                    const title = item.title || 'Untitled';
+                    const description = item.description || '';
+                    const isVid = ['mp4','mov','webm'].some(ext => (url || '').toLowerCase().includes(ext));
+                    const type = isVid ? 'video' : 'photo';
+
                     const card = document.createElement('div');
                     card.className = 'tilt-card';
                     
                     const mediaHtml = isVid 
-                        ? `<video src="${item.image_url}#t=0.1" preload="metadata" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video><div class="play-badge"><i class="fas fa-play"></i></div>` 
-                        : `<img src="${item.image_url}" loading="lazy">`;
+                        ? `<video src="${url}#t=0.1" preload="metadata" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video><div class="play-badge"><i class="fas fa-play"></i></div>` 
+                        : `<img src="${url}" loading="lazy" alt="${title}">`;
+
+                    const waHref = buildWhatsAppUrl({
+                        phone: state.whatsappPhone,
+                        template: state.whatsappTemplate,
+                        title,
+                        url,
+                        type,
+                    });
                     
-                    card.innerHTML = `<div class="card-inner">${mediaHtml}<div class="card-overlay"><span style="color:white;font-size:0.8rem;text-transform:uppercase;">View Project</span></div></div>`;
-                    card.onclick = () => openLightbox(item.image_url, isVid);
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            ${mediaHtml}
+                            <div class="card-overlay">
+                                <div class="card-title">${title}</div>
+                                ${description ? `<div class="card-desc">${description}</div>` : ``}
+                                <div class="card-actions">
+                                    ${waHref ? `
+                                        <a class="btn-wa" href="${waHref}" target="_blank" rel="noopener">
+                                            <i class="fab fa-whatsapp"></i> Contact
+                                        </a>
+                                    ` : `
+                                        <span style="color:#666; font-size:0.8rem;">(Admin: set WhatsApp phone to enable contact)</span>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Clicking card opens lightbox; prevent button click from opening lightbox
+                    card.addEventListener('click', () => openLightbox(url, isVid, { title, description }));
+                    card.querySelector('.btn-wa')?.addEventListener('click', (e) => e.stopPropagation());
                     
-                    gsap.from(card, { scrollTrigger: { trigger: card, start: "top 90%" }, opacity: 0, y: 30, duration: 0.8, delay: (i % 3) * 0.1 });
+                    gsap.from(card, {
+                        scrollTrigger: { trigger: card, start: "top 90%" },
+                        opacity: 0,
+                        y: 30,
+                        duration: 0.8,
+                        delay: (i % 3) * 0.1
+                    });
                     feed.appendChild(card);
 
+                    // Admin thumbnails
                     const thumb = document.createElement('div');
                     thumb.className = 'thumb';
-                    thumb.innerHTML = `${isVid ? `<video src="${item.image_url}#t=0.1" preload="metadata"></video>` : `<img src="${item.image_url}">`}<div class="del-btn" onclick="core.deleteMedia(${item.id})"><i class="fas fa-trash"></i></div>`;
+                    thumb.innerHTML = `
+                        ${isVid ? `<video src="${url}#t=0.1" preload="metadata"></video>` : `<img src="${url}">`}
+                        <div class="thumb-actions">
+                            <button class="thumb-btn" data-action="edit">Edit</button>
+                        </div>
+                        <div class="del-btn" data-action="delete"><i class="fas fa-trash"></i></div>
+                    `;
+
+                    thumb.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteMedia(item.id);
+                    });
+
+                    thumb.querySelector('[data-action="edit"]').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        editMediaMeta(item.id, item.title || '', item.description || '');
+                    });
+
                     adminList.appendChild(thumb);
                 });
             };
 
-            const openLightbox = (url, isVid) => {
-                const box = document.getElementById('lightbox');
-                const wrap = document.getElementById('lightbox-content');
-                wrap.classList.remove('zoomed');
-                wrap.onclick = (e) => { if(!isVid) { e.stopPropagation(); wrap.classList.toggle('zoomed'); } };
-                if(isVid) wrap.innerHTML = `<video src="${url}" controls autoplay style="width:100%; height:100%; object-fit:contain;"></video>`;
-                else wrap.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:contain;">`;
-                box.classList.add('active');
+            const closeLightbox = () => {
+                document.getElementById('lightbox').classList.remove('active');
+                setTimeout(() => document.getElementById('lightbox-content').innerHTML = '', 300);
             };
-            const closeLightbox = () => { document.getElementById('lightbox').classList.remove('active'); setTimeout(() => document.getElementById('lightbox-content').innerHTML = '', 300); };
 
             const checkRoute = () => {
                 const h = window.location.hash;
-                if(h === '#adminonly') { document.getElementById('wrapper').style.display='none'; document.getElementById('login-modal').style.display='flex'; }
-                else if(h === '#dashboard') { document.getElementById('wrapper').style.display='none'; document.getElementById('login-modal').style.display='none'; document.getElementById('admin-panel').style.display='block'; loadAdminData(); }
+                if(h === '#adminonly') {
+                    document.getElementById('wrapper').style.display='none';
+                    document.getElementById('login-modal').style.display='flex';
+                }
+                else if(h === '#dashboard') {
+                    document.getElementById('wrapper').style.display='none';
+                    document.getElementById('login-modal').style.display='none';
+                    document.getElementById('admin-panel').style.display='block';
+                    loadAdminData();
+                }
                 else exitAdmin();
             };
 
@@ -866,24 +1099,93 @@
                 if(error) msg.innerText = error.message; else window.location.hash = '#dashboard';
             };
             const logout = async () => { await supabase.auth.signOut(); exitAdmin(); };
-            const exitAdmin = () => { window.location.hash = ''; document.getElementById('wrapper').style.display='block'; document.getElementById('login-modal').style.display='none'; document.getElementById('admin-panel').style.display='none'; };
+            const exitAdmin = () => {
+                window.location.hash = '';
+                document.getElementById('wrapper').style.display='block';
+                document.getElementById('login-modal').style.display='none';
+                document.getElementById('admin-panel').style.display='none';
+            };
 
             const loadAdminData = () => {
                 const getTxt = (id) => document.getElementById(id).innerText;
+
                 document.getElementById('edit-brand').value = getTxt('disp-brand');
                 document.getElementById('edit-title').value = getTxt('disp-hero-title');
                 document.getElementById('edit-subtitle').value = getTxt('disp-hero-subtitle');
                 document.getElementById('edit-bio').value = getTxt('disp-about-text');
                 document.getElementById('edit-about-title').value = getTxt('disp-about-title');
+
                 const insta = document.getElementById('link-insta'); if(insta) document.getElementById('edit-insta').value = insta.href;
                 const yt = document.getElementById('link-yt'); if(yt) document.getElementById('edit-yt').value = yt.href;
                 const wa = document.getElementById('link-wa'); if(wa) document.getElementById('edit-wa').value = wa.href;
                 const mail = document.getElementById('btn-email-main'); if(mail) document.getElementById('edit-email').value = mail.href.replace('mailto:', '');
+
+                // NEW: whatsapp contact button admin settings
+                document.getElementById('edit-wa-phone').value = state.whatsappPhone || '';
+                document.getElementById('edit-wa-template').value = state.whatsappTemplate || '';
             };
 
-            const saveBranding = async () => { await supabase.from('site_content').upsert({ id: 'site_name', content: document.getElementById('edit-brand').value }); alert("Saved!"); fetchData(); };
-            const saveHero = async () => { await supabase.from('site_content').upsert([{ id: 'hero_title', content: document.getElementById('edit-title').value }, { id: 'hero_subtitle', content: document.getElementById('edit-subtitle').value }]); alert("Saved!"); fetchData(); };
-            const saveLinks = async () => { await supabase.from('site_content').upsert([{ id: 'instagram', content: document.getElementById('edit-insta').value }, { id: 'youtube', content: document.getElementById('edit-yt').value }, { id: 'whatsapp', content: document.getElementById('edit-wa').value }, { id: 'email', content: document.getElementById('edit-email').value }]); alert("Saved!"); fetchData(); };
+            const saveBranding = async () => {
+                await supabase.from('site_content').upsert({
+                    id: 'site_name',
+                    content: document.getElementById('edit-brand').value
+                });
+                alert("Saved!");
+                fetchData();
+            };
+
+            const saveHero = async () => {
+                await supabase.from('site_content').upsert([
+                    { id: 'hero_title', content: document.getElementById('edit-title').value },
+                    { id: 'hero_subtitle', content: document.getElementById('edit-subtitle').value }
+                ]);
+                alert("Saved!");
+                fetchData();
+            };
+
+            const saveLinks = async () => {
+                await supabase.from('site_content').upsert([
+                    { id: 'instagram', content: document.getElementById('edit-insta').value },
+                    { id: 'youtube', content: document.getElementById('edit-yt').value },
+                    { id: 'whatsapp', content: document.getElementById('edit-wa').value },
+                    { id: 'email', content: document.getElementById('edit-email').value }
+                ]);
+                alert("Saved!");
+                fetchData();
+            };
+
+            // NEW: save whatsapp phone & template used by per-photo Contact button
+            const saveWhatsAppSettings = async () => {
+                await supabase.from('site_content').upsert([
+                    { id: 'whatsapp_phone', content: document.getElementById('edit-wa-phone').value },
+                    { id: 'whatsapp_template', content: document.getElementById('edit-wa-template').value }
+                ]);
+                alert("WhatsApp settings saved!");
+                fetchData();
+            };
+
+            // NEW: edit title + description per media (multi-line supported via prompt with \n)
+            // If you want a nicer modal editor, tell me and I’ll upgrade it.
+            const editMediaMeta = async (id, currentTitle, currentDesc) => {
+                const newTitle = prompt("Title for this photo/video:", currentTitle || '');
+                if (newTitle === null) return;
+
+                const newDescRaw = prompt(
+                    "Description (multi-line: type \\n for new lines):",
+                    (currentDesc || '').replaceAll('\n', '\\n')
+                );
+                if (newDescRaw === null) return;
+
+                const newDesc = newDescRaw.replaceAll('\\n', '\n');
+
+                await supabase
+                    .from('gallery')
+                    .update({ title: newTitle, description: newDesc })
+                    .eq('id', id);
+
+                alert("Updated media details!");
+                fetchData();
+            };
             
             const uploadArtistPic = async () => {
                 const file = document.getElementById('upload-artist').files[0];
@@ -891,14 +1193,17 @@
                     { id: 'about_text', content: document.getElementById('edit-bio').value },
                     { id: 'about_title', content: document.getElementById('edit-about-title').value }
                 ]);
+
                 if(file) {
                     const name = `profile_${Date.now()}`;
                     await supabase.storage.from('portfolio').upload(name, file);
                     const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
                     await supabase.from('site_content').upsert({ id: 'artist_image', content: data.publicUrl });
                 }
-                alert("Updated!"); fetchData();
+                alert("Updated!");
+                fetchData();
             };
+
             const uploadHeroWallpaper = async () => {
                 const file = document.getElementById('upload-hero').files[0];
                 if(file) {
@@ -906,25 +1211,67 @@
                     await supabase.storage.from('portfolio').upload(name, file);
                     const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
                     await supabase.from('site_content').upsert({ id: 'hero_bg', content: data.publicUrl });
-                    alert("Wallpaper Updated!"); fetchData();
+                    alert("Wallpaper Updated!");
+                    fetchData();
                 } else alert("Select file!");
             };
+
             const uploadMedia = async () => {
                 const file = document.getElementById('upload-media').files[0];
                 if(!file) return alert("Select File First!");
+
                 document.getElementById('btn-upload-media').innerText = "Uploading...";
-                const name = `media_${Date.now()}.${file.name.split('.').pop()}`;
+
+                const ext = file.name.split('.').pop();
+                const name = `media_${Date.now()}.${ext}`;
+
                 const { error } = await supabase.storage.from('portfolio').upload(name, file);
                 if(error) { alert(error.message); return; }
-                const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
-                await supabase.from('gallery').insert([{ image_url: data.publicUrl }]);
-                document.getElementById('btn-upload-media').innerText = "Upload to Gallery";
-                alert("Success!"); fetchData();
-            };
-            const deleteMedia = async (id) => { if(confirm("Delete item?")) { await supabase.from('gallery').delete().eq('id', id); fetchData(); }};
-            const shareProfile = () => { if(navigator.share) navigator.share({ title: 'Portfolio', url: window.location.href }); else { navigator.clipboard.writeText(window.location.href); alert("Copied!"); }};
 
-            return { init, checkRoute, login, logout, exitAdmin, scrollToFooter, closeLightbox, saveBranding, saveHero, saveLinks, uploadArtistPic, uploadHeroWallpaper, uploadMedia, deleteMedia, shareProfile };
+                const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
+
+                // NEW: insert with empty title/description columns (requires DB columns)
+                await supabase.from('gallery').insert([{
+                    image_url: data.publicUrl,
+                    title: '',
+                    description: ''
+                }]);
+
+                document.getElementById('btn-upload-media').innerText = "Upload to Gallery";
+                alert("Success!");
+                fetchData();
+            };
+
+            const deleteMedia = async (id) => {
+                if(confirm("Delete item?")) {
+                    await supabase.from('gallery').delete().eq('id', id);
+                    fetchData();
+                }
+            };
+
+            const shareProfile = () => {
+                if(navigator.share) navigator.share({ title: 'Portfolio', url: window.location.href });
+                else { navigator.clipboard.writeText(window.location.href); alert("Copied!"); }
+            };
+
+            return {
+                init,
+                checkRoute,
+                login,
+                logout,
+                exitAdmin,
+                scrollToFooter,
+                closeLightbox,
+                saveBranding,
+                saveHero,
+                saveLinks,
+                saveWhatsAppSettings,
+                uploadArtistPic,
+                uploadHeroWallpaper,
+                uploadMedia,
+                deleteMedia,
+                shareProfile
+            };
         })();
 
         core.init();
