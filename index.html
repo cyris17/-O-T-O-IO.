@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <meta name="description" content="Gaming x Hatsune Miku cyber portfolio — photography, videography & creative direction." />
+  <meta name="description" content="Cyber portfolio — photography, videography & creative direction." />
   <meta name="author" content="Visual Stories" />
 
-  <meta property="og:title" content="CYBER PORTFOLIO | MIKU EDITION" />
+  <meta property="og:title" content="CYBER PORTFOLIO" />
   <meta property="og:description" content="Neon visuals, cinematic gallery, animated tags, and an admin command center." />
   <meta property="og:type" content="website" />
 
-  <title>CYBER PORTFOLIO | MIKU EDITION</title>
+  <title>CYBER PORTFOLIO</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
@@ -67,9 +67,9 @@
     html{font-size:16px;scroll-behavior:auto;}
     body{
       background:
-        radial-gradient(1200px 900px at 15% 10%, rgba(0,255,213,.12), transparent 55%),
-        radial-gradient(1000px 900px at 80% 20%, rgba(255,79,216,.10), transparent 60%),
-        radial-gradient(1200px 900px at 60% 90%, rgba(124,77,255,.08), transparent 55%),
+        radial-gradient(1200px 900px at 15% 10%, rgba(0,255,213,.10), transparent 55%),
+        radial-gradient(1000px 900px at 80% 20%, rgba(255,79,216,.08), transparent 60%),
+        radial-gradient(1200px 900px at 60% 90%, rgba(124,77,255,.07), transparent 55%),
         linear-gradient(180deg, var(--bg), var(--bg2));
       color:var(--text);
       font-family:var(--font);
@@ -93,7 +93,6 @@
 
     .film-grain{
       position:fixed;inset:0;pointer-events:none;z-index:var(--z-grain);opacity:.05;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
       mix-blend-mode:overlay;
     }
 
@@ -137,20 +136,46 @@
       z-index:var(--z-nav);
       display:flex;align-items:center;justify-content:space-between;
       padding:0 5%;
-      background:linear-gradient(180deg, rgba(5,6,10,.65), rgba(5,6,10,.35));
+      background:linear-gradient(180deg, rgba(5,6,10,.70), rgba(5,6,10,.35));
       border-bottom:1px solid rgba(255,255,255,.06);
       backdrop-filter:blur(14px);
     }
-    .logo{
-      font-weight:900;letter-spacing:2px;text-transform:uppercase;
-      display:flex;align-items:center;gap:12px;
+
+    /* Brand (logo + title) */
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
       white-space:nowrap;
+      min-width:0;
     }
-    .logo .sig{
-      width:10px;height:10px;border-radius:999px;
-      background:var(--miku);
-      box-shadow:0 0 20px rgba(0,255,213,.5);
+    .brand-logo-wrap{
+      width:42px;height:42px;border-radius:999px;overflow:hidden;
+      background:rgba(10,12,22,.35);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 12px 50px rgba(0,0,0,.35);
+      backdrop-filter:blur(12px);
+      flex:0 0 auto;
     }
+    .brand-logo-wrap img{
+      width:100%;height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .brand-title{
+      font-weight:950;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      display:block;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:min(46vw, 520px);
+    }
+    #brand-logo:not([src]),
+    #brand-logo[src=""]{
+      display:none;
+    }
+
     .nav-right{display:flex;align-items:center;gap:22px;}
     .desktop-links{
       display:flex;
@@ -197,17 +222,20 @@
     .hero-bg{position:absolute;inset:0;z-index:var(--z-back);pointer-events:none;background:#04050a;}
     .hero-bg img{
       width:100%;height:100%;object-fit:cover;
-      filter:saturate(1.12) contrast(1.05);
+      object-position:center;
+      /* keep HD clean */
+      image-rendering:auto;
+      filter:saturate(1.08) contrast(1.04);
       opacity:.55;
-      transform:scale(1.05);
+      transform:scale(1.02);
     }
     .hero-grid{
       position:absolute;inset:-2px;
       background:
-        linear-gradient(transparent 0, rgba(0,255,213,.06) 1px, transparent 1px),
-        linear-gradient(90deg, transparent 0, rgba(255,79,216,.05) 1px, transparent 1px);
+        linear-gradient(transparent 0, rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, transparent 0, rgba(255,255,255,.03) 1px, transparent 1px);
       background-size:36px 36px;
-      opacity:.35;
+      opacity:.22;
       mask-image:radial-gradient(circle at 50% 40%, black 30%, transparent 70%);
       pointer-events:none;
     }
@@ -220,16 +248,7 @@
       max-width:var(--max);
       opacity:0;transform:translateY(50px);
     }
-    .hero-kicker{
-      display:inline-flex;gap:10px;align-items:center;justify-content:center;
-      font-size:.74rem;font-weight:950;letter-spacing:2px;text-transform:uppercase;
-      color:rgba(234,246,255,.78);
-      padding:10px 14px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(10,12,22,.45);
-      backdrop-filter:blur(10px);
-      box-shadow:var(--glow);
-    }
+
     .hero-title{
       margin-top:18px;
       font-size:clamp(3.1rem, 10vw, 9.6rem);
@@ -242,11 +261,11 @@
       white-space:pre-line;
     }
     .hero-title .miku{
-      background:linear-gradient(90deg, var(--miku), #ffffff, var(--pink));
+      background:linear-gradient(90deg, rgba(0,255,213,.95), #ffffff, rgba(255,79,216,.95));
       -webkit-background-clip:text;
       background-clip:text;
       color:transparent;
-      filter:drop-shadow(0 0 18px rgba(0,255,213,.18));
+      filter:drop-shadow(0 0 18px rgba(255,255,255,.10));
     }
     .hero-sub{
       margin-top:16px;
@@ -279,7 +298,15 @@
       font-size:.78rem;font-weight:950;letter-spacing:2px;text-transform:uppercase;
       color:rgba(234,246,255,.65);
     }
-    .tagline .dot{width:8px;height:8px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.45);}
+    /* removed green dot; use gradient rule instead */
+    .tagline::before{
+      content:"";
+      width:26px;height:2px;border-radius:999px;
+      background:linear-gradient(90deg, rgba(0,255,213,.95), rgba(255,79,216,.92));
+      box-shadow:0 0 18px rgba(0,255,213,.14);
+      display:inline-block;
+    }
+
     .section-title{
       font-size:clamp(2.2rem, 4.7vw, 4.2rem);
       font-weight:950;letter-spacing:-1px;
@@ -306,9 +333,9 @@
     .sec-card::before{
       content:"";
       position:absolute;inset:-2px;
-      background:radial-gradient(700px 200px at 10% 0%, rgba(0,255,213,.18), transparent 60%),
-                 radial-gradient(700px 200px at 90% 0%, rgba(255,79,216,.14), transparent 60%);
-      opacity:.6;
+      background:radial-gradient(700px 200px at 10% 0%, rgba(255,255,255,.07), transparent 60%),
+                 radial-gradient(700px 200px at 90% 0%, rgba(255,255,255,.05), transparent 60%);
+      opacity:.65;
       pointer-events:none;
     }
     .sec-card h3{
@@ -338,8 +365,8 @@
     #work.section{padding-top:70px;}
     .gallery-grid{
       display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(360px, 1fr));
-      gap:34px;
+      grid-template-columns:repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap:28px;
     }
     .tilt-card{
       position:relative;
@@ -357,7 +384,7 @@
     }
     .tilt-card:hover{
       transform:translateY(-10px) scale(1.01);
-      border-color:rgba(0,255,213,.25);
+      border-color:rgba(255,255,255,.16);
       box-shadow:0 35px 160px rgba(0,0,0,.70);
     }
     .card-inner{width:100%;height:100%;position:relative;overflow:hidden;border-radius:18px;background:#000;transform:translateZ(0);transition:transform .1s;}
@@ -365,7 +392,7 @@
       width:100%;height:100%;
       object-fit:cover;
       background:#000;
-      filter:saturate(1.08) contrast(1.04);
+      filter:saturate(1.06) contrast(1.03);
       transform:scale(1.02);
     }
     .play-badge{
@@ -375,7 +402,7 @@
       display:flex;align-items:center;justify-content:center;
       backdrop-filter:blur(8px);
       z-index:3;pointer-events:none;
-      box-shadow:0 0 0 1px rgba(0,255,213,.12);
+      box-shadow:0 0 0 1px rgba(255,255,255,.10);
     }
     .watermark{
       position:absolute;top:16px;left:16px;z-index:3;pointer-events:none;
@@ -384,6 +411,7 @@
       font-size:0.72rem;
       text-shadow:0 8px 25px rgba(0,0,0,0.6);
     }
+
     .tag-chips{
       position:absolute;left:16px;right:16px;top:16px;
       display:flex;flex-wrap:wrap;gap:8px;
@@ -395,7 +423,7 @@
       pointer-events:none;
       display:inline-flex;
       align-items:center;
-      gap:8px;
+      gap:0;
       padding:7px 10px;
       border-radius:999px;
       font-size:.70rem;
@@ -406,18 +434,29 @@
       background:rgba(10,12,22,.60);
       border:1px solid rgba(255,255,255,.10);
       backdrop-filter:blur(10px);
-      box-shadow:0 0 0 1px rgba(0,255,213,.08);
+      box-shadow:0 0 0 1px rgba(255,255,255,.06);
       transform:translateY(-6px);
       opacity:0;
-      animation:chipIn .55s var(--ease) forwards;
+      animation:chipIn .55s var(--ease) forwards, chipFloat 4.2s ease-in-out infinite;
     }
-    .chip::before{
+
+    /* removed dot before chip */
+    .chip::before{display:none;}
+
+    /* subtle looping shimmer */
+    .chip::after{
       content:"";
-      width:7px;height:7px;border-radius:999px;
-      background:linear-gradient(90deg, var(--miku), var(--pink));
-      box-shadow:0 0 16px rgba(0,255,213,.35);
+      position:absolute;
+      inset:0;
+      background:linear-gradient(110deg, transparent 0%, rgba(255,255,255,.10) 45%, transparent 70%);
+      transform:translateX(-120%);
+      animation:chipShimmer 3.8s ease-in-out infinite;
+      pointer-events:none;
     }
+
     @keyframes chipIn{to{transform:translateY(0);opacity:1;}}
+    @keyframes chipFloat{0%,100%{translate:0 0;}50%{translate:0 -2px;}}
+    @keyframes chipShimmer{0%{transform:translateX(-120%);}55%{transform:translateX(120%);}100%{transform:translateX(120%);} }
 
     .card-overlay{
       position:absolute;left:0;right:0;bottom:0;
@@ -602,11 +641,12 @@
       padding-bottom:14px;margin-bottom:14px;
       border-bottom:1px solid rgba(255,255,255,.08);
     }
+    /* remove green dot in admin title */
     .admin-brand .t{
       font-weight:950;letter-spacing:1px;text-transform:uppercase;font-size:.92rem;
       display:flex;gap:10px;align-items:center;
     }
-    .admin-brand .t .sig{width:10px;height:10px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.35);}
+    .admin-brand .t .sig{display:none;}
     .admin-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
     .btn-soft{
       padding:10px 12px;border-radius:14px;
@@ -641,7 +681,7 @@
       font-size:1.15rem;font-weight:950;letter-spacing:1px;text-transform:uppercase;
       display:flex;align-items:center;gap:10px;
     }
-    .admin-top h2 .sig{width:10px;height:10px;border-radius:999px;background:var(--pink);box-shadow:0 0 18px rgba(255,79,216,.35);}
+    .admin-top h2 .sig{display:none;}
     .admin-note{color:rgba(234,246,255,.60);font-size:.86rem;line-height:1.5;max-width:700px;}
 
     .admin-grid{
@@ -765,7 +805,7 @@
       font-weight:950;letter-spacing:1px;text-transform:uppercase;font-size:.92rem;
       display:flex;gap:10px;align-items:center;
     }
-    .modal-head .t .sig{width:10px;height:10px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.35);}
+    .modal-head .t .sig{display:none;}
     .modal-close{
       width:44px;height:44px;border-radius:16px;
       display:flex;align-items:center;justify-content:center;
@@ -811,9 +851,7 @@
     .url-row{
       display:flex;gap:10px;align-items:center;
     }
-    .url-row input{
-      flex:1;
-    }
+    .url-row input{flex:1;}
     .btn-mini{
       padding:12px 12px;border-radius:14px;
       background:rgba(255,255,255,.06);
@@ -840,10 +878,22 @@
 
     /* Responsive */
     @media (min-width: 900px){
-      header.hero{align-items:flex-start;text-align:left;padding-left:100px;}
-      .hero-content{max-width:85%;}
-      .scroll-ind{left:100px;transform:translateX(0);}
-    }
+      header.hero{   align-items:center;          /* center vertically */
+    justify-content:flex-start;  /* push content to the left */
+    text-align:left;
+    padding-left:100px;
+    padding-right:40px;
+  }
+
+  .hero-content{
+    max-width:min(900px, 60vw);
+  }
+
+  .scroll-ind{
+    left:100px;
+    transform:translateX(0);
+  }
+}
     @media (max-width: 980px){
       .admin-shell{grid-template-columns:1fr;}
       .admin-side{position:relative;top:auto;}
@@ -854,11 +904,10 @@
       .desktop-links{display:none !important;}
     }
     @media (max-width: 768px){
-      .container{padding:0 22px;}
-      .gallery-grid{grid-template-columns:1fr;}
-      .sections-grid .sec-card{grid-column:1 / -1;}
-      nav{padding:0 18px;}
-      .nav-right{gap:14px;}
+      .container{padding:0 18px;}
+      nav{padding:0 16px;}
+      .nav-right{gap:12px;}
+      .btn-contact{padding:11px 14px;}
     }
   </style>
 </head>
@@ -877,9 +926,11 @@
 
   <div id="wrapper">
     <nav id="navbar">
-      <div class="logo">
-        <span class="sig"></span>
-        <span id="disp-brand">PORTFOLIO.</span>
+      <div class="brand">
+        <div class="brand-logo-wrap">
+          <img id="brand-logo" alt="Logo" />
+        </div>
+        <span id="disp-brand" class="brand-title">MINE</span>
       </div>
 
       <div class="nav-right">
@@ -897,7 +948,7 @@
 
     <header class="hero">
       <div class="hero-bg">
-        <img id="hero-bg-el" src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400" alt="Cyber background">
+        <img id="hero-bg-el" src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2400" alt="Website wallpaper">
       </div>
       <div class="hero-grid"></div>
       <div class="hero-vignette"></div>
@@ -905,11 +956,6 @@
       <div class="hero-bottom"></div>
 
       <div class="hero-content">
-        <div class="hero-kicker">
-          <span style="width:8px;height:8px;border-radius:999px;background:var(--miku);box-shadow:0 0 18px rgba(0,255,213,.5)"></span>
-          GAMING • MIKU • VISUALS
-        </div>
-
         <h1 id="disp-hero-title" class="hero-title"><span class="miku">VISUAL</span><br>STORIES.</h1>
         <p id="disp-hero-subtitle" class="hero-sub">PHOTOGRAPHY & VIDEOGRAPHY</p>
       </div>
@@ -924,7 +970,7 @@
       <div class="container">
         <div class="section-head">
           <div>
-            <div class="tagline"><span class="dot"></span> Loadout</div>
+            <div class="tagline">Loadout</div>
             <div class="section-title">Sections</div>
           </div>
           <div style="color:rgba(234,246,255,.55);font-size:.86rem;line-height:1.4;max-width:520px;">
@@ -941,7 +987,7 @@
       <div class="container">
         <div class="section-head">
           <div>
-            <div class="tagline"><span class="dot"></span> Selected Works</div>
+            <div class="tagline">Selected Works</div>
             <div class="section-title">Gallery</div>
           </div>
           <div style="color:rgba(234,246,255,.55);font-size:.86rem;">
@@ -972,7 +1018,7 @@
         </button>
 
         <div class="copyright">
-          &copy; 2026 <span id="disp-footer-brand">PORTFOLIO</span>.
+          &copy; 2026 <span id="disp-footer-brand">MINE</span>.
           <br><span style="color:rgba(234,246,255,.35);">Views: <span id="disp-views">…</span></span>
         </div>
       </div>
@@ -1010,7 +1056,7 @@
     <div class="admin-shell">
       <aside class="admin-side">
         <div class="admin-brand">
-          <div class="t"><span class="sig"></span> Command Center</div>
+          <div class="t">Command Center</div>
         </div>
 
         <div class="tiny">
@@ -1027,16 +1073,16 @@
         </div>
 
         <div class="tiny" style="margin-top:16px;">
-          Tip: Use tags like <b>miku</b>, <b>cyber</b>, <b>fps</b>, <b>cinematic</b>.
+          Tip: Use tags like <b>cyber</b>, <b>cinematic</b>, <b>portrait</b>, <b>studio</b>.
         </div>
       </aside>
 
       <main class="admin-main">
         <div class="admin-top">
           <div>
-            <h2><span class="sig"></span> Dashboard</h2>
+            <h2>Dashboard</h2>
             <div class="admin-note">
-              Manage branding, loader colors, links, WhatsApp templates (includes media URL), dynamic sections, and the gallery (tags + edit + delete).
+              Manage branding, wallpapers, links, WhatsApp templates (includes media URL), dynamic sections, and the gallery (tags + edit + delete).
             </div>
           </div>
         </div>
@@ -1048,6 +1094,10 @@
             <span class="admin-label">Website Name</span>
             <input type="text" id="edit-brand" class="admin-input" />
             <button class="btn-action" onclick="core.saveBranding()">Update Name</button>
+
+            <div class="tiny" style="margin-top:10px;">
+              Logo + Wallpaper uploads are below.
+            </div>
           </div>
 
           <div class="admin-card">
@@ -1057,6 +1107,23 @@
             <span class="admin-label">Subtitle</span>
             <input type="text" id="edit-subtitle" class="admin-input" />
             <button class="btn-action" onclick="core.saveHero()">Update Hero</button>
+          </div>
+
+          <!-- NEW: Assets upload -->
+          <div class="admin-card">
+            <h3>Assets (Upload)</h3>
+
+            <span class="admin-label">Logo (circle image)</span>
+            <input type="file" id="upload-logo" class="admin-input" accept="image/*" />
+            <button class="btn-action" id="btn-upload-logo" onclick="core.uploadLogo()">Upload Logo</button>
+
+            <span class="admin-label" style="margin-top:14px;">Wallpaper (Hero Background) — up to 20MB</span>
+            <input type="file" id="upload-wallpaper" class="admin-input" accept="image/*" />
+            <button class="btn-action" id="btn-upload-wallpaper" onclick="core.uploadWallpaper()">Upload Wallpaper</button>
+
+            <div class="tiny">
+              Uploads keep original quality (no compression). Large files may load slower on mobile data.
+            </div>
           </div>
 
           <div class="admin-card">
@@ -1181,7 +1248,7 @@
   <div id="admin-media-modal" onclick="core.closeMediaModal()">
     <div class="modal-box" onclick="event.stopPropagation()">
       <div class="modal-head">
-        <div class="t"><span class="sig"></span> Edit Media</div>
+        <div class="t">Edit Media</div>
         <button class="modal-close" type="button" onclick="core.closeMediaModal()" title="Close"><i class="fas fa-xmark"></i></button>
       </div>
 
@@ -1204,7 +1271,7 @@
           <textarea id="amm-desc" class="admin-textarea" rows="6" placeholder="Description..."></textarea>
 
           <span class="admin-label">Tags (comma-separated)</span>
-          <input type="text" id="amm-tags" class="admin-input" placeholder="miku, cyber, fps, cinematic" />
+          <input type="text" id="amm-tags" class="admin-input" placeholder="cyber, cinematic, portrait" />
           <div class="tiny">Tags appear as animated chips on the card and in the lightbox.</div>
 
           <div class="modal-actions">
@@ -1222,6 +1289,10 @@
       const URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
       const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
       const supabase = window.supabase.createClient(URL, KEY);
+
+      // Use same bucket as gallery to keep it simple.
+      // Ensure bucket "portfolio" is PUBLIC in Supabase Storage.
+      const ASSETS_BUCKET = 'portfolio';
 
       const state = {
         whatsappPhone: '',
@@ -1354,7 +1425,7 @@
               const inner = card.querySelector('.card-inner');
               if (inner) inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
               return;
-           }
+            }
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             const centerX = rect.width / 2;
@@ -1397,6 +1468,9 @@
 
             if (map.hero_bg) document.getElementById('hero-bg-el').src = map.hero_bg;
 
+            // NEW: apply logo url
+            if (map.logo_url) document.getElementById('brand-logo').src = map.logo_url;
+
             setHref('link-insta', map.instagram);
             setHref('link-yt', map.youtube);
             setHref('link-wa', map.whatsapp);
@@ -1438,7 +1512,7 @@
           state.sections = (sections || []);
           renderSections();
           renderSectionsAdminList();
-          renderNavLinks(); // (2) auto nav links
+          renderNavLinks();
         } catch (e) {
           console.error("Sections fetch error:", e);
         }
@@ -1450,15 +1524,11 @@
 
         const enabled = (state.sections || []).filter(s => !!s.enabled);
 
-        // Always include Work + Contact. Include each enabled section anchor.
-        // We render links in order: Work, Sections, [each enabled], Contact
         const links = [];
-
         links.push({ id: 'work', label: 'Work' });
         links.push({ id: 'sections', label: 'Sections' });
 
         enabled.forEach(s => {
-          // anchor id is "sec-<slug>"
           links.push({ id: `sec-${s.slug}`, label: s.title || s.slug });
         });
 
@@ -1799,7 +1869,6 @@
 
           feed.appendChild(card);
 
-          // ADMIN thumb
           const thumb = document.createElement('div');
           thumb.className = 'thumb';
           thumb.innerHTML = `
@@ -1900,7 +1969,7 @@
           { id: 'instagram', content: document.getElementById('edit-insta').value },
           { id: 'youtube', content: document.getElementById('edit-yt').value },
           { id: 'whatsapp', content: document.getElementById('edit-wa').value },
-          { id: 'email', content: document.getElementById('edit-email').value }
+          { id: 'email', content: document.getElementById('edit-email').value },
         ]);
         alert("Saved!");
         fetchContentAndGallery();
@@ -1936,6 +2005,80 @@
         alert("UI saved!");
         fetchContentAndGallery();
       };
+
+      // NEW: Upload helpers (logo/wallpaper) ---------------------------------
+      const requireImage = (file, { maxBytes }) => {
+        if (!file) return "Select an image first.";
+        if (!file.type.startsWith('image/')) return "File must be an image.";
+        if (file.size > maxBytes) return `File too large. Max ${(maxBytes/1024/1024).toFixed(0)}MB.`;
+        return null;
+      };
+
+      const uploadAssetToStorage = async (file, prefix) => {
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const safeExt = ext.replace(/[^a-z0-9]/g, '') || 'jpg';
+        const name = `${prefix}_${Date.now()}.${safeExt}`;
+
+        // upsert true so reupload doesn't fail if name collides (rare)
+        const { error } = await supabase.storage.from(ASSETS_BUCKET).upload(name, file, { upsert: true });
+        if (error) throw error;
+
+        const { data } = supabase.storage.from(ASSETS_BUCKET).getPublicUrl(name);
+        return data.publicUrl;
+      };
+
+      const uploadLogo = async () => {
+        const file = document.getElementById('upload-logo').files[0];
+        const err = requireImage(file, { maxBytes: 5 * 1024 * 1024 }); // logo max 5MB
+        if (err) return alert(err);
+
+        const btn = document.getElementById('btn-upload-logo');
+        btn.innerText = "Uploading...";
+        btn.disabled = true;
+
+        try {
+          const url = await uploadAssetToStorage(file, 'logo');
+          await supabase.from('site_content').upsert({ id: 'logo_url', content: url });
+
+          // apply instantly
+          document.getElementById('brand-logo').src = url;
+
+          alert("Logo uploaded!");
+          await fetchContentAndGallery();
+        } catch (e) {
+          alert(e?.message || "Upload failed");
+        } finally {
+          btn.innerText = "Upload Logo";
+          btn.disabled = false;
+        }
+      };
+
+      const uploadWallpaper = async () => {
+        const file = document.getElementById('upload-wallpaper').files[0];
+        const err = requireImage(file, { maxBytes: 20 * 1024 * 1024 }); // 20MB
+        if (err) return alert(err);
+
+        const btn = document.getElementById('btn-upload-wallpaper');
+        btn.innerText = "Uploading...";
+        btn.disabled = true;
+
+        try {
+          const url = await uploadAssetToStorage(file, 'wallpaper');
+          await supabase.from('site_content').upsert({ id: 'hero_bg', content: url });
+
+          // apply instantly
+          document.getElementById('hero-bg-el').src = url;
+
+          alert("Wallpaper uploaded!");
+          await fetchContentAndGallery();
+        } catch (e) {
+          alert(e?.message || "Upload failed");
+        } finally {
+          btn.innerText = "Upload Wallpaper";
+          btn.disabled = false;
+        }
+      };
+      // ----------------------------------------------------------------------
 
       // Sections CRUD
       const reloadSections = async () => {
@@ -2022,7 +2165,7 @@
         fetchSections();
       };
 
-      // Media modal (1)
+      // Media modal
       const openMediaModal = (item) => {
         state.editingMediaId = item.id;
 
@@ -2095,10 +2238,10 @@
 
         const ext = file.name.split('.').pop();
         const name = `media_${Date.now()}.${ext}`;
-        const { error } = await supabase.storage.from('portfolio').upload(name, file);
+        const { error } = await supabase.storage.from(ASSETS_BUCKET).upload(name, file, { upsert: true });
         if (error) { alert(error.message); document.getElementById('btn-upload-media').innerText = "Upload to Gallery"; return; }
 
-        const { data } = supabase.storage.from('portfolio').getPublicUrl(name);
+        const { data } = supabase.storage.from(ASSETS_BUCKET).getPublicUrl(name);
         const mediaUrl = data.publicUrl;
 
         const autoType = isVideoUrl(mediaUrl) ? 'video' : 'image';
@@ -2141,6 +2284,10 @@
         uploadMedia,
         deleteMedia,
         shareProfile,
+
+        // NEW assets
+        uploadLogo,
+        uploadWallpaper,
 
         // sections
         reloadSections,
