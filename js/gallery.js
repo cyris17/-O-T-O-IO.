@@ -25,6 +25,7 @@
     if (!container) return;
 
     const cats = new Set();
+    (s().galleryCategories || []).forEach(cat => { if (cat) cats.add(cat); });
     items.forEach(item => {
       const cat = (item.category || '').trim();
       if (cat) cats.add(cat);
@@ -139,14 +140,14 @@
           ${watermarkHtml}
           ${chipsHtml}
           ${countBadge}
-          <div class="card-overlay">
-            <div class="card-title">${core.escapeHtml(title)}</div>
-            ${desc ? `<div class="card-desc">${core.escapeHtml(desc)}</div>` : ''}
-            <div class="card-actions">
-              ${waHref
-                ? `<a class="btn-wa" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>`
-                : `<span style="color:rgba(234,246,255,.55);font-size:0.85rem;">(Admin: set WhatsApp phone to enable contact)</span>`}
-            </div>
+        </div>
+        <div class="card-info">
+          <div class="card-title">${core.escapeHtml(title)}</div>
+          ${desc ? `<div class="card-desc">${core.escapeHtml(desc)}</div>` : ''}
+          <div class="card-actions">
+            ${waHref
+              ? `<a class="btn-wa" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>`
+              : `<span style="color:rgba(234,246,255,.55);font-size:0.85rem;">(Admin: set WhatsApp phone to enable contact)</span>`}
           </div>
         </div>
       `;

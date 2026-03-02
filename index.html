@@ -303,6 +303,14 @@
           </div>
 
           <div class="admin-card">
+            <h3>Gallery Categories</h3>
+            <span class="admin-label">Categories (comma-separated)</span>
+            <input type="text" id="edit-gallery-categories" class="admin-input" placeholder="Photography, Videography, Portraits" />
+            <div class="tiny">These appear as filter tabs on the gallery and as options in the media editor.</div>
+            <button class="btn-action" onclick="core.saveGalleryCategories()">Save Categories</button>
+          </div>
+
+          <div class="admin-card">
             <h3>UI Options</h3>
             <span class="admin-label">Enable Lightbox Next/Prev (1=yes, 0=no)</span>
             <input type="text" id="edit-ui-nav" class="admin-input" placeholder="1" />
@@ -413,14 +421,17 @@
           <div class="tiny">Tags appear as animated chips on the card and in the lightbox.</div>
 
           <span class="admin-label">Section / Category</span>
-          <input type="text" id="amm-category" class="admin-input" placeholder="e.g. Photography, Videography, Portraits" />
+          <select id="amm-category" class="admin-input"></select>
           <div class="tiny">Used to filter gallery by category on the public page.</div>
 
           <span class="admin-label">Custom WhatsApp Message (optional)</span>
           <textarea id="amm-custom-wa" class="admin-textarea" rows="3" placeholder="Leave empty to use global template. Use {title}, {url}, {type}, {tags}"></textarea>
 
           <span class="admin-label">Additional Media URLs (one per line)</span>
-          <textarea id="amm-additional" class="admin-textarea" rows="3" placeholder="https://...&#10;https://..."></textarea>
+          <textarea id="amm-additional" class="admin-textarea" rows="3" placeholder="https://...&#10;https://..." oninput="core.renderAdditionalThumbs()"></textarea>
+          <input type="file" id="amm-additional-upload" accept="image/*,video/*" multiple class="admin-input" style="margin-top:8px;" />
+          <button class="btn-mini" type="button" style="margin-top:6px;width:100%;" onclick="core.uploadAdditionalMedia()"><i class="fas fa-upload"></i> Upload Files</button>
+          <div id="amm-additional-thumbs" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
           <div class="tiny">Extra images/videos shown in the lightbox with navigation arrows.</div>
 
           <div class="modal-actions">
