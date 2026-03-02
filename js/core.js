@@ -189,6 +189,9 @@ const core = (() => {
         state.galleryCategories = (map.gallery_categories || '')
           .split(',').map(c => c.trim()).filter(Boolean);
 
+        /* Re-render nav so category links stay in sync */
+        if (typeof core.renderNavLinks === 'function') core.renderNavLinks();
+
         incrementView(map.view_count);
       }
 

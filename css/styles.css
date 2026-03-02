@@ -1,5 +1,10 @@
-:root{
-  --bg:#05060a;
+@property --angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+:root{  --bg:#05060a;
   --bg2:#070914;
   --panel:rgba(10,12,22,.72);
   --panel2:rgba(10,12,22,.85);
@@ -33,6 +38,8 @@
   --wm-opacity:.15;
   --loader-color1:var(--miku);
   --loader-color2:var(--pink);
+
+  --chip-border:1.5px;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -453,30 +460,34 @@ header.hero{
   font-weight:950;
   letter-spacing:1px;
   text-transform:uppercase;
-  color:rgba(234,246,255,.92);
-  background:rgba(10,12,22,.60);
-  border:1px solid rgba(255,255,255,.10);
+  color:rgba(234,246,255,.95);
+  background:rgba(10,12,22,.82);
+  background-clip:padding-box;
+  border:var(--chip-border) solid transparent;
   backdrop-filter:blur(10px);
-  box-shadow:0 0 0 1px rgba(255,255,255,.06);
   transform:translateY(-6px);
   opacity:0;
-  animation:chipIn .55s var(--ease) forwards, chipFloat 4.2s ease-in-out infinite;
+  animation:chipIn .55s var(--ease) forwards, chipFloat 4.2s ease-in-out infinite, chipGlow 3s ease-in-out infinite;
   position:relative;
   overflow:hidden;
 }
-.chip::before{display:none;}
-.chip::after{
+.chip::before{
   content:"";
   position:absolute;
-  inset:0;
-  background:linear-gradient(110deg, transparent 0%, rgba(255,255,255,.10) 45%, transparent 70%);
-  transform:translateX(-120%);
-  animation:chipShimmer 3.8s ease-in-out infinite;
-  pointer-events:none;
+  inset:calc(-1 * var(--chip-border));
+  border-radius:inherit;
+  background:conic-gradient(from var(--angle), #00ffd5 0%, transparent 30%, #ff4fd8 50%, transparent 70%, #00ffd5 100%);
+  animation:electricRotate 3s linear infinite;
+  z-index:-1;
 }
+.chip::after{display:none;}
 @keyframes chipIn{to{transform:translateY(0);opacity:1;}}
 @keyframes chipFloat{0%,100%{translate:0 0;}50%{translate:0 -2px;}}
-@keyframes chipShimmer{0%{transform:translateX(-120%);}55%{transform:translateX(120%);}100%{transform:translateX(120%);} }
+@keyframes electricRotate{to{--angle:360deg;}}
+@keyframes chipGlow{
+  0%,100%{box-shadow:0 0 5px rgba(0,255,213,.30),0 0 12px rgba(0,255,213,.10);}
+  50%{box-shadow:0 0 10px rgba(0,255,213,.60),0 0 24px rgba(0,255,213,.22),0 0 4px rgba(255,79,216,.40);}
+}
 
 .card-overlay{
   position:absolute;left:0;right:0;bottom:0;

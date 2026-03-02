@@ -44,6 +44,24 @@
       el.onclick = () => document.getElementById(l.id)?.scrollIntoView({ behavior: 'smooth' });
       nav.appendChild(el);
     });
+
+    /* Category filter links */
+    (s().galleryCategories || []).forEach(cat => {
+      const el = document.createElement('div');
+      el.className = 'nav-link nav-link--cat';
+      el.textContent = cat;
+      el.onclick = () => navigateToCategory(cat);
+      nav.appendChild(el);
+    });
+  };
+
+  /* ── Navigate to a gallery category ──────────────────── */
+  const navigateToCategory = (cat) => {
+    const work = document.getElementById('work');
+    if (work) work.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      if (typeof core.filterGallery === 'function') core.filterGallery(cat);
+    }, 350);
   };
 
   /* ── Render public sections grid ──────────────────────── */
@@ -194,6 +212,7 @@
     renderSections,
     renderSectionsAdminList,
     renderNavLinks,
+    navigateToCategory,
     createSection,
     updateSection,
     deleteSection,

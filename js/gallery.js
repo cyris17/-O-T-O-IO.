@@ -507,6 +507,7 @@
   /* ── Register on core ─────────────────────────────────── */
   Object.assign(core, {
     renderGallery,
+    filterGallery,
     setupTilt,
     openLightbox,
     openLightboxByIndex,
