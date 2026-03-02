@@ -57,6 +57,22 @@
     val('edit-ui-wm',         s().uiEnableWatermark   ? '1' : '0');
     val('edit-ui-wm-text',    s().uiWatermarkText  || '');
     val('edit-ui-wm-opacity', String(s().uiWatermarkOpacity || 0.15));
+
+    loadGalleryCategories();
+  };
+
+  /* ── Gallery Categories ───────────────────────────────── */
+  const loadGalleryCategories = async () => {
+    const cats = s().galleryCategories || [];
+    const el = document.getElementById('edit-gallery-categories');
+    if (el) el.value = cats.join(', ');
+  };
+
+  const saveGalleryCategories = async () => {
+    const val = document.getElementById('edit-gallery-categories')?.value || '';
+    await sb().from('site_content').upsert({ id: 'gallery_categories', content: val });
+    alert('Categories saved!');
+    core.fetchContentAndGallery();
   };
 
   /* ── Save branding ────────────────────────────────────── */
@@ -177,13 +193,25 @@
 
     const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
 
-    setVal('amm-url',            url);
-    setVal('amm-title',          item.title || '');
-    setVal('amm-desc',           item.description || '');
-    setVal('amm-tags',           item.tags || '');
-    setVal('amm-category',       item.category || '');
-    setVal('amm-custom-wa',      item.custom_wa_message || '');
-    setVal('amm-additional',     item.additional_media || '');
+    setVal('amm-url',        url);
+    setVal('amm-title',      item.title || '');
+    setVal('amm-desc',       item.description || '');
+    setVal('amm-tags',       item.tags || '');
+    setVal('amm-custom-wa',  item.custom_wa_message || '');
+    setVal('amm-additional', item.additional_media || '');
+
+    /* Populate category select */
+    const catSel = document.getElementById('amm-category');
+    if (catSel) {
+      const cats = s().galleryCategories || [];
+      catSel.innerHTML = '<option value="">— No category —</option>' +
+        cats.map(c => `<option value="${core.escapeHtml(c)}">${core.escapeHtml(c)}</option>`).join('');
+      catSel.value = item.category || '';
+    }
+
+    /* Clear file input */
+    const fileInput = document.getElementById('amm-additional-upload');
+    if (fileInput) fileInput.value = '';
 
     const typeEl = document.getElementById('amm-type');
     if (typeEl) typeEl.innerText = isVid ? 'VIDEO' : 'IMAGE';
@@ -197,6 +225,7 @@
           : `<img src="${url}" alt="Preview" />`);
     }
 
+    renderAdditionalThumbs();
     document.getElementById('admin-media-modal')?.classList.add('active');
   };
 
@@ -247,6 +276,75 @@
     closeMediaModal();
   };
 
+  /* ── Additional media upload & thumbs ────────────────── */
+  const renderAdditionalThumbs = () => {
+    const container = document.getElementById('amm-additional-thumbs');
+    if (!container) return;
+    const textarea = document.getElementById('amm-additional');
+    const urls = (textarea?.value || '').split(/[\n,]/).map(u => u.trim()).filter(Boolean);
+    container.innerHTML = '';
+    urls.forEach(url => {
+      const isVid = core.isVideoUrl(url);
+      const safeUrl = core.escapeHtml(url);
+      const wrap = document.createElement('div');
+      wrap.className = 'amm-thumb';
+      wrap.innerHTML = isVid
+        ? `<video src="${safeUrl}" muted playsinline></video>`
+        : `<img src="${safeUrl}" alt="" />`;
+      const del = document.createElement('button');
+      del.className = 'amm-thumb-del';
+      del.type = 'button';
+      del.innerHTML = '<i class="fas fa-xmark"></i>';
+      del.addEventListener('click', () => removeAdditionalMedia(url));
+      wrap.appendChild(del);
+      container.appendChild(wrap);
+    });
+  };
+
+  const removeAdditionalMedia = (url) => {
+    const textarea = document.getElementById('amm-additional');
+    if (!textarea) return;
+    const urls = textarea.value.split(/[\n,]/).map(u => u.trim()).filter(Boolean);
+    textarea.value = urls.filter(u => u !== url).join('\n');
+    renderAdditionalThumbs();
+  };
+
+  const uploadAdditionalMedia = async () => {
+    const fileInput = document.getElementById('amm-additional-upload');
+    const files = fileInput?.files;
+    if (!files || files.length === 0) return alert('Select files first!');
+
+    const ALLOWED_EXTS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'mp4', 'mov', 'webm', 'm4v']);
+
+    const btn = document.querySelector('[onclick="core.uploadAdditionalMedia()"]');
+    if (btn) { btn.innerText = 'Uploading...'; btn.disabled = true; }
+
+    try {
+      const urls = [];
+      for (const file of files) {
+        const ext = (file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!ALLOWED_EXTS.has(ext)) { alert(`File type ".${ext}" is not allowed.`); continue; }
+        const name = `additional_${crypto.randomUUID()}.${ext}`;
+        const { error } = await sb().storage.from(core._ASSETS_BUCKET).upload(name, file, { upsert: true });
+        if (error) throw error;
+        const { data } = sb().storage.from(core._ASSETS_BUCKET).getPublicUrl(name);
+        urls.push(data.publicUrl);
+      }
+
+      const textarea = document.getElementById('amm-additional');
+      if (textarea && urls.length) {
+        const existing = textarea.value.trim();
+        textarea.value = existing ? existing + '\n' + urls.join('\n') : urls.join('\n');
+      }
+      if (fileInput) fileInput.value = '';
+      renderAdditionalThumbs();
+    } catch (e) {
+      alert(e?.message || 'Upload failed');
+    } finally {
+      if (btn) { btn.innerText = 'Upload Files'; btn.disabled = false; }
+    }
+  };
+
   /* ── Register on core ─────────────────────────────────── */
   Object.assign(core, {
     loadAdminData,
@@ -256,12 +354,16 @@
     saveWhatsAppSettings,
     saveLoader,
     saveUI,
+    saveGalleryCategories,
     uploadLogo,
     uploadWallpaper,
     openMediaModal,
     closeMediaModal,
     copyMediaUrl,
     saveMediaModal,
-    deleteMediaFromModal
+    deleteMediaFromModal,
+    renderAdditionalThumbs,
+    removeAdditionalMedia,
+    uploadAdditionalMedia
   });
 })();

@@ -28,6 +28,7 @@ const core = (() => {
     galleryItems: [],
     currentIndex: 0,
     activeCategory: 'all',
+    galleryCategories: [],
 
     sections: [],
     editingSectionId: null,
@@ -184,6 +185,9 @@ const core = (() => {
         state.uiWatermarkText = map.ui_watermark_text || state.uiWatermarkText;
         state.uiWatermarkOpacity = parseFloat(map.ui_watermark_opacity || state.uiWatermarkOpacity);
         document.documentElement.style.setProperty('--wm-opacity', String(clamp(state.uiWatermarkOpacity, 0.05, 0.4)));
+
+        state.galleryCategories = (map.gallery_categories || '')
+          .split(',').map(c => c.trim()).filter(Boolean);
 
         incrementView(map.view_count);
       }
