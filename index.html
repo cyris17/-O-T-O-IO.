@@ -304,10 +304,14 @@
 
           <div class="admin-card">
             <h3>Gallery Categories</h3>
-            <span class="admin-label">Categories (comma-separated)</span>
-            <input type="text" id="edit-gallery-categories" class="admin-input" placeholder="Photography, Videography, Portraits" />
-            <div class="tiny">These appear as filter tabs on the gallery and as options in the media editor.</div>
-            <button class="btn-action" onclick="core.saveGalleryCategories()">Save Categories</button>
+            <span class="admin-label">New Category Name</span>
+            <div class="url-row">
+              <input type="text" id="add-category-input" class="admin-input" placeholder="e.g. Photography" />
+              <button class="btn-mini" type="button" onclick="core.addCategoryItem()"><i class="fas fa-plus"></i> Add</button>
+            </div>
+            <div id="category-list" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
+            <div class="tiny" style="margin-top:10px;">Categories appear as filter tabs in the gallery and as options in the media editor. Adjust sort numbers then click Save Order to reorder.</div>
+            <button class="btn-soft" style="margin-top:10px;width:100%;" onclick="core.saveCategoryOrder()"><i class="fas fa-sort"></i> Save Order</button>
           </div>
 
           <div class="admin-card">

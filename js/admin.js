@@ -62,17 +62,142 @@
   };
 
   /* ── Gallery Categories ───────────────────────────────── */
-  const loadGalleryCategories = async () => {
-    const cats = s().galleryCategories || [];
-    const el = document.getElementById('edit-gallery-categories');
-    if (el) el.value = cats.join(', ');
+  const loadGalleryCategories = () => {
+    renderCategoryList();
   };
 
+  const renderCategoryList = () => {
+    const container = document.getElementById('category-list');
+    if (!container) return;
+
+    const cats  = s().galleryCategories || [];
+    const items = s().galleryItems || [];
+
+    if (!cats.length) {
+      container.innerHTML = `<div class="tiny" style="color:rgba(234,246,255,.40);">No categories yet. Add one above.</div>`;
+      return;
+    }
+
+    container.innerHTML = '';
+    cats.forEach((cat, i) => {
+      const count = items.filter(item => (item.category || '').trim() === cat).length;
+      const card  = document.createElement('div');
+      card.style.cssText = 'display:flex;align-items:center;gap:10px;background:rgba(10,12,22,.45);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:10px 12px;';
+      card.innerHTML = `
+        <input type="number" class="cat-sort-input" value="${i + 1}" min="1"
+          data-index="${i}"
+          style="width:40px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:8px;color:rgba(234,246,255,.72);text-align:center;padding:4px;font-size:.78rem;font-family:inherit;" />
+        <div style="flex:1;font-weight:950;font-size:.92rem;">${core.escapeHtml(cat)}</div>
+        <div style="color:rgba(234,246,255,.45);font-size:.78rem;white-space:nowrap;">${count} item${count !== 1 ? 's' : ''}</div>
+        <button class="btn-soft" type="button" style="padding:7px 10px;font-size:.72rem;" data-edit="${i}"><i class="fas fa-pen"></i> Edit</button>
+        <button class="btn-danger" type="button" style="padding:7px 10px;font-size:.72rem;" data-del="${i}"><i class="fas fa-trash"></i></button>
+      `;
+      card.querySelector('[data-edit]').addEventListener('click', () => editCategoryItem(i));
+      card.querySelector('[data-del]').addEventListener('click',  () => deleteCategoryItem(i));
+      container.appendChild(card);
+    });
+  };
+
+  const persistCategories = async (cats) => {
+    const { error } = await sb().from('site_content').upsert({ id: 'gallery_categories', content: cats.join(', ') });
+    if (error) throw error;
+    s().galleryCategories = cats;
+  };
+
+  const addCategoryItem = async () => {
+    const input = document.getElementById('add-category-input');
+    const name  = (input?.value || '').trim();
+    if (!name) return alert('Enter a category name.');
+
+    const cats = [...(s().galleryCategories || [])];
+    if (cats.includes(name)) return alert('Category already exists.');
+
+    try {
+      cats.push(name);
+      await persistCategories(cats);
+      if (input) input.value = '';
+      renderCategoryList();
+      core.renderGallery(s().galleryItems);
+    } catch (e) {
+      alert(e?.message || 'Save failed.');
+    }
+  };
+
+  const editCategoryItem = async (index) => {
+    const cats    = [...(s().galleryCategories || [])];
+    const oldName = cats[index];
+    if (oldName === undefined) return;
+
+    const newName = prompt(`Rename category "${oldName}":`, oldName)?.trim();
+    if (!newName || newName === oldName) return;
+    if (cats.includes(newName)) return alert('A category with that name already exists.');
+
+    try {
+      cats[index] = newName;
+      const itemsToUpdate = (s().galleryItems || []).filter(item => (item.category || '').trim() === oldName);
+      await Promise.all([
+        persistCategories(cats),
+        ...itemsToUpdate.map(item => sb().from('gallery').update({ category: newName }).eq('id', item.id))
+      ]);
+      renderCategoryList();
+      await core.fetchContentAndGallery();
+    } catch (e) {
+      alert(e?.message || 'Save failed.');
+    }
+  };
+
+  const deleteCategoryItem = async (index) => {
+    const cats    = [...(s().galleryCategories || [])];
+    const catName = cats[index];
+    if (catName === undefined) return;
+    if (!confirm(`Delete category "${catName}"? Items in this category will become uncategorized.`)) return;
+
+    try {
+      cats.splice(index, 1);
+      const itemsToUpdate = (s().galleryItems || []).filter(item => (item.category || '').trim() === catName);
+      await Promise.all([
+        persistCategories(cats),
+        ...itemsToUpdate.map(item => sb().from('gallery').update({ category: '' }).eq('id', item.id))
+      ]);
+      renderCategoryList();
+      await core.fetchContentAndGallery();
+    } catch (e) {
+      alert(e?.message || 'Save failed.');
+    }
+  };
+
+  const saveCategoryOrder = async () => {
+    const cats = [...(s().galleryCategories || [])];
+    if (!cats.length) return;
+
+    const indexed = cats.map((cat, i) => {
+      const input   = document.querySelector(`.cat-sort-input[data-index="${i}"]`);
+      const sortVal = parseInt(input?.value || (i + 1), 10);
+      return { cat, sort: isNaN(sortVal) ? i + 1 : sortVal };
+    });
+    indexed.sort((a, b) => a.sort - b.sort);
+    const sorted = indexed.map(x => x.cat);
+
+    try {
+      await persistCategories(sorted);
+      renderCategoryList();
+      core.renderGallery(s().galleryItems);
+      alert('Category order saved!');
+    } catch (e) {
+      alert(e?.message || 'Save failed.');
+    }
+  };
+
+  /* Keep for backward compat — no longer wired to a button */
   const saveGalleryCategories = async () => {
-    const val = document.getElementById('edit-gallery-categories')?.value || '';
-    await sb().from('site_content').upsert({ id: 'gallery_categories', content: val });
-    alert('Categories saved!');
-    core.fetchContentAndGallery();
+    const cats = s().galleryCategories || [];
+    try {
+      await persistCategories(cats);
+      alert('Categories saved!');
+      core.fetchContentAndGallery();
+    } catch (e) {
+      alert(e?.message || 'Save failed.');
+    }
   };
 
   /* ── Save branding ────────────────────────────────────── */
@@ -355,6 +480,11 @@
     saveLoader,
     saveUI,
     saveGalleryCategories,
+    renderCategoryList,
+    addCategoryItem,
+    editCategoryItem,
+    deleteCategoryItem,
+    saveCategoryOrder,
     uploadLogo,
     uploadWallpaper,
     openMediaModal,
