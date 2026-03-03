@@ -47,11 +47,16 @@ const core = (() => {
     spinMaxPerDay: 1,
     spinPrizes: [],
     spinAdConfig: null,
+    mysteryPrize1Name: 'Mystery Prize 1',
+    mysteryPrize2Name: 'Mystery Prize 2',
     pendingWaHref: null,
     pendingGateAction: null,
 
     /* Maintenance */
     maintenanceEnabled: false,
+
+    /* Ads */
+    adsEnabled: true,
 
     /* Ad slots */
     adSlots: []
@@ -222,6 +227,9 @@ const core = (() => {
         state.spinMaxPerDay = parseInt(map.spin_max_per_day || '1', 10) || 1;
         try { state.spinPrizes = JSON.parse(map.spin_prizes || '[]'); } catch { state.spinPrizes = []; }
         try { state.spinAdConfig = JSON.parse(map.spin_ad_config || 'null'); } catch { state.spinAdConfig = null; }
+        state.mysteryPrize1Name = map.mystery_prize_1_name || 'Mystery Prize 1';
+        state.mysteryPrize2Name = map.mystery_prize_2_name || 'Mystery Prize 2';
+        state.adsEnabled = (map.ads_enabled || '1') === '1';
 
         /* Maintenance mode */
         try {
@@ -425,27 +433,17 @@ const core = (() => {
   };
 
   const applyAdSlots = () => {
-    const slots = state.adSlots || [];
-    ['header', 'gallery', 'footer'].forEach(slotId => {
-      const slot = slots.find(s => s.id === slotId);
+    const enabled = state.adsEnabled;
+    const ADSTERRA_CODE = `<script type="text/javascript">atOptions={'key':'be30e9b513d91c58a7556f27a062421c','format':'iframe','height':90,'width':728,'params':{}};<\/script><script type="text/javascript" src="//www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js"><\/script>`;
+    ['header', 'footer'].forEach(slotId => {
       const el = document.getElementById(`ad-${slotId}`);
       if (!el) return;
-      if (slot && slot.active) {
-        if (slot.type === 'code' && slot.code) {
-          el.innerHTML = '<span class="ad-slot-label">Ad</span>';
-          const codeWrap = document.createElement('div');
-          el.appendChild(codeWrap);
-          renderAdCode(codeWrap, slot.code);
-          el.classList.add('active');
-        } else if (slot.image_url) {
-          const safeImg = escapeHtml(slot.image_url);
-          const safeLink = escapeHtml(slot.link_url || '#');
-          el.innerHTML = `<span class="ad-slot-label">Ad</span><a href="${safeLink}" target="_blank" rel="noopener sponsored"><img src="${safeImg}" alt="Advertisement" loading="lazy" /></a>`;
-          el.classList.add('active');
-        } else {
-          el.classList.remove('active');
-          el.innerHTML = '';
-        }
+      if (enabled) {
+        el.innerHTML = '<span class="ad-slot-label">Ad</span>';
+        const codeWrap = document.createElement('div');
+        el.appendChild(codeWrap);
+        renderAdCode(codeWrap, ADSTERRA_CODE);
+        el.classList.add('active');
       } else {
         el.classList.remove('active');
         el.innerHTML = '';
@@ -951,6 +949,8 @@ const core = (() => {
     toggleMaintenance() {},
     saveMaintenance() {},
     saveAdSlot() {},
-    loadAdSlots() {}
+    loadAdSlots() {},
+    saveAdsSettings() {},
+    toggleAdsSwitch() {}
   };
 })();

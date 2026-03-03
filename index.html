@@ -272,9 +272,7 @@
   <!-- Spin Watch-Ad Modal -->
   <div class="spin-ad-modal" id="spin-ad-modal">
     <div class="spin-ad-box">
-      <a id="spin-ad-link" href="#" target="_blank" rel="noopener">
-        <img class="spin-ad-img" id="spin-ad-img" src="" alt="Ad" />
-      </a>
+      <div class="spin-ad-adsterra-wrap" id="spin-ad-adsterra-wrap" style="min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden;"></div>
       <div class="spin-ad-footer">
         <div class="spin-ad-timer" id="spin-ad-timer">Watch for 5 seconds…</div>
         <div class="spin-ad-done" id="spin-ad-done">Ad complete! ✅ Spin unlocked!</div>
@@ -374,11 +372,12 @@
           <!-- Ad Manager -->
           <div class="admin-card full">
             <h3>📢 Ad Manager</h3>
-            <p class="admin-hint">Configure ads for each placement. Use image ads for banner images or paste ad network code (Adsterra, AdSense, etc.).</p>
-            <div id="ad-slots-list">
-              <!-- Ad slot cards are rendered here by loadAdSlots() -->
-              <div style="color:rgba(234,246,255,.45);font-size:.82rem;">Loading…</div>
+            <p class="admin-hint">Adsterra ads are shown in header and footer.</p>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:10px;">
+              <span class="admin-label" style="margin:0;">Show Ads</span>
+              <button class="toggle-switch off" id="toggle-ads-enabled" onclick="core.toggleAdsSwitch(this)">OFF</button>
             </div>
+            <button class="btn-action" style="margin-top:12px;width:auto;padding:10px 22px;" onclick="core.saveAdsSettings()">💾 Save Ad Settings</button>
           </div>
 
           <!-- Analytics Dashboard -->
@@ -447,12 +446,7 @@
                 <div class="mode-body">
                   <span class="admin-label">Ad spins per day per user</span>
                   <input type="number" id="spin-ad-daily" class="admin-input" min="1" max="10" value="3" />
-                  <span class="admin-label">Ad Image URL</span>
-                  <input type="text" id="spin-ad-image" class="admin-input" placeholder="https://..." />
-                  <span class="admin-label">Ad Click Link</span>
-                  <input type="text" id="spin-ad-link" class="admin-input" placeholder="https://..." />
-                  <span class="admin-label">Ad Duration (seconds)</span>
-                  <input type="number" id="spin-ad-duration" class="admin-input" min="3" max="30" value="5" />
+                  <p class="admin-hint" style="margin:6px 0 0;">Adsterra ad is shown automatically for the 5-second countdown.</p>
                 </div>
               </div>
 
@@ -471,17 +465,24 @@
               </div>
             </div>
 
-            <!-- Prize Editor -->
+            <!-- Prize Names (Mystery Prizes only are editable) -->
             <div class="prize-editor">
               <h3>🎁 PRIZES</h3>
-              <p class="admin-hint">Total odds must equal 100%. Current: <span id="odds-total" class="odds-ok">0%</span></p>
-              <div id="prize-list"></div>
-              <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
-                <button class="btn-soft" onclick="core.addPrize()">➕ Add Prize</button>
-                <button class="btn-soft" onclick="core.autoBalanceOdds()">⚖️ Auto-Balance to 100%</button>
+              <p class="admin-hint">6 fixed prizes with hardcoded odds. Only Mystery Prize names are editable.</p>
+              <div style="background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;margin-bottom:12px;font-size:.82rem;color:rgba(234,246,255,.60);line-height:1.8;">
+                😔 Better Luck — 39.1% (not a win) &nbsp;|&nbsp; 🔄 Try Again — 39.1% (not a win)<br>
+                🏷️ 10% Off — 10.9% (win) &nbsp;|&nbsp; 🚚 Free Delivery — 10.0% (win)<br>
+                ❓ Mystery Prize 1 — 0.5% (win) &nbsp;|&nbsp; 🎁 Mystery Prize 2 — 0.4% (win)
               </div>
-              <div id="odds-warning" style="display:none;margin-top:8px;color:var(--danger);font-size:.82rem;">
-                ⚠️ Odds total is <span id="odds-current">0</span>% — must be 100% to save!
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>
+                  <span class="admin-label">Mystery Prize 1 Name (0.5% win)</span>
+                  <input type="text" id="mystery-prize-1-name" class="admin-input" placeholder="Mystery Prize 1" />
+                </div>
+                <div>
+                  <span class="admin-label">Mystery Prize 2 Name (0.4% win)</span>
+                  <input type="text" id="mystery-prize-2-name" class="admin-input" placeholder="Mystery Prize 2" />
+                </div>
               </div>
             </div>
 

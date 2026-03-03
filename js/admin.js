@@ -84,6 +84,7 @@
     setToggle('toggle-spin-free', !!s().spinFreeMode);
     setToggle('toggle-spin-ad',   !!s().spinAdEnabled);
     setToggle('toggle-spin-pay',  !!s().spinPayEnabled);
+    setToggle('toggle-ads-enabled', !!s().adsEnabled);
     val('spin-ad-daily', String(s().spinAdDailyLimit || 3));
     val('spin-price-text', s().spinPriceText || '');
     val('spin-max-per-day', String(s().spinMaxPerDay || 1));
@@ -95,17 +96,9 @@
       val('spin-ad-link',  s().spinAdConfig.link_url  || '');
       val('spin-ad-duration', String(s().spinAdConfig.duration || 5));
     }
-    /* Populate prize editor */
-    if (s().spinPrizes?.length) {
-      const list = document.getElementById('prize-list');
-      if (list) {
-        list.innerHTML = '';
-        s().spinPrizes.forEach(p => {
-          list.appendChild(buildPrizeCard(p));
-        });
-        updateOddsDisplay();
-      }
-    }
+    /* Mystery Prize names */
+    val('mystery-prize-1-name', s().mysteryPrize1Name || 'Mystery Prize 1');
+    val('mystery-prize-2-name', s().mysteryPrize2Name || 'Mystery Prize 2');
 
     loadGalleryCategories();
     loadAnalytics();
@@ -262,43 +255,21 @@
     const razorLink  = document.getElementById('spin-razorpay-link')?.value || '';
     const badgeDays  = document.getElementById('new-badge-days')?.value || '7';
 
-    /* Collect ad config from individual fields */
-    const adImage    = document.getElementById('spin-ad-image')?.value?.trim() || '';
-    const adLink     = document.getElementById('spin-ad-link')?.value?.trim() || '';
-    const adDuration = parseInt(document.getElementById('spin-ad-duration')?.value || '5', 10);
-    const adCfg = { enabled: adEnabled === '1', image_url: adImage, link_url: adLink, duration: adDuration };
-    const adCfgRaw = JSON.stringify(adCfg);
-
-    /* Collect prizes from visual prize cards */
-    const prizes = [];
-    document.querySelectorAll('.prize-card').forEach(card => {
-      prizes.push({
-        name:  card.querySelector('.prize-name')?.value?.trim() || '',
-        emoji: card.querySelector('.prize-emoji')?.value?.trim() || '',
-        color: card.querySelector('.prize-color')?.value || '#00ffd5',
-        odds:  parseInt(card.querySelector('.prize-odds')?.value || '0', 10)
-      });
-    });
-
-    /* Validate odds */
-    const total = prizes.reduce((sum, p) => sum + (p.odds || 0), 0);
-    if (prizes.length && Math.round(total) !== 100) {
-      return alert(`⚠️ Odds total is ${total}% — must be exactly 100% before saving.`);
-    }
-
-    const prizesRaw = JSON.stringify(prizes);
+    /* Mystery Prize names */
+    const mystery1 = document.getElementById('mystery-prize-1-name')?.value?.trim() || 'Mystery Prize 1';
+    const mystery2 = document.getElementById('mystery-prize-2-name')?.value?.trim() || 'Mystery Prize 2';
 
     await sb().from('site_content').upsert([
-      { id: 'spin_free_mode',         content: freeMode },
-      { id: 'spin_ad_enabled',        content: adEnabled },
-      { id: 'spin_ad_daily_limit',    content: adDaily },
-      { id: 'spin_pay_enabled',       content: payEnabled },
-      { id: 'spin_price',             content: priceText },
-      { id: 'spin_max_per_day',       content: maxPerDay },
-      { id: 'razorpay_payment_link',  content: razorLink },
-      { id: 'new_badge_days',         content: badgeDays },
-      { id: 'spin_prizes',            content: prizesRaw },
-      { id: 'spin_ad_config',         content: adCfgRaw }
+      { id: 'spin_free_mode',        content: freeMode },
+      { id: 'spin_ad_enabled',       content: adEnabled },
+      { id: 'spin_ad_daily_limit',   content: adDaily },
+      { id: 'spin_pay_enabled',      content: payEnabled },
+      { id: 'spin_price',            content: priceText },
+      { id: 'spin_max_per_day',      content: maxPerDay },
+      { id: 'razorpay_payment_link', content: razorLink },
+      { id: 'new_badge_days',        content: badgeDays },
+      { id: 'mystery_prize_1_name',  content: mystery1 },
+      { id: 'mystery_prize_2_name',  content: mystery2 }
     ]);
     showSaveFeedback('btn-save-spin');
     await core.fetchContentAndGallery();
@@ -1024,6 +995,21 @@
     }
   };
 
+  /* ── Ads On/Off Toggle ────────────────────────────────── */
+  const toggleAdsSwitch = (btn) => {
+    const isOn = btn.classList.contains('on');
+    btn.classList.toggle('on', !isOn);
+    btn.classList.toggle('off', isOn);
+    btn.textContent = isOn ? 'OFF' : 'ON';
+  };
+
+  const saveAdsSettings = async () => {
+    const adsOn = document.getElementById('toggle-ads-enabled')?.classList.contains('on') ? '1' : '0';
+    await sb().from('site_content').upsert({ id: 'ads_enabled', content: adsOn });
+    await core.fetchContentAndGallery();
+    alert('Ad settings saved!');
+  };
+
   /* ── Register on core ─────────────────────────────────── */
   Object.assign(core, {
     loadAdminData,
@@ -1061,6 +1047,8 @@
     autoBalanceOdds,
     updateOddsDisplay,
     showSaveFeedback,
-    buildPrizeCard
+    buildPrizeCard,
+    saveAdsSettings,
+    toggleAdsSwitch
   });
 })();
