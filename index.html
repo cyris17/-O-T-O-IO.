@@ -44,6 +44,9 @@
   </div>
 
   <div id="wrapper">
+    <!-- Header Ad Slot -->
+    <div id="ad-header" class="ad-slot"><span class="ad-slot-label">Ad</span></div>
+
     <nav id="navbar">
       <div class="brand">
         <div class="brand-logo-wrap">
@@ -129,13 +132,17 @@
             <div class="tagline">Try Your Luck</div>
             <div class="section-title">Spin &amp; Win</div>
           </div>
+          <div id="spin-streak-display"></div>
         </div>
 
         <div id="spin-wheel-container">
           <canvas id="spin-canvas" width="400" height="400"></canvas>
-          <button id="btn-spin" class="btn-contact" style="margin-top:24px;" onclick="spinModule.handleSpin()">
-            🎰 SPIN NOW (FREE)
-          </button>
+          <div class="spin-buttons-wrap" id="spin-buttons-wrap">
+            <button id="btn-spin" class="spin-btn spin-btn-free" onclick="spinModule.handleSpin()">
+              🎰 FREE SPIN
+            </button>
+          </div>
+          <button class="spin-mute-btn" onclick="spinModule.toggleMute()" id="spin-mute-btn">🔊 Sound</button>
         </div>
 
         <div id="spin-result" style="display:none;"></div>
@@ -181,6 +188,9 @@
         <div class="reviews-grid" id="reviews-grid"></div>
       </div>
     </section>
+
+    <!-- Footer Ad Slot -->
+    <div id="ad-footer" class="ad-slot"><span class="ad-slot-label">Ad</span></div>
 
     <footer id="contact" class="section">
       <div class="container">
@@ -235,6 +245,40 @@
 
     <div id="btn-top" class="back-top" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Back to top">
       <i class="fas fa-arrow-up"></i>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" onclick="if(event.target===this)core.closeProfileModal()">
+    <div class="profile-modal-box">
+      <button class="profile-modal-close" onclick="core.closeProfileModal()" title="Close">×</button>
+      <div id="profile-modal-content">
+        <div style="padding:40px;text-align:center;color:rgba(234,246,255,.50);">Loading profile…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Maintenance Overlay -->
+  <div id="maintenance-overlay">
+    <div id="maint-logo-wrap">
+      <div class="maint-logo-placeholder">🏪</div>
+    </div>
+    <div class="maint-title" id="maint-site-title">CYRIS STORE</div>
+    <div class="maint-message" id="maint-message">We'll be back soon!</div>
+    <div class="maint-countdown" id="maint-countdown"></div>
+    <div class="maint-admin-trigger" onclick="core.checkRoute()" title="Admin access">⚙️</div>
+  </div>
+
+  <!-- Spin Watch-Ad Modal -->
+  <div class="spin-ad-modal" id="spin-ad-modal">
+    <div class="spin-ad-box">
+      <a id="spin-ad-link" href="#" target="_blank" rel="noopener">
+        <img class="spin-ad-img" id="spin-ad-img" src="" alt="Ad" />
+      </a>
+      <div class="spin-ad-footer">
+        <div class="spin-ad-timer" id="spin-ad-timer">Watch for 5 seconds…</div>
+        <div class="spin-ad-done" id="spin-ad-done">Ad complete! ✅ Spin unlocked!</div>
+      </div>
     </div>
   </div>
 
@@ -312,6 +356,55 @@
 
         <div class="admin-grid">
 
+          <!-- Site Control -->
+          <div class="admin-card full">
+            <h3>🔧 Site Control</h3>
+            <div id="maint-admin-status" style="margin-bottom:12px;color:rgba(234,246,255,.55);font-size:.82rem;">Loading…</div>
+            <button class="maint-toggle-btn maint-toggle-live" id="maint-toggle-btn" onclick="core.toggleMaintenance()">🟢 SITE IS LIVE — Click to Close Site</button>
+            <div id="maint-form" style="display:none;">
+              <span class="admin-label">Maintenance Message</span>
+              <input type="text" id="maint-msg-input" class="admin-input" placeholder="We'll be back soon!" value="We'll be back soon!" />
+              <span class="admin-label">Reopen Date/Time (optional)</span>
+              <input type="datetime-local" id="maint-reopen-input" class="admin-input" />
+              <button class="btn-action" onclick="core.saveMaintenance()">🔴 Close Site</button>
+              <button class="btn-soft" style="margin-top:8px;" onclick="document.getElementById('maint-form').style.display='none'">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Ad Manager -->
+          <div class="admin-card full">
+            <h3>📢 Ad Manager</h3>
+            <div id="ad-slots-list" style="margin-bottom:14px;color:rgba(234,246,255,.45);font-size:.82rem;">Loading…</div>
+            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;">
+              <div style="grid-column:span 4;">
+                <span class="admin-label">Slot</span>
+                <select id="ad-slot-id" class="admin-input">
+                  <option value="header">Header Banner</option>
+                  <option value="gallery">Gallery Between Items</option>
+                  <option value="footer">Footer Banner</option>
+                </select>
+              </div>
+              <div style="grid-column:span 4;">
+                <span class="admin-label">Image URL</span>
+                <input type="text" id="ad-slot-image" class="admin-input" placeholder="https://..." />
+              </div>
+              <div style="grid-column:span 4;">
+                <span class="admin-label">Link URL</span>
+                <input type="text" id="ad-slot-link" class="admin-input" placeholder="https://..." />
+              </div>
+              <div style="grid-column:span 6;">
+                <span class="admin-label">Active</span>
+                <select id="ad-slot-active" class="admin-input">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+              <div style="grid-column:span 6;display:flex;align-items:flex-end;">
+                <button class="btn-action" style="margin-top:0;width:100%;" onclick="core.saveAdSlot()">Save Ad Slot</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Analytics Dashboard -->
           <div class="admin-card full" id="analytics-card">
             <h3>📊 Analytics</h3>
@@ -356,23 +449,34 @@
             <h3>🎰 Spin Settings</h3>
             <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;">
               <div style="grid-column:span 6;">
-                <span class="admin-label">Free Spin Mode (1=free, 0=paid)</span>
+                <span class="admin-label">Free Spin Enabled (1=yes, 0=no)</span>
                 <input type="text" id="spin-free-mode" class="admin-input" placeholder="1" value="1" />
-                <span class="admin-label">Spin Price Display (e.g. ₹49)</span>
-                <input type="text" id="spin-price-text" class="admin-input" placeholder="₹49" />
-                <span class="admin-label">Max Free Spins/Day per User</span>
+                <span class="admin-label">Free Spins Per Day</span>
                 <input type="number" id="spin-max-per-day" class="admin-input" placeholder="1" value="1" />
+                <span class="admin-label">Watch-Ad Spin Enabled (1=yes, 0=no)</span>
+                <input type="text" id="spin-ad-enabled" class="admin-input" placeholder="0" value="0" />
+                <span class="admin-label">Ad Spins Per Day</span>
+                <input type="number" id="spin-ad-daily" class="admin-input" placeholder="3" value="3" />
               </div>
               <div style="grid-column:span 6;">
-                <span class="admin-label">Razorpay Payment Link URL (empty=free)</span>
+                <span class="admin-label">Pay-to-Spin Enabled (1=yes, 0=no)</span>
+                <input type="text" id="spin-pay-enabled" class="admin-input" placeholder="0" value="0" />
+                <span class="admin-label">Razorpay Payment Link URL</span>
                 <input type="text" id="spin-razorpay-link" class="admin-input" placeholder="https://rzp.io/l/..." />
+                <span class="admin-label">Spin Price Display (e.g. ₹49)</span>
+                <input type="text" id="spin-price-text" class="admin-input" placeholder="₹49" />
                 <span class="admin-label">New Badge Days (default 7)</span>
                 <input type="number" id="new-badge-days" class="admin-input" placeholder="7" value="7" />
               </div>
-              <div style="grid-column:1 / -1;">
-                <span class="admin-label">Prizes (JSON)</span>
-                <textarea id="spin-prizes-json" class="admin-textarea" rows="6" placeholder='[{"name":"10% Off","color":"#00ffd5","odds":30},...]'></textarea>
-                <div class="tiny">JSON array of prize objects with: name, color, odds (weighted %).</div>
+              <div style="grid-column:span 6;">
+                <span class="admin-label">Watch-Ad Config (JSON)</span>
+                <textarea id="spin-ad-config-json" class="admin-textarea" rows="4" placeholder='{"enabled":false,"image_url":"","link_url":"","title":"","duration":5}'></textarea>
+                <div class="tiny">Used for the Watch-Ad-to-Spin mode. Set image_url and link_url.</div>
+              </div>
+              <div style="grid-column:span 6;">
+                <span class="admin-label">Prizes (JSON) — name, emoji, color, odds</span>
+                <textarea id="spin-prizes-json" class="admin-textarea" rows="4" placeholder='[{"name":"10% Off","emoji":"🏷️","color":"#00ffd5","odds":30},...]'></textarea>
+                <div class="tiny" id="spin-odds-validation"></div>
               </div>
               <div style="grid-column:1 / -1;">
                 <button class="btn-action" style="margin-top:0;" onclick="core.saveSpinSettings()">Save Spin Settings</button>

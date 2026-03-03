@@ -39,12 +39,22 @@ const core = (() => {
     currentUser: null,
     newBadgeDays: 7,
     spinFreeMode: true,
+    spinAdEnabled: false,
+    spinAdDailyLimit: 3,
+    spinPayEnabled: false,
     spinRazorpayLink: '',
     spinPriceText: '₹49',
     spinMaxPerDay: 1,
     spinPrizes: [],
+    spinAdConfig: null,
     pendingWaHref: null,
-    pendingGateAction: null
+    pendingGateAction: null,
+
+    /* Maintenance */
+    maintenanceEnabled: false,
+
+    /* Ad slots */
+    adSlots: []
   };
 
   /* ── Zoom state (shared with gallery.js) ─────────────── */
@@ -204,20 +214,34 @@ const core = (() => {
         /* Spin settings */
         state.newBadgeDays = parseInt(map.new_badge_days || '7', 10) || 7;
         state.spinFreeMode = (map.spin_free_mode || '1') === '1';
+        state.spinAdEnabled = (map.spin_ad_enabled || '0') === '1';
+        state.spinAdDailyLimit = parseInt(map.spin_ad_daily_limit || '3', 10) || 3;
+        state.spinPayEnabled = (map.spin_pay_enabled || '0') === '1';
         state.spinRazorpayLink = map.razorpay_payment_link || '';
         state.spinPriceText = map.spin_price || '₹49';
         state.spinMaxPerDay = parseInt(map.spin_max_per_day || '1', 10) || 1;
         try { state.spinPrizes = JSON.parse(map.spin_prizes || '[]'); } catch { state.spinPrizes = []; }
+        try { state.spinAdConfig = JSON.parse(map.spin_ad_config || 'null'); } catch { state.spinAdConfig = null; }
 
-        /* Update spin button text */
-        const btnSpin = document.getElementById('btn-spin');
-        if (btnSpin) {
-          if (state.spinFreeMode || !state.spinRazorpayLink) {
-            btnSpin.textContent = '🎰 SPIN NOW (FREE)';
-          } else {
-            btnSpin.textContent = `🎰 PAY ${state.spinPriceText} TO SPIN`;
+        /* Maintenance mode */
+        try {
+          const maintRaw = map.site_maintenance;
+          if (maintRaw) {
+            const maint = JSON.parse(maintRaw);
+            state.maintenanceEnabled = !!maint.enabled;
+            if (maint.enabled) {
+              showMaintenancePage(maint);
+              return;
+            }
           }
-        }
+        } catch {}
+
+        /* Ad slots */
+        try { state.adSlots = JSON.parse(map.ad_slots || '[]'); } catch { state.adSlots = []; }
+        applyAdSlots();
+
+        /* Update spin buttons (handled by spinModule after load) */
+        if (typeof spinModule !== 'undefined') spinModule.updateButtons();
 
         incrementViewToday(map.views_today, map.views_today_date, map.view_count);
       }
@@ -346,6 +370,257 @@ const core = (() => {
     } catch {}
   };
 
+  /* ── Maintenance Mode ─────────────────────────────────── */
+  const showMaintenancePage = (maint) => {
+    const overlay = document.getElementById('maintenance-overlay');
+    if (!overlay) return;
+    overlay.classList.add('active');
+
+    const msgEl = document.getElementById('maint-message');
+    if (msgEl) msgEl.textContent = maint.message || "We'll be back soon!";
+
+    /* Update site title */
+    const siteTitle = document.getElementById('maint-site-title');
+    const brandEl = document.getElementById('disp-brand');
+    if (siteTitle && brandEl?.innerText) siteTitle.textContent = brandEl.innerText;
+
+    /* Logo */
+    const logoEl = document.getElementById('brand-logo');
+    const logoWrap = document.getElementById('maint-logo-wrap');
+    if (logoEl?.src && logoWrap) {
+      logoWrap.innerHTML = `<img class="maint-logo" src="${escapeHtml(logoEl.src)}" alt="Logo" />`;
+    }
+
+    /* Countdown timer */
+    if (maint.reopen_at) {
+      const target = new Date(maint.reopen_at).getTime();
+      const updateCountdown = () => {
+        const diff = target - Date.now();
+        const countEl = document.getElementById('maint-countdown');
+        if (!countEl) return;
+        if (diff <= 0) { countEl.textContent = 'Reopening soon!'; return; }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        countEl.textContent = `Reopening in ${d}d ${h}h ${m}m ${s}s`;
+        setTimeout(updateCountdown, 1000);
+      };
+      updateCountdown();
+    }
+  };
+
+  /* ── Ad Slots ─────────────────────────────────────────── */
+  const applyAdSlots = () => {
+    const slots = state.adSlots || [];
+    ['header', 'gallery', 'footer'].forEach(slotId => {
+      const slot = slots.find(s => s.id === slotId);
+      const el = document.getElementById(`ad-${slotId}`);
+      if (!el) return;
+      if (slot && slot.active && slot.image_url) {
+        const safeImg = escapeHtml(slot.image_url);
+        const safeLink = escapeHtml(slot.link_url || '#');
+        el.innerHTML = `<span class="ad-slot-label">Ad</span><a href="${safeLink}" target="_blank" rel="noopener sponsored"><img src="${safeImg}" alt="Advertisement" loading="lazy" /></a>`;
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+        el.innerHTML = '';
+      }
+    });
+  };
+
+  /* ── Profile Modal ────────────────────────────────────── */
+  const openProfileModal = async () => {
+    const modal = document.getElementById('profile-modal');
+    if (!modal) return;
+    const u = state.currentUser;
+    if (!u) { core.requireSignIn('profile'); return; }
+    modal.classList.add('active');
+
+    const contentEl = document.getElementById('profile-modal-content');
+    if (contentEl) contentEl.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(234,246,255,.50);">Loading profile…</div>';
+
+    try {
+      /* Fetch profile + counts in parallel */
+      const [
+        { data: profile },
+        { count: ratingsCount },
+        { count: reviewsCount },
+        { data: spinHistory }
+      ] = await Promise.all([
+        supabase.from('user_profiles').select('*').eq('id', u.id).single(),
+        supabase.from('product_ratings').select('*', { count: 'exact', head: true }).eq('user_id', u.id),
+        supabase.from('site_reviews').select('*', { count: 'exact', head: true }).eq('user_id', u.id),
+        supabase.from('spin_results').select('*').eq('user_id', u.id).order('created_at', { ascending: false }).limit(20)
+      ]);
+
+      const name = profile?.display_name || u.user_metadata?.full_name || u.email || 'User';
+      const email = profile?.email || u.email || '';
+      const avatar = profile?.avatar_url || u.user_metadata?.avatar_url || '';
+      const createdAt = profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+      const streak = profile?.streak_count || 0;
+      const bestStreak = profile?.best_streak || 0;
+
+      /* Streak progress */
+      const STREAK_REWARDS = [3, 7, 14, 30];
+      const nextMilestone = STREAK_REWARDS.find(m => m > streak) || 30;
+      const prevMilestone = STREAK_REWARDS.filter(m => m <= streak).pop() || 0;
+      const streakPct = nextMilestone === prevMilestone ? 100 : Math.round(((streak - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
+
+      const avatarHtml = avatar
+        ? `<img class="profile-avatar-large" src="${escapeHtml(avatar)}" alt="Avatar" />`
+        : `<div class="profile-avatar-placeholder">${escapeHtml(name[0]?.toUpperCase() || '?')}</div>`;
+
+      const formatRelTime = (iso) => {
+        const diff = Date.now() - new Date(iso).getTime();
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+        if (diff < 172800000) return 'Yesterday';
+        return new Date(iso).toLocaleDateString();
+      };
+
+      const spinHistoryHtml = (spinHistory?.length)
+        ? spinHistory.map(s => {
+            const method = s.payment_id === 'ad_watch' ? 'Ad' : (s.payment_id ? 'Paid' : 'Free');
+            const emoji = (core._state.spinPrizes || []).find(p => p.name === s.prize_name)?.emoji || '🎰';
+            return `
+              <div class="spin-history-item">
+                <div class="spin-hist-prize">${escapeHtml(emoji)} ${escapeHtml(s.prize_name || '')}</div>
+                <div class="spin-hist-method">${method}</div>
+                <div class="${s.won ? 'spin-hist-result-win' : 'spin-hist-result-lose'}">${s.won ? '🏆 WON' : '❌ Lost'}</div>
+                <div class="spin-hist-date">${formatRelTime(s.created_at)}</div>
+              </div>`;
+          }).join('')
+        : '<div style="color:rgba(234,246,255,.40);font-size:.85rem;padding:10px 0;">No spins yet! Try your luck 🎰</div>';
+
+      if (contentEl) {
+        contentEl.innerHTML = `
+          <div class="profile-header">
+            ${avatarHtml}
+            <div class="profile-info-col">
+              <div class="profile-name">${escapeHtml(name)}</div>
+              <div class="profile-email">${escapeHtml(email)}</div>
+              ${createdAt ? `<div class="profile-since">Member since ${escapeHtml(createdAt)}</div>` : ''}
+              ${streak > 0 ? `<div class="profile-streak-badge">🔥 ${streak}-Day Streak</div>` : ''}
+            </div>
+          </div>
+
+          <div class="profile-stats-grid">
+            <div class="profile-stat-item">
+              <div class="profile-stat-icon">🛒</div>
+              <div class="profile-stat-value">${profile?.purchase_count || 0}</div>
+              <div class="profile-stat-label">Purchases</div>
+            </div>
+            <div class="profile-stat-item">
+              <div class="profile-stat-icon">💰</div>
+              <div class="profile-stat-value">₹${parseFloat(profile?.total_spent || 0).toLocaleString()}</div>
+              <div class="profile-stat-label">Total Spent</div>
+            </div>
+            <div class="profile-stat-item">
+              <div class="profile-stat-icon">🎰</div>
+              <div class="profile-stat-value">${profile?.spin_count || 0}</div>
+              <div class="profile-stat-label">Spins</div>
+            </div>
+            <div class="profile-stat-item">
+              <div class="profile-stat-icon">🏆</div>
+              <div class="profile-stat-value">${profile?.spin_wins || 0}</div>
+              <div class="profile-stat-label">Wins</div>
+            </div>
+            <div class="profile-stat-item">
+              <div class="profile-stat-icon">⭐</div>
+              <div class="profile-stat-value">${ratingsCount || 0}</div>
+              <div class="profile-stat-label">Ratings Given</div>
+            </div>
+            <div class="profile-stat-item">
+              <div class="profile-stat-icon">📝</div>
+              <div class="profile-stat-value">${reviewsCount || 0}</div>
+              <div class="profile-stat-label">Reviews</div>
+            </div>
+          </div>
+
+          <div class="profile-streak-row">
+            <div style="font-size:1.4rem;">🔥</div>
+            <div class="streak-bar-wrap">
+              <div style="font-weight:950;font-size:.82rem;">Current Streak: <span style="color:#ffab40;">${streak} days</span> &nbsp;•&nbsp; Best: <span style="color:var(--miku);">${bestStreak} days</span></div>
+              <div class="streak-bar-track"><div class="streak-bar-fill" style="width:${streakPct}%"></div></div>
+              <div class="streak-bar-label">Next reward at ${nextMilestone} days (${streakPct}% there)</div>
+            </div>
+          </div>
+
+          <div class="profile-section-head">🎰 Spin History</div>
+          <div class="spin-history-wrap">${spinHistoryHtml}</div>
+        `;
+      }
+    } catch (e) {
+      const contentEl2 = document.getElementById('profile-modal-content');
+      if (contentEl2) contentEl2.innerHTML = `<div style="padding:40px;text-align:center;color:var(--danger);">Error loading profile: ${escapeHtml(e.message)}</div>`;
+    }
+  };
+
+  const closeProfileModal = () => {
+    const modal = document.getElementById('profile-modal');
+    if (modal) modal.classList.remove('active');
+  };
+
+  /* ── Daily Streak Tracking ────────────────────────────── */
+  const updateStreakBonus = async (userId) => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+      const { data: profile } = await supabase.from('user_profiles')
+        .select('streak_count,last_visit_date,best_streak')
+        .eq('id', userId).single();
+
+      if (!profile) return;
+
+      const last = profile.last_visit_date;
+      let streak = profile.streak_count || 0;
+      let best = profile.best_streak || 0;
+
+      if (last === today) return; /* Already counted today */
+
+      if (last === yesterday) {
+        streak += 1;
+      } else {
+        streak = 1;
+      }
+
+      if (streak > best) best = streak;
+
+      await supabase.from('user_profiles').update({
+        streak_count: streak,
+        last_visit_date: today,
+        best_streak: best
+      }).eq('id', userId);
+
+      /* Show streak milestone popup */
+      const REWARDS = { 3: 1, 7: 2, 14: 3, 30: 5 };
+      if (REWARDS[streak]) {
+        showStreakMilestone(streak, REWARDS[streak]);
+      }
+
+      /* Update streak display on spin section */
+      const dispEl = document.getElementById('spin-streak-display');
+      if (dispEl && streak > 0) {
+        dispEl.innerHTML = `<div class="spin-streak-display">🔥 ${streak}-day streak</div>`;
+      }
+    } catch {}
+  };
+
+  const showStreakMilestone = (days, bonusSpins) => {
+    const popup = document.createElement('div');
+    popup.className = 'streak-popup';
+    popup.innerHTML = `
+      <div class="streak-popup-emoji">🔥</div>
+      <div class="streak-popup-title">${days}-Day Streak!</div>
+      <div class="streak-popup-sub">You earned ${bonusSpins} bonus spin${bonusSpins > 1 ? 's' : ''}!</div>
+    `;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 4000);
+  };
+
   /* ── Google Auth ──────────────────────────────────────── */
   const signInWithGoogle = async () => {
     try {
@@ -396,7 +671,7 @@ const core = (() => {
             <i class="fas fa-chevron-down" style="font-size:.65rem;color:rgba(234,246,255,.50);"></i>
           </div>
           <div class="user-dropdown" id="user-dropdown">
-            <button class="user-dropdown-item" onclick="document.getElementById('user-dropdown').classList.remove('open')">👤 My Profile</button>
+            <button class="user-dropdown-item" onclick="document.getElementById('user-dropdown').classList.remove('open');core.openProfileModal()">👤 My Profile</button>
             <button class="user-dropdown-item" onclick="core.signOut()">🚪 Sign Out</button>
           </div>
         </div>`;
@@ -408,12 +683,16 @@ const core = (() => {
     if (session?.user) {
       state.currentUser = session.user;
       await upsertUserProfile(session.user);
+      updateStreakBonus(session.user.id);
     }
     renderNavAuth();
 
     supabase.auth.onAuthStateChange(async (_event, session) => {
       state.currentUser = session?.user || null;
-      if (state.currentUser) await upsertUserProfile(state.currentUser);
+      if (state.currentUser) {
+        await upsertUserProfile(state.currentUser);
+        updateStreakBonus(state.currentUser.id);
+      }
       renderNavAuth();
       /* If there was a pending gate action, execute it now */
       if (state.currentUser && state.pendingGateAction) {
@@ -612,6 +891,7 @@ const core = (() => {
     shareProfile,
     applyLoaderToDom,
     fetchContentAndGallery,
+    applyAdSlots,
 
     /* Auth */
     signInWithGoogle,
@@ -619,6 +899,16 @@ const core = (() => {
     renderNavAuth,
     requireSignIn,
     closeSignInGate,
+
+    /* Profile modal */
+    openProfileModal,
+    closeProfileModal,
+
+    /* Maintenance */
+    showMaintenancePage,
+
+    /* Streak */
+    updateStreakBonus,
 
     /* Placeholders — filled by gallery.js / sections.js / admin.js */
     renderGallery() {},
@@ -633,6 +923,10 @@ const core = (() => {
     addNotification() {},
     loadAdminReviews() {},
     markAsSold() {},
-    unmarkSold() {}
+    unmarkSold() {},
+    toggleMaintenance() {},
+    saveMaintenance() {},
+    saveAdSlot() {},
+    loadAdSlots() {}
   };
 })();

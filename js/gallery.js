@@ -209,6 +209,22 @@
 
       feed.appendChild(card);
 
+      /* Inject gallery ad slot after every 6th item */
+      if ((i + 1) % 6 === 0) {
+        const adSlots = core._state.adSlots || [];
+        const gallerySlot = adSlots.find(s => s.id === 'gallery');
+        if (gallerySlot?.active && gallerySlot?.image_url) {
+          const adDiv = document.createElement('div');
+          adDiv.id = `ad-gallery-slot-${i}`;
+          adDiv.className = 'ad-slot active';
+          adDiv.style.cssText = 'grid-column:1/-1;text-align:center;margin:4px 0;position:relative;';
+          const safeImg = core.escapeHtml(gallerySlot.image_url);
+          const safeLink = core.escapeHtml(gallerySlot.link_url || '#');
+          adDiv.innerHTML = `<span class="ad-slot-label">Ad</span><a href="${safeLink}" target="_blank" rel="noopener sponsored"><img src="${safeImg}" alt="Advertisement" loading="lazy" style="max-width:100%;border-radius:12px;display:inline-block;" /></a>`;
+          feed.appendChild(adDiv);
+        }
+      }
+
       /* Admin thumbnail */
       if (adminList) {
         const thumb = document.createElement('div');

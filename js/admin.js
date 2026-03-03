@@ -62,6 +62,9 @@
 
     /* Spin settings */
     val('spin-free-mode', s().spinFreeMode ? '1' : '0');
+    val('spin-ad-enabled', s().spinAdEnabled ? '1' : '0');
+    val('spin-ad-daily', String(s().spinAdDailyLimit || 3));
+    val('spin-pay-enabled', s().spinPayEnabled ? '1' : '0');
     val('spin-price-text', s().spinPriceText || '');
     val('spin-max-per-day', String(s().spinMaxPerDay || 1));
     val('spin-razorpay-link', s().spinRazorpayLink || '');
@@ -69,12 +72,17 @@
     if (s().spinPrizes?.length) {
       val('spin-prizes-json', JSON.stringify(s().spinPrizes, null, 2));
     }
+    if (s().spinAdConfig) {
+      val('spin-ad-config-json', JSON.stringify(s().spinAdConfig, null, 2));
+    }
 
     loadGalleryCategories();
     loadAnalytics();
     loadNotifications();
     loadAdminReviews();
     loadSpinResults();
+    loadMaintenanceStatus();
+    loadAdSlots();
   };
 
   /* ── Gallery Categories ───────────────────────────────── */
@@ -214,21 +222,46 @@
   /* ── Spin Settings ────────────────────────────────────── */
   const saveSpinSettings = async () => {
     const freeMode   = document.getElementById('spin-free-mode')?.value || '1';
+    const adEnabled  = document.getElementById('spin-ad-enabled')?.value || '0';
+    const adDaily    = document.getElementById('spin-ad-daily')?.value || '3';
+    const payEnabled = document.getElementById('spin-pay-enabled')?.value || '0';
     const priceText  = document.getElementById('spin-price-text')?.value || '';
     const maxPerDay  = document.getElementById('spin-max-per-day')?.value || '1';
     const razorLink  = document.getElementById('spin-razorpay-link')?.value || '';
     const badgeDays  = document.getElementById('new-badge-days')?.value || '7';
     const prizesRaw  = document.getElementById('spin-prizes-json')?.value || '[]';
+    const adCfgRaw   = document.getElementById('spin-ad-config-json')?.value || 'null';
 
     try { JSON.parse(prizesRaw); } catch { return alert('Invalid prizes JSON.'); }
+    try { if (adCfgRaw !== 'null') JSON.parse(adCfgRaw); } catch { return alert('Invalid ad config JSON.'); }
+
+    /* Odds validation */
+    try {
+      const prizes = JSON.parse(prizesRaw);
+      if (prizes.length) {
+        const total = prizes.reduce((sum, p) => sum + (p.odds || 0), 0);
+        const el = document.getElementById('spin-odds-validation');
+        if (el) {
+          if (Math.round(total) !== 100) {
+            el.innerHTML = `<span style="color:var(--danger);">⚠️ Odds sum to ${total}% (should be 100%)</span>`;
+          } else {
+            el.innerHTML = `<span style="color:var(--good);">✅ Odds sum to 100%</span>`;
+          }
+        }
+      }
+    } catch {}
 
     await sb().from('site_content').upsert([
       { id: 'spin_free_mode',         content: freeMode },
+      { id: 'spin_ad_enabled',        content: adEnabled },
+      { id: 'spin_ad_daily_limit',    content: adDaily },
+      { id: 'spin_pay_enabled',       content: payEnabled },
       { id: 'spin_price',             content: priceText },
       { id: 'spin_max_per_day',       content: maxPerDay },
       { id: 'razorpay_payment_link',  content: razorLink },
       { id: 'new_badge_days',         content: badgeDays },
-      { id: 'spin_prizes',            content: prizesRaw }
+      { id: 'spin_prizes',            content: prizesRaw },
+      { id: 'spin_ad_config',         content: adCfgRaw }
     ]);
     alert('Spin settings saved!');
     await core.fetchContentAndGallery();
@@ -638,6 +671,135 @@
     }
   };
 
+  /* ── Maintenance Mode ─────────────────────────────────── */
+  const loadMaintenanceStatus = async () => {
+    const statusEl = document.getElementById('maint-admin-status');
+    const toggleBtn = document.getElementById('maint-toggle-btn');
+    try {
+      const { data } = await sb().from('site_content').select('content').eq('id', 'site_maintenance').single();
+      if (data?.content) {
+        const maint = JSON.parse(data.content);
+        if (statusEl) {
+          statusEl.innerHTML = maint.enabled
+            ? `<span style="color:var(--danger);">🔴 Site is CLOSED — "${maint.message || ''}"</span>`
+            : `<span style="color:var(--good);">🟢 Site is LIVE</span>`;
+        }
+        if (toggleBtn) {
+          if (maint.enabled) {
+            toggleBtn.textContent = '🔴 SITE IS CLOSED — Click to Reopen';
+            toggleBtn.className = 'maint-toggle-btn maint-toggle-closed';
+            toggleBtn.onclick = () => core.reopenSite();
+          } else {
+            toggleBtn.textContent = '🟢 SITE IS LIVE — Click to Close Site';
+            toggleBtn.className = 'maint-toggle-btn maint-toggle-live';
+            toggleBtn.onclick = () => core.toggleMaintenance();
+          }
+        }
+      } else {
+        if (statusEl) statusEl.innerHTML = '<span style="color:var(--good);">🟢 Site is LIVE</span>';
+      }
+    } catch {}
+  };
+
+  const toggleMaintenance = () => {
+    const form = document.getElementById('maint-form');
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  };
+
+  const saveMaintenance = async () => {
+    const msg = document.getElementById('maint-msg-input')?.value || "We'll be back soon!";
+    const reopenAt = document.getElementById('maint-reopen-input')?.value || null;
+    const payload = JSON.stringify({
+      enabled: true,
+      message: msg,
+      reopen_at: reopenAt ? new Date(reopenAt).toISOString() : null
+    });
+    await sb().from('site_content').upsert({ id: 'site_maintenance', content: payload });
+    alert('Site closed for maintenance!');
+    const form = document.getElementById('maint-form');
+    if (form) form.style.display = 'none';
+    loadMaintenanceStatus();
+  };
+
+  const reopenSite = async () => {
+    if (!confirm('Reopen the site?')) return;
+    const payload = JSON.stringify({ enabled: false, message: '', reopen_at: null });
+    await sb().from('site_content').upsert({ id: 'site_maintenance', content: payload });
+    alert('Site is now LIVE!');
+    loadMaintenanceStatus();
+  };
+
+  /* ── Ad Slots ─────────────────────────────────────────── */
+  const loadAdSlots = async () => {
+    const list = document.getElementById('ad-slots-list');
+    if (!list) return;
+    try {
+      const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
+      const slots = data?.content ? JSON.parse(data.content) : [];
+      if (!slots.length) {
+        list.innerHTML = '<div class="tiny">No ad slots configured yet.</div>';
+        return;
+      }
+      list.innerHTML = slots.map(slot => `
+        <div class="ad-slot-card">
+          <div class="ad-slot-info">
+            <div class="ad-slot-name">${core.escapeHtml(slot.name || slot.id)}</div>
+            <div class="tiny">
+              ${slot.image_url ? `<span>Image: ${core.escapeHtml(slot.image_url.slice(0, 40))}…</span>` : '<span>No image</span>'}
+              &nbsp;•&nbsp;
+              <span class="${slot.active ? 'ad-slot-status-active' : 'ad-slot-status-inactive'}">${slot.active ? '✅ Active' : '⬜ Inactive'}</span>
+            </div>
+          </div>
+          <button class="btn-soft" style="padding:6px 10px;font-size:.7rem;" onclick="core.loadAdSlotToEditor('${slot.id}')">Edit</button>
+        </div>
+      `).join('');
+    } catch (e) {
+      if (list) list.innerHTML = `<div class="tiny" style="color:var(--danger);">Error: ${core.escapeHtml(e.message)}</div>`;
+    }
+  };
+
+  const loadAdSlotToEditor = async (slotId) => {
+    const selEl = document.getElementById('ad-slot-id');
+    if (selEl) selEl.value = slotId;
+    try {
+      const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
+      const slots = data?.content ? JSON.parse(data.content) : [];
+      const slot = slots.find(s => s.id === slotId);
+      if (slot) {
+        const imgEl = document.getElementById('ad-slot-image');
+        const linkEl = document.getElementById('ad-slot-link');
+        const activeEl = document.getElementById('ad-slot-active');
+        if (imgEl) imgEl.value = slot.image_url || '';
+        if (linkEl) linkEl.value = slot.link_url || '';
+        if (activeEl) activeEl.value = slot.active ? 'true' : 'false';
+      }
+    } catch {}
+  };
+
+  const saveAdSlot = async () => {
+    const slotId   = document.getElementById('ad-slot-id')?.value || 'header';
+    const imageUrl = document.getElementById('ad-slot-image')?.value?.trim() || '';
+    const linkUrl  = document.getElementById('ad-slot-link')?.value?.trim() || '';
+    const active   = document.getElementById('ad-slot-active')?.value === 'true';
+
+    const SLOT_NAMES = { header: 'Header Banner', gallery: 'Gallery Between Items', footer: 'Footer Banner' };
+
+    try {
+      const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
+      let slots = data?.content ? JSON.parse(data.content) : [];
+      const existing = slots.findIndex(s => s.id === slotId);
+      const newSlot = { id: slotId, name: SLOT_NAMES[slotId] || slotId, type: 'image', image_url: imageUrl, link_url: linkUrl, active };
+      if (existing >= 0) slots[existing] = newSlot;
+      else slots.push(newSlot);
+      await sb().from('site_content').upsert({ id: 'ad_slots', content: JSON.stringify(slots) });
+      alert('Ad slot saved!');
+      loadAdSlots();
+      core.applyAdSlots();
+    } catch (e) {
+      alert(e?.message || 'Error saving ad slot');
+    }
+  };
+
   /* ── Register on core ─────────────────────────────────── */
   Object.assign(core, {
     loadAdminData,
@@ -664,6 +826,12 @@
     saveSpinSettings,
     loadAdminReviews,
     markAsSold,
-    unmarkSold
+    unmarkSold,
+    toggleMaintenance,
+    saveMaintenance,
+    reopenSite,
+    loadAdSlots,
+    loadAdSlotToEditor,
+    saveAdSlot
   });
 })();
