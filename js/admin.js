@@ -1,6 +1,8 @@
 /* =========================================================
    admin.js — Admin panel: branding, hero, links, loader,
-              UI options, assets upload, media modal
+               UI options, assets upload, media modal,
+               analytics, notifications, spin settings,
+               mark as sold, reviews manager
    ========================================================= */
 
 (() => {
@@ -58,7 +60,21 @@
     val('edit-ui-wm-text',    s().uiWatermarkText  || '');
     val('edit-ui-wm-opacity', String(s().uiWatermarkOpacity || 0.15));
 
+    /* Spin settings */
+    val('spin-free-mode', s().spinFreeMode ? '1' : '0');
+    val('spin-price-text', s().spinPriceText || '');
+    val('spin-max-per-day', String(s().spinMaxPerDay || 1));
+    val('spin-razorpay-link', s().spinRazorpayLink || '');
+    val('new-badge-days', String(s().newBadgeDays || 7));
+    if (s().spinPrizes?.length) {
+      val('spin-prizes-json', JSON.stringify(s().spinPrizes, null, 2));
+    }
+
     loadGalleryCategories();
+    loadAnalytics();
+    loadNotifications();
+    loadAdminReviews();
+    loadSpinResults();
   };
 
   /* ── Gallery Categories ───────────────────────────────── */
@@ -73,6 +89,196 @@
     await sb().from('site_content').upsert({ id: 'gallery_categories', content: val });
     alert('Categories saved!');
     core.fetchContentAndGallery();
+  };
+
+  /* ── Analytics Dashboard ──────────────────────────────── */
+  const loadAnalytics = async () => {
+    const grid = document.getElementById('analytics-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="color:rgba(234,246,255,.45);font-size:.82rem;">Loading…</div>';
+
+    try {
+      const [
+        { count: userCount },
+        { count: salesCount },
+        { data: salesData },
+        { count: spinCount },
+        { count: spinWins },
+        { data: reviewData },
+        { count: reviewCount },
+        { count: galleryCount },
+        { data: contentData },
+        { data: topViewed }
+      ] = await Promise.all([
+        sb().from('user_profiles').select('*', { count: 'exact', head: true }),
+        sb().from('product_sales').select('*', { count: 'exact', head: true }),
+        sb().from('product_sales').select('amount'),
+        sb().from('spin_results').select('*', { count: 'exact', head: true }),
+        sb().from('spin_results').select('*', { count: 'exact', head: true }).eq('won', true),
+        sb().from('site_reviews').select('rating'),
+        sb().from('site_reviews').select('*', { count: 'exact', head: true }),
+        sb().from('gallery').select('*', { count: 'exact', head: true }),
+        sb().from('site_content').select('id,content').in('id', ['view_count', 'views_today']),
+        sb().from('gallery').select('title,view_count').order('view_count', { ascending: false }).limit(1)
+      ]);
+
+      const totalRevenue = (salesData || []).reduce((sum, r) => sum + parseFloat(r.amount || 0), 0);
+      const avgRating = reviewData?.length
+        ? (reviewData.reduce((sum, r) => sum + r.rating, 0) / reviewData.length).toFixed(1)
+        : '—';
+
+      const contentMap = {};
+      (contentData || []).forEach(c => { contentMap[c.id] = c.content; });
+
+      const topProduct = topViewed?.[0];
+
+      const stats = [
+        { icon: '👥', label: 'Total Users', value: (userCount || 0).toLocaleString() },
+        { icon: '👁️', label: 'Views Today', value: parseInt(contentMap.views_today || 0).toLocaleString() },
+        { icon: '👁️', label: 'Total Views', value: parseInt(contentMap.view_count || 0).toLocaleString() },
+        { icon: '🔥', label: 'Most Viewed', value: topProduct ? `${topProduct.title || 'Untitled'} (${topProduct.view_count})` : '—' },
+        { icon: '💰', label: 'Products Sold', value: (salesCount || 0).toLocaleString() },
+        { icon: '💰', label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}` },
+        { icon: '🎰', label: 'Total Spins', value: (spinCount || 0).toLocaleString() },
+        { icon: '🎰', label: 'Spin Wins', value: (spinWins || 0).toLocaleString() },
+        { icon: '⭐', label: 'Avg Site Rating', value: avgRating !== '—' ? `${avgRating}/5` : '—' },
+        { icon: '📝', label: 'Total Reviews', value: (reviewCount || 0).toLocaleString() },
+        { icon: '📦', label: 'Gallery Items', value: (galleryCount || 0).toLocaleString() }
+      ];
+
+      grid.innerHTML = stats.map(stat => `
+        <div class="analytics-stat">
+          <div class="analytics-stat-icon">${stat.icon}</div>
+          <div class="analytics-stat-label">${stat.label}</div>
+          <div class="analytics-stat-value">${stat.value}</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      grid.innerHTML = `<div style="color:var(--danger);font-size:.82rem;">Error loading analytics: ${core.escapeHtml(e.message)}</div>`;
+    }
+  };
+
+  /* ── Notification Manager ─────────────────────────────── */
+  const loadNotifications = async () => {
+    const list = document.getElementById('notif-admin-list');
+    if (!list) return;
+
+    try {
+      const { data } = await sb().from('notifications').select('*').order('sort_order', { ascending: true });
+      list.innerHTML = '';
+      if (!data?.length) {
+        list.innerHTML = '<div class="tiny">No notifications yet.</div>';
+        return;
+      }
+      data.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'notif-admin-item';
+        div.innerHTML = `
+          <div class="notif-admin-info">
+            <div class="notif-admin-title">${core.escapeHtml(n.title || '')}</div>
+            <div class="notif-admin-meta">${core.escapeHtml(n.description || '')} • <span class="${n.active ? 'notif-status-active' : 'notif-status-inactive'}">${n.active ? 'Active' : 'Inactive'}</span></div>
+          </div>
+          <button class="btn-danger" style="padding:6px 10px;font-size:.7rem;" data-id="${n.id}">Delete</button>
+        `;
+        div.querySelector('[data-id]').addEventListener('click', async () => {
+          if (!confirm('Delete notification?')) return;
+          await sb().from('notifications').delete().eq('id', n.id);
+          loadNotifications();
+        });
+        list.appendChild(div);
+      });
+    } catch (e) {
+      list.innerHTML = `<div class="tiny" style="color:var(--danger);">Error: ${core.escapeHtml(e.message)}</div>`;
+    }
+  };
+
+  const addNotification = async () => {
+    const title = document.getElementById('notif-title')?.value?.trim();
+    if (!title) return alert('Title is required.');
+    const description = document.getElementById('notif-desc')?.value || '';
+    const media_url   = document.getElementById('notif-media')?.value?.trim() || null;
+    const link_url    = document.getElementById('notif-link')?.value?.trim() || null;
+    const active      = (document.getElementById('notif-active')?.value || 'true').toLowerCase() === 'true';
+    const sort_order  = parseInt(document.getElementById('notif-sort')?.value || '0', 10);
+    const expiresEl   = document.getElementById('notif-expires');
+    const expires_at  = expiresEl?.value ? new Date(expiresEl.value).toISOString() : null;
+
+    const { error } = await sb().from('notifications').insert([{
+      title, description, media_url, link_url, active, sort_order, expires_at
+    }]);
+    if (error) return alert(error.message);
+    alert('Notification added!');
+    loadNotifications();
+  };
+
+  /* ── Spin Settings ────────────────────────────────────── */
+  const saveSpinSettings = async () => {
+    const freeMode   = document.getElementById('spin-free-mode')?.value || '1';
+    const priceText  = document.getElementById('spin-price-text')?.value || '';
+    const maxPerDay  = document.getElementById('spin-max-per-day')?.value || '1';
+    const razorLink  = document.getElementById('spin-razorpay-link')?.value || '';
+    const badgeDays  = document.getElementById('new-badge-days')?.value || '7';
+    const prizesRaw  = document.getElementById('spin-prizes-json')?.value || '[]';
+
+    try { JSON.parse(prizesRaw); } catch { return alert('Invalid prizes JSON.'); }
+
+    await sb().from('site_content').upsert([
+      { id: 'spin_free_mode',         content: freeMode },
+      { id: 'spin_price',             content: priceText },
+      { id: 'spin_max_per_day',       content: maxPerDay },
+      { id: 'razorpay_payment_link',  content: razorLink },
+      { id: 'new_badge_days',         content: badgeDays },
+      { id: 'spin_prizes',            content: prizesRaw }
+    ]);
+    alert('Spin settings saved!');
+    await core.fetchContentAndGallery();
+  };
+
+  /* ── Spin Results ─────────────────────────────────────── */
+  const loadSpinResults = async () => {
+    const list = document.getElementById('spin-results-list');
+    if (!list) return;
+    try {
+      const { data } = await sb().from('spin_results')
+        .select('*').order('created_at', { ascending: false }).limit(20);
+      if (!data?.length) { list.innerHTML = '<div class="tiny">No spins yet.</div>'; return; }
+      list.innerHTML = data.map(r => `
+        <div style="display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);margin-bottom:6px;">
+          <span style="font-size:.8rem;flex:1;">${core.escapeHtml(r.user_name || 'Anonymous')} — <b>${core.escapeHtml(r.prize_name || '')}</b></span>
+          <span style="font-size:.72rem;color:${r.won ? 'var(--good)' : 'rgba(234,246,255,.40)'};">${r.won ? '🏆 Won' : 'Try again'}</span>
+          <span style="font-size:.70rem;color:rgba(234,246,255,.35);">${new Date(r.created_at).toLocaleDateString()}</span>
+        </div>
+      `).join('');
+    } catch {}
+  };
+
+  /* ── Reviews Manager ──────────────────────────────────── */
+  const loadAdminReviews = async () => {
+    const list = document.getElementById('admin-reviews-list');
+    if (!list) return;
+    try {
+      const { data } = await sb().from('site_reviews').select('*').order('created_at', { ascending: false });
+      if (!data?.length) { list.innerHTML = '<div class="tiny">No reviews yet.</div>'; return; }
+      list.innerHTML = data.map(r => `
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="font-weight:950;font-size:.82rem;">${core.escapeHtml(r.display_name || 'Anonymous')}</div>
+            <div style="color:#ffd700;font-size:.75rem;margin:2px 0;">${'★'.repeat(r.rating || 0)}</div>
+            <div style="font-size:.82rem;color:rgba(234,246,255,.70);margin-top:4px;">${core.escapeHtml(r.review_text || '')}</div>
+          </div>
+          <button class="btn-danger" style="padding:6px 10px;font-size:.7rem;flex-shrink:0;" data-review-id="${r.id}">Delete</button>
+        </div>
+      `).join('');
+      list.querySelectorAll('[data-review-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Delete this review?')) return;
+          await sb().from('site_reviews').delete().eq('id', btn.dataset.reviewId);
+          loadAdminReviews();
+        });
+      });
+    } catch (e) {
+      list.innerHTML = `<div class="tiny" style="color:var(--danger);">Error: ${core.escapeHtml(e.message)}</div>`;
+    }
   };
 
   /* ── Save branding ────────────────────────────────────── */
@@ -185,7 +391,7 @@
   };
 
   /* ── Media modal ──────────────────────────────────────── */
-  const openMediaModal = (item) => {
+  const openMediaModal = async (item) => {
     s().editingMediaId = item.id;
 
     const url = item.image_url || '';
@@ -197,6 +403,7 @@
     setVal('amm-title',      item.title || '');
     setVal('amm-desc',       item.description || '');
     setVal('amm-tags',       item.tags || '');
+    setVal('amm-price',      item.price || '');
     setVal('amm-custom-wa',  item.custom_wa_message || '');
     setVal('amm-additional', item.additional_media || '');
 
@@ -223,6 +430,32 @@
         (isVid
           ? `<video src="${url}" controls playsinline style="width:100%;height:100%;object-fit:cover;background:#000"></video>`
           : `<img src="${url}" alt="Preview" />`);
+    }
+
+    /* Sold section */
+    const soldInfoWrap = document.getElementById('sold-info-wrap');
+    if (soldInfoWrap) {
+      if (item.sold) {
+        soldInfoWrap.innerHTML = `<div class="sold-info">SOLD to <b>${core.escapeHtml(item.buyer_name || 'Unknown')}</b></div>`;
+      } else {
+        soldInfoWrap.innerHTML = '';
+      }
+    }
+
+    /* Load users for buyer dropdown */
+    const buyerSel = document.getElementById('amm-buyer-select');
+    if (buyerSel) {
+      buyerSel.innerHTML = '<option value="">Select buyer…</option>';
+      try {
+        const { data: users } = await sb().from('user_profiles').select('id,display_name,email').order('display_name');
+        (users || []).forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.id;
+          opt.textContent = `${u.display_name || u.email} (${u.email})`;
+          opt.dataset.name = u.display_name || u.email;
+          buyerSel.appendChild(opt);
+        });
+      } catch {}
     }
 
     renderAdditionalThumbs();
@@ -253,12 +486,13 @@
     const title             = getVal('amm-title');
     const description       = getVal('amm-desc');
     const tags              = getVal('amm-tags');
+    const price             = getVal('amm-price');
     const category          = getVal('amm-category');
     const custom_wa_message = getVal('amm-custom-wa');
     const additional_media  = getVal('amm-additional');
 
     const { error } = await sb().from('gallery')
-      .update({ title, description, tags, category, custom_wa_message, additional_media })
+      .update({ title, description, tags, price, category, custom_wa_message, additional_media })
       .eq('id', id);
 
     if (error) return alert(error.message);
@@ -274,6 +508,65 @@
     if (!confirm('Delete this media item?')) return;
     await core.deleteMedia(id);
     closeMediaModal();
+  };
+
+  /* ── Mark as Sold ─────────────────────────────────────── */
+  const markAsSold = async () => {
+    const id = s().editingMediaId;
+    if (!id) return;
+
+    const buyerSel = document.getElementById('amm-buyer-select');
+    const buyerId = buyerSel?.value;
+    const buyerName = buyerSel?.options[buyerSel.selectedIndex]?.dataset.name || '';
+    const amountStr = document.getElementById('amm-sold-amount')?.value || '0';
+    const amount = parseFloat(amountStr) || 0;
+
+    if (!buyerId) return alert('Select a buyer.');
+    if (!confirm(`Mark this item as sold to ${buyerName} for ${amount}?`)) return;
+
+    try {
+      /* Update gallery item */
+      await sb().from('gallery').update({
+        sold: true,
+        buyer_id: buyerId,
+        buyer_name: buyerName
+      }).eq('id', id);
+
+      /* Insert into product_sales */
+      await sb().from('product_sales').insert([{
+        product_id: id,
+        buyer_id: buyerId,
+        buyer_name: buyerName,
+        amount
+      }]);
+
+      /* Update buyer's profile */
+      const { data: profile } = await sb().from('user_profiles').select('purchase_count,total_spent').eq('id', buyerId).single();
+      await sb().from('user_profiles').update({
+        purchase_count: (profile?.purchase_count || 0) + 1,
+        total_spent: (parseFloat(profile?.total_spent || 0) + amount)
+      }).eq('id', buyerId);
+
+      alert('Marked as sold!');
+      closeMediaModal();
+      core.fetchContentAndGallery();
+    } catch (e) {
+      alert(e?.message || 'Error marking as sold');
+    }
+  };
+
+  const unmarkSold = async () => {
+    const id = s().editingMediaId;
+    if (!id) return;
+    if (!confirm('Unmark this item as sold?')) return;
+    try {
+      await sb().from('gallery').update({ sold: false, buyer_id: null, buyer_name: null }).eq('id', id);
+      alert('Unmarked!');
+      closeMediaModal();
+      core.fetchContentAndGallery();
+    } catch (e) {
+      alert(e?.message || 'Error');
+    }
   };
 
   /* ── Additional media upload & thumbs ────────────────── */
@@ -364,6 +657,13 @@
     deleteMediaFromModal,
     renderAdditionalThumbs,
     removeAdditionalMedia,
-    uploadAdditionalMedia
+    uploadAdditionalMedia,
+    loadAnalytics,
+    loadNotifications,
+    addNotification,
+    saveSpinSettings,
+    loadAdminReviews,
+    markAsSold,
+    unmarkSold
   });
 })();
