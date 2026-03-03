@@ -78,6 +78,14 @@
     return raw.split(/[\n,]/).map(u => u.trim()).filter(Boolean);
   };
 
+  /* ── Is NEW (within badge days) ───────────────────────── */
+  const isNewItem = (createdAt) => {
+    if (!createdAt) return false;
+    const days = s().newBadgeDays || 7;
+    const diff = Date.now() - new Date(createdAt).getTime();
+    return diff < days * 24 * 60 * 60 * 1000;
+  };
+
   /* ── Render gallery ───────────────────────────────────── */
   const renderGallery = (items) => {
     s().galleryItems = items;
@@ -101,6 +109,9 @@
       const category = (item.category || '').trim();
       const isVid    = core.isVideoUrl(url);
       const type     = isVid ? 'video' : 'photo';
+      const price    = item.price || '';
+      const sold     = !!item.sold;
+      const isNew    = isNewItem(item.created_at);
 
       const extraMedia = parseAdditionalMedia(item.additional_media);
       const totalMedia = 1 + extraMedia.length;
@@ -113,11 +124,17 @@
         ? `<video src="${url}#t=0.1" preload="metadata" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video><div class="play-badge"><i class="fas fa-play"></i></div>`
         : `<img src="${url}" loading="lazy" decoding="async" alt="${core.escapeHtml(title)}">`;
 
+      const user = s().currentUser;
+      const userName = user?.user_metadata?.full_name || user?.email || '';
+      const userEmail = user?.email || '';
+
       const waHref = core.buildWhatsAppUrl({
         phone: s().whatsappPhone,
         template: s().whatsappTemplate,
         title, url, type, tags,
-        customMessage: item.custom_wa_message || ''
+        customMessage: item.custom_wa_message || '',
+        username: userName,
+        email: userEmail
       });
 
       const watermarkHtml = s().uiEnableWatermark
@@ -134,26 +151,55 @@
         ? `<div class="media-count-badge"><i class="fas fa-images"></i> ${totalMedia}</div>`
         : '';
 
+      const newBadgeHtml = isNew ? `<div class="new-badge">NEW</div>` : '';
+      const soldBadgeHtml = sold ? `<div class="sold-badge">SOLD</div>` : '';
+      const priceBadgeHtml = price ? `<div class="price-badge">${core.escapeHtml(price)}</div>` : '';
+
+      const avgRating = parseFloat(item.avg_rating || 0);
+      const ratingCount = parseInt(item.rating_count || 0);
+      const viewCount = parseInt(item.view_count || 0);
+
+      const ratingHtml = ratingCount > 0
+        ? `<div class="rating-display"><span class="stars">⭐</span> ${avgRating.toFixed(1)} <span class="count">(${ratingCount})</span></div>`
+        : '';
+      const viewHtml = viewCount > 0
+        ? `<span class="view-count-badge"><i class="fas fa-eye"></i> ${viewCount}</span>`
+        : '';
+
       card.innerHTML = `
         <div class="card-inner">
           ${mediaHtml}
           ${watermarkHtml}
           ${chipsHtml}
           ${countBadge}
+          ${newBadgeHtml}
+          ${soldBadgeHtml}
+          ${priceBadgeHtml}
         </div>
         <div class="card-info">
-          <div class="card-title">${core.escapeHtml(title)}</div>
+          <div class="card-title">${core.escapeHtml(title)}${viewHtml}</div>
           ${desc ? `<div class="card-desc">${core.escapeHtml(desc)}</div>` : ''}
+          ${ratingHtml}
           <div class="card-actions">
             ${waHref
-              ? `<a class="btn-wa" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>`
+              ? `<a class="btn-wa wa-contact-btn" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>`
               : `<span style="color:rgba(234,246,255,.55);font-size:0.85rem;">(Admin: set WhatsApp phone to enable contact)</span>`}
           </div>
         </div>
       `;
 
       card.addEventListener('click', () => openLightboxByIndex(i));
-      card.querySelector('.btn-wa')?.addEventListener('click', e => e.stopPropagation());
+
+      /* Sign-in gate for WhatsApp contact */
+      if (waHref) {
+        card.querySelector('.wa-contact-btn')?.addEventListener('click', e => {
+          e.stopPropagation();
+          if (!s().currentUser) {
+            e.preventDefault();
+            core.requireSignIn('whatsapp', waHref);
+          }
+        });
+      }
 
       gsap.from(card, {
         scrollTrigger: { trigger: card, start: 'top 90%' },
@@ -191,11 +237,108 @@
     if (s().activeCategory !== 'all') filterGallery(s().activeCategory);
   };
 
+  /* ── Product View Tracker ─────────────────────────────── */
+  const trackProductView = async (itemId) => {
+    try {
+      /* Fetch current then increment (safe for all Supabase versions) */
+      const { data } = await core._supabase.from('gallery').select('view_count').eq('id', itemId).single();
+      const newCount = parseInt(data?.view_count || 0) + 1;
+      await core._supabase.from('gallery').update({ view_count: newCount }).eq('id', itemId);
+    } catch {}
+  };
+
+  /* ── Rating System ────────────────────────────────────── */
+  const renderLightboxRatings = (item, container) => {
+    const user = s().currentUser;
+    const avgRating = parseFloat(item.avg_rating || 0);
+    const ratingCount = parseInt(item.rating_count || 0);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'lb-ratings';
+    wrap.id = 'lb-rating-wrap';
+
+    const renderStars = (currentRating) => {
+      wrap.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.className = 'lb-star' + (i <= currentRating ? ' lit' : '') + (!user ? ' readonly' : '');
+        star.textContent = '★';
+        star.title = user ? `Rate ${i} star${i > 1 ? 's' : ''}` : 'Sign in to rate';
+        if (user) {
+          star.addEventListener('mouseenter', () => {
+            wrap.querySelectorAll('.lb-star').forEach((s, si) => {
+              s.classList.toggle('lit', si < i);
+            });
+          });
+          star.addEventListener('mouseleave', () => {
+            wrap.querySelectorAll('.lb-star').forEach((s, si) => {
+              s.classList.toggle('lit', si < currentRating);
+            });
+          });
+          star.addEventListener('click', async () => {
+            await submitRating(item.id, i);
+            renderStars(i);
+          });
+        }
+        wrap.appendChild(star);
+      }
+      if (ratingCount > 0 || avgRating > 0) {
+        const info = document.createElement('span');
+        info.style.cssText = 'font-size:.72rem;color:rgba(234,246,255,.45);margin-left:4px;';
+        info.textContent = ratingCount > 0 ? `${avgRating.toFixed(1)} (${ratingCount})` : '';
+        wrap.appendChild(info);
+      }
+    };
+
+    /* Load user's existing rating */
+    const loadUserRating = async () => {
+      if (!user) { renderStars(Math.round(avgRating)); return; }
+      try {
+        const { data } = await core._supabase.from('product_ratings')
+          .select('rating').eq('product_id', item.id).eq('user_id', user.id).single();
+        renderStars(data?.rating || Math.round(avgRating));
+      } catch {
+        renderStars(Math.round(avgRating));
+      }
+    };
+
+    loadUserRating();
+    container.appendChild(wrap);
+  };
+
+  const submitRating = async (productId, rating) => {
+    const user = s().currentUser;
+    if (!user) return;
+    try {
+      await core._supabase.from('product_ratings').upsert({
+        product_id: productId,
+        user_id: user.id,
+        user_name: user.user_metadata?.full_name || user.email,
+        rating
+      });
+      /* Recalculate average */
+      const { data: ratings } = await core._supabase.from('product_ratings')
+        .select('rating').eq('product_id', productId);
+      if (ratings?.length) {
+        const avg = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+        await core._supabase.from('gallery').update({
+          avg_rating: Math.round(avg * 10) / 10,
+          rating_count: ratings.length
+        }).eq('id', productId);
+      }
+    } catch (e) {
+      console.error('Rating error:', e);
+    }
+  };
+
   /* ── Lightbox ─────────────────────────────────────────── */
-  const openLightboxByIndex = (idx) => {
+  const openLightboxByIndex = async (idx) => {
     s().currentIndex = idx;
     const item = s().galleryItems[idx];
     if (!item) return;
+
+    /* Track view */
+    if (item.id) trackProductView(item.id);
 
     const extraMedia = parseAdditionalMedia(item.additional_media);
     const allMedia   = [item.image_url, ...extraMedia];
@@ -204,7 +347,11 @@
       title:       item.title || 'Untitled',
       tags:        core.parseTags(item.tags),
       customWaMsg: item.custom_wa_message || '',
-      allMedia
+      allMedia,
+      price:       item.price || '',
+      sold:        item.sold || false,
+      buyerName:   item.buyer_name || '',
+      item
     });
   };
 
@@ -217,13 +364,23 @@
     const tags        = meta.tags        || [];
     const customWaMsg = meta.customWaMsg || '';
     const allMedia    = meta.allMedia    || [url];
+    const price       = meta.price       || '';
+    const sold        = meta.sold        || false;
+    const buyerName   = meta.buyerName   || '';
+    const item        = meta.item        || null;
     const type        = isVid ? 'video' : 'photo';
+
+    const user = s().currentUser;
+    const userName = user?.user_metadata?.full_name || user?.email || '';
+    const userEmail = user?.email || '';
 
     const waHref = core.buildWhatsAppUrl({
       phone: s().whatsappPhone,
       template: s().whatsappTemplate,
       title, url, type, tags,
-      customMessage: customWaMsg
+      customMessage: customWaMsg,
+      username: userName,
+      email: userEmail
     });
 
     resetZoom();
@@ -257,6 +414,14 @@
       ? `<div class="pill">Tags: ${core.escapeHtml(tags.join(', '))}</div>`
       : '';
 
+    const pricePill = price
+      ? `<div class="pill price-pill">🏷️ ${core.escapeHtml(price)}</div>`
+      : '';
+
+    const soldPill = sold
+      ? `<div class="pill" style="background:rgba(255,59,59,.18);border-color:rgba(255,59,59,.35);color:#ffa0a0;">SOLD${buyerName ? ` to ${core.escapeHtml(buyerName)}` : ''}</div>`
+      : '';
+
     wrap.innerHTML = `
       <div class="zoom-stage" id="zoom-stage">
         ${buildMediaTag(url, title)}
@@ -265,13 +430,15 @@
         <div class="lightbox-bottombar">
           <div class="left">
             <div class="pill">${core.escapeHtml(title)}</div>
+            ${pricePill}
+            ${soldPill}
             ${tagsPill}
             ${!isVid
               ? `<div class="pill">Wheel/Pinch to zoom • Drag to pan</div>`
               : `<div class="pill">Video</div>`}
           </div>
           <div class="right">
-            ${waHref ? `<a class="btn-wa" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>` : ''}
+            ${waHref ? `<a class="btn-wa wa-lb-contact" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>` : ''}
             <button class="pill" id="btn-reset-zoom" type="button">Reset</button>
           </div>
         </div>
@@ -281,6 +448,23 @@
         </div>
       </div>
     `;
+
+    /* Ratings widget */
+    if (item) {
+      const bottomLeft = wrap.querySelector('.lightbox-bottombar .left');
+      if (bottomLeft) renderLightboxRatings(item, bottomLeft);
+    }
+
+    /* Sign-in gate for lightbox contact button */
+    if (waHref) {
+      wrap.querySelector('.wa-lb-contact')?.addEventListener('click', e => {
+        if (!s().currentUser) {
+          e.preventDefault();
+          e.stopPropagation();
+          core.requireSignIn('whatsapp', waHref);
+        }
+      });
+    }
 
     const stage = document.getElementById('zoom-stage');
 
@@ -470,32 +654,50 @@
 
   /* ── Media upload / delete ────────────────────────────── */
   const uploadMedia = async () => {
-    const file = document.getElementById('upload-media')?.files[0];
-    if (!file) return alert('Select file first!');
+    const fileInput = document.getElementById('upload-media');
+    const files = fileInput?.files;
+    if (!files || files.length === 0) return alert('Select file(s) first!');
+
     const btn = document.getElementById('btn-upload-media');
-    if (btn) { btn.innerText = 'Uploading...'; btn.disabled = true; }
+    const total = files.length;
+    let successCount = 0;
+    let failCount = 0;
 
-    try {
-      const ext  = file.name.split('.').pop();
-      const name = `media_${Date.now()}.${ext}`;
-      const { error } = await core._supabase.storage.from(core._ASSETS_BUCKET).upload(name, file, { upsert: true });
-      if (error) throw error;
+    for (let idx = 0; idx < total; idx++) {
+      const file = files[idx];
+      if (btn) { btn.innerText = `Uploading ${idx + 1}/${total}…`; btn.disabled = true; }
 
-      const { data }  = core._supabase.storage.from(core._ASSETS_BUCKET).getPublicUrl(name);
-      const mediaUrl  = data.publicUrl;
-      const autoType  = core.isVideoUrl(mediaUrl) ? 'video' : 'image';
+      try {
+        const ext  = file.name.split('.').pop();
+        const name = `media_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+        const { error } = await core._supabase.storage.from(core._ASSETS_BUCKET).upload(name, file, { upsert: true });
+        if (error) throw error;
 
-      const { error: insErr } = await core._supabase.from('gallery')
-        .insert([{ image_url: mediaUrl, title: '', description: '', tags: '', media_type: autoType }]);
-      if (insErr) throw insErr;
+        const { data }  = core._supabase.storage.from(core._ASSETS_BUCKET).getPublicUrl(name);
+        const mediaUrl  = data.publicUrl;
+        const autoType  = core.isVideoUrl(mediaUrl) ? 'video' : 'image';
 
-      alert('Success!');
-      await core.fetchContentAndGallery();
-    } catch (e) {
-      alert(e?.message || 'Upload failed');
-    } finally {
-      if (btn) { btn.innerText = 'Upload to Gallery'; btn.disabled = false; }
+        const { error: insErr } = await core._supabase.from('gallery')
+          .insert([{ image_url: mediaUrl, title: '', description: '', tags: '', media_type: autoType }]);
+        if (insErr) throw insErr;
+
+        successCount++;
+      } catch (e) {
+        failCount++;
+        console.error('Upload failed for', file.name, e);
+      }
     }
+
+    if (btn) {
+      btn.innerText = failCount === 0
+        ? `Done! ${successCount} uploaded`
+        : `Done: ${successCount} ok, ${failCount} failed`;
+      btn.disabled = false;
+      setTimeout(() => { btn.innerText = 'Upload to Gallery'; }, 3000);
+    }
+
+    if (successCount > 0) await core.fetchContentAndGallery();
+    if (failCount > 0) alert(`${failCount} file(s) failed to upload.`);
   };
 
   const deleteMedia = async (id) => {
