@@ -29,6 +29,19 @@
     return data.publicUrl;
   };
 
+  /* ── Save feedback helper ─────────────────────────────── */
+  const showSaveFeedback = (btnOrId) => {
+    const btn = typeof btnOrId === 'string' ? document.getElementById(btnOrId) : btnOrId;
+    if (!btn) return;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Saved!';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.disabled = false;
+    }, 2000);
+  };
+
   /* ── Load admin data into form fields ─────────────────── */
   const loadAdminData = () => {
     const getTxt = (id) => document.getElementById(id)?.innerText || '';
@@ -60,20 +73,38 @@
     val('edit-ui-wm-text',    s().uiWatermarkText  || '');
     val('edit-ui-wm-opacity', String(s().uiWatermarkOpacity || 0.15));
 
-    /* Spin settings */
-    val('spin-free-mode', s().spinFreeMode ? '1' : '0');
-    val('spin-ad-enabled', s().spinAdEnabled ? '1' : '0');
+    /* Spin settings — toggle switches */
+    const setToggle = (id, on) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.classList.toggle('on', on);
+      btn.classList.toggle('off', !on);
+      btn.textContent = on ? 'ON' : 'OFF';
+    };
+    setToggle('toggle-spin-free', !!s().spinFreeMode);
+    setToggle('toggle-spin-ad',   !!s().spinAdEnabled);
+    setToggle('toggle-spin-pay',  !!s().spinPayEnabled);
     val('spin-ad-daily', String(s().spinAdDailyLimit || 3));
-    val('spin-pay-enabled', s().spinPayEnabled ? '1' : '0');
     val('spin-price-text', s().spinPriceText || '');
     val('spin-max-per-day', String(s().spinMaxPerDay || 1));
     val('spin-razorpay-link', s().spinRazorpayLink || '');
     val('new-badge-days', String(s().newBadgeDays || 7));
-    if (s().spinPrizes?.length) {
-      val('spin-prizes-json', JSON.stringify(s().spinPrizes, null, 2));
-    }
+    /* Populate ad config fields */
     if (s().spinAdConfig) {
-      val('spin-ad-config-json', JSON.stringify(s().spinAdConfig, null, 2));
+      val('spin-ad-image', s().spinAdConfig.image_url || '');
+      val('spin-ad-link',  s().spinAdConfig.link_url  || '');
+      val('spin-ad-duration', String(s().spinAdConfig.duration || 5));
+    }
+    /* Populate prize editor */
+    if (s().spinPrizes?.length) {
+      const list = document.getElementById('prize-list');
+      if (list) {
+        list.innerHTML = '';
+        s().spinPrizes.forEach(p => {
+          list.appendChild(buildPrizeCard(p));
+        });
+        updateOddsDisplay();
+      }
     }
 
     loadGalleryCategories();
@@ -221,35 +252,41 @@
 
   /* ── Spin Settings ────────────────────────────────────── */
   const saveSpinSettings = async () => {
-    const freeMode   = document.getElementById('spin-free-mode')?.value || '1';
-    const adEnabled  = document.getElementById('spin-ad-enabled')?.value || '0';
+    /* Collect mode toggles */
+    const freeMode   = document.getElementById('toggle-spin-free')?.classList.contains('on') ? '1' : '0';
+    const adEnabled  = document.getElementById('toggle-spin-ad')?.classList.contains('on') ? '1' : '0';
+    const payEnabled = document.getElementById('toggle-spin-pay')?.classList.contains('on') ? '1' : '0';
     const adDaily    = document.getElementById('spin-ad-daily')?.value || '3';
-    const payEnabled = document.getElementById('spin-pay-enabled')?.value || '0';
     const priceText  = document.getElementById('spin-price-text')?.value || '';
     const maxPerDay  = document.getElementById('spin-max-per-day')?.value || '1';
     const razorLink  = document.getElementById('spin-razorpay-link')?.value || '';
     const badgeDays  = document.getElementById('new-badge-days')?.value || '7';
-    const prizesRaw  = document.getElementById('spin-prizes-json')?.value || '[]';
-    const adCfgRaw   = document.getElementById('spin-ad-config-json')?.value || 'null';
 
-    try { JSON.parse(prizesRaw); } catch { return alert('Invalid prizes JSON.'); }
-    try { if (adCfgRaw !== 'null') JSON.parse(adCfgRaw); } catch { return alert('Invalid ad config JSON.'); }
+    /* Collect ad config from individual fields */
+    const adImage    = document.getElementById('spin-ad-image')?.value?.trim() || '';
+    const adLink     = document.getElementById('spin-ad-link')?.value?.trim() || '';
+    const adDuration = parseInt(document.getElementById('spin-ad-duration')?.value || '5', 10);
+    const adCfg = { enabled: adEnabled === '1', image_url: adImage, link_url: adLink, duration: adDuration };
+    const adCfgRaw = JSON.stringify(adCfg);
 
-    /* Odds validation */
-    try {
-      const prizes = JSON.parse(prizesRaw);
-      if (prizes.length) {
-        const total = prizes.reduce((sum, p) => sum + (p.odds || 0), 0);
-        const el = document.getElementById('spin-odds-validation');
-        if (el) {
-          if (Math.round(total) !== 100) {
-            el.innerHTML = `<span style="color:var(--danger);">⚠️ Odds sum to ${total}% (should be 100%)</span>`;
-          } else {
-            el.innerHTML = `<span style="color:var(--good);">✅ Odds sum to 100%</span>`;
-          }
-        }
-      }
-    } catch {}
+    /* Collect prizes from visual prize cards */
+    const prizes = [];
+    document.querySelectorAll('.prize-card').forEach(card => {
+      prizes.push({
+        name:  card.querySelector('.prize-name')?.value?.trim() || '',
+        emoji: card.querySelector('.prize-emoji')?.value?.trim() || '',
+        color: card.querySelector('.prize-color')?.value || '#00ffd5',
+        odds:  parseInt(card.querySelector('.prize-odds')?.value || '0', 10)
+      });
+    });
+
+    /* Validate odds */
+    const total = prizes.reduce((sum, p) => sum + (p.odds || 0), 0);
+    if (prizes.length && Math.round(total) !== 100) {
+      return alert(`⚠️ Odds total is ${total}% — must be exactly 100% before saving.`);
+    }
+
+    const prizesRaw = JSON.stringify(prizes);
 
     await sb().from('site_content').upsert([
       { id: 'spin_free_mode',         content: freeMode },
@@ -263,8 +300,121 @@
       { id: 'spin_prizes',            content: prizesRaw },
       { id: 'spin_ad_config',         content: adCfgRaw }
     ]);
-    alert('Spin settings saved!');
+    showSaveFeedback('btn-save-spin');
     await core.fetchContentAndGallery();
+  };
+
+  /* ── Prize Editor ─────────────────────────────────────── */
+  const buildPrizeCard = (prize) => {
+    const card = document.createElement('div');
+    card.className = 'prize-card';
+    card.innerHTML = `
+      <div class="prize-color-preview" style="background:${core.escapeHtml(prize.color || '#00ffd5')};"></div>
+      <div class="prize-fields">
+        <div class="prize-row">
+          <input type="text" placeholder="Prize Name" value="${core.escapeHtml(prize.name || '')}" class="prize-name admin-input" style="flex:1;" />
+          <input type="text" placeholder="🎁" value="${core.escapeHtml(prize.emoji || '')}" class="prize-emoji admin-input" style="width:60px;text-align:center;" />
+        </div>
+        <div class="prize-row" style="margin-top:6px;">
+          <label class="admin-label" style="margin:0 6px 0 0;">Color</label>
+          <input type="color" value="${core.escapeHtml(prize.color || '#00ffd5')}" class="prize-color" style="width:36px;height:28px;padding:2px;border:none;background:none;cursor:pointer;" />
+          <label class="admin-label" style="margin:0 6px 0 12px;">Win Rate</label>
+          <input type="number" min="0" max="100" value="${prize.odds || 0}" class="prize-odds admin-input" style="width:70px;" />
+          <span style="margin-left:4px;color:rgba(234,246,255,.55);">%</span>
+        </div>
+        <div class="prize-odds-bar" style="margin-top:6px;">
+          <div class="odds-fill" style="width:${Math.min(prize.odds || 0, 100)}%;background:${core.escapeHtml(prize.color || '#00ffd5')};"></div>
+        </div>
+      </div>
+      <button class="prize-delete" type="button" title="Delete prize">🗑️</button>
+    `;
+
+    /* Color picker → update preview */
+    const colorInput = card.querySelector('.prize-color');
+    const colorPreview = card.querySelector('.prize-color-preview');
+    const oddsFill = card.querySelector('.odds-fill');
+    colorInput.addEventListener('input', () => {
+      colorPreview.style.background = colorInput.value;
+      oddsFill.style.background = colorInput.value;
+    });
+
+    /* Odds input → update bar + validation */
+    card.querySelector('.prize-odds').addEventListener('input', () => {
+      const pct = Math.min(Math.max(parseInt(card.querySelector('.prize-odds').value) || 0, 0), 100); // clamp [0,100]
+      oddsFill.style.width = pct + '%';
+      updateOddsDisplay();
+    });
+
+    /* Delete button */
+    card.querySelector('.prize-delete').addEventListener('click', () => {
+      if (!confirm('Delete this prize?')) return;
+      card.remove();
+      updateOddsDisplay();
+    });
+
+    return card;
+  };
+
+  const updateOddsDisplay = () => {
+    let total = 0;
+    document.querySelectorAll('.prize-odds').forEach(input => {
+      total += parseInt(input.value) || 0;
+    });
+    const totalEl = document.getElementById('odds-total');
+    const warnEl = document.getElementById('odds-warning');
+    const currentEl = document.getElementById('odds-current');
+    const saveBtn = document.getElementById('btn-save-spin');
+
+    if (totalEl) {
+      totalEl.textContent = total + '%';
+      totalEl.className = Math.round(total) === 100 ? 'odds-ok' : 'odds-warn';
+    }
+    if (currentEl) currentEl.textContent = total;
+    const ok = Math.round(total) === 100;
+    if (warnEl) warnEl.style.display = ok ? 'none' : 'block';
+    if (saveBtn) saveBtn.disabled = !ok && document.querySelectorAll('.prize-card').length > 0;
+  };
+
+  const addPrize = () => {
+    const list = document.getElementById('prize-list');
+    if (!list) return;
+    const card = buildPrizeCard({ name: '', emoji: '🎁', color: '#' + ((Math.random() * 0xffffff | 0)).toString(16).padStart(6, '0'), odds: 0 });
+    list.appendChild(card);
+    updateOddsDisplay();
+  };
+
+  const autoBalanceOdds = () => {
+    const cards = document.querySelectorAll('.prize-card');
+    if (!cards.length) return;
+    let total = 0;
+    let maxOddsCard = null;
+    let maxOdds = -1;
+    cards.forEach(card => {
+      const odds = parseInt(card.querySelector('.prize-odds').value) || 0;
+      total += odds;
+      if (odds > maxOdds) {
+        maxOdds = odds;
+        maxOddsCard = card;
+      }
+    });
+    if (Math.round(total) !== 100 && maxOddsCard) {
+      const diff = 100 - total;
+      const oddsInput = maxOddsCard.querySelector('.prize-odds');
+      const newVal = (parseInt(oddsInput.value) || 0) + diff;
+      if (newVal >= 0) {
+        oddsInput.value = newVal;
+        const pct = Math.min(newVal, 100);
+        maxOddsCard.querySelector('.odds-fill').style.width = pct + '%';
+      }
+    }
+    updateOddsDisplay();
+  };
+
+  const toggleSpinSwitch = (btn) => {
+    const isOn = btn.classList.contains('on');
+    btn.classList.toggle('on', !isOn);
+    btn.classList.toggle('off', isOn);
+    btn.textContent = isOn ? 'OFF' : 'ON';
   };
 
   /* ── Spin Results ─────────────────────────────────────── */
@@ -730,70 +880,144 @@
   };
 
   /* ── Ad Slots ─────────────────────────────────────────── */
+  const AD_SLOT_DEFS = [
+    { id: 'header',  name: 'Header Banner',         icon: '🔝' },
+    { id: 'gallery', name: 'Gallery Between Items',  icon: '🖼️' },
+    { id: 'footer',  name: 'Footer Banner',          icon: '⬇️' }
+  ];
+
   const loadAdSlots = async () => {
     const list = document.getElementById('ad-slots-list');
     if (!list) return;
     try {
       const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
       const slots = data?.content ? JSON.parse(data.content) : [];
-      if (!slots.length) {
-        list.innerHTML = '<div class="tiny">No ad slots configured yet.</div>';
-        return;
-      }
-      list.innerHTML = slots.map(slot => `
-        <div class="ad-slot-card">
-          <div class="ad-slot-info">
-            <div class="ad-slot-name">${core.escapeHtml(slot.name || slot.id)}</div>
-            <div class="tiny">
-              ${slot.image_url ? `<span>Image: ${core.escapeHtml(slot.image_url.slice(0, 40))}…</span>` : '<span>No image</span>'}
-              &nbsp;•&nbsp;
-              <span class="${slot.active ? 'ad-slot-status-active' : 'ad-slot-status-inactive'}">${slot.active ? '✅ Active' : '⬜ Inactive'}</span>
-            </div>
-          </div>
-          <button class="btn-soft" style="padding:6px 10px;font-size:.7rem;" onclick="core.loadAdSlotToEditor('${slot.id}')">Edit</button>
-        </div>
-      `).join('');
+
+      list.innerHTML = '';
+      AD_SLOT_DEFS.forEach(def => {
+        const slot = slots.find(s => s.id === def.id) || { id: def.id, name: def.name, type: 'image', image_url: '', link_url: '', code: '', active: false };
+        list.appendChild(buildAdSlotCard(def, slot));
+      });
     } catch (e) {
-      if (list) list.innerHTML = `<div class="tiny" style="color:var(--danger);">Error: ${core.escapeHtml(e.message)}</div>`;
+      list.innerHTML = `<div class="tiny" style="color:var(--danger);">Error: ${core.escapeHtml(e.message)}</div>`;
     }
   };
 
-  const loadAdSlotToEditor = async (slotId) => {
-    const selEl = document.getElementById('ad-slot-id');
-    if (selEl) selEl.value = slotId;
-    try {
-      const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
-      const slots = data?.content ? JSON.parse(data.content) : [];
-      const slot = slots.find(s => s.id === slotId);
-      if (slot) {
-        const imgEl = document.getElementById('ad-slot-image');
-        const linkEl = document.getElementById('ad-slot-link');
-        const activeEl = document.getElementById('ad-slot-active');
-        if (imgEl) imgEl.value = slot.image_url || '';
-        if (linkEl) linkEl.value = slot.link_url || '';
-        if (activeEl) activeEl.value = slot.active ? 'true' : 'false';
+  const buildAdSlotCard = (def, slot) => {
+    const isCode = slot.type === 'code';
+    const isActive = !!slot.active;
+
+    const card = document.createElement('div');
+    card.className = 'ad-slot-card-admin';
+    card.dataset.slotId = def.id;
+    card.innerHTML = `
+      <div class="ad-slot-header-admin" role="button" tabindex="0">
+        <span>${def.icon} ${core.escapeHtml(def.name)}</span>
+        <span class="ad-status-badge ${isActive ? 'active' : 'inactive'}">${isActive ? '● Active' : '○ Inactive'}</span>
+        <span class="ad-slot-chevron">▼</span>
+      </div>
+      <div class="ad-slot-body-admin" style="display:none;">
+        <div class="ad-type-toggle">
+          <button class="${!isCode ? 'active' : ''}" data-type="image">🖼️ Image Ad</button>
+          <button class="${isCode ? 'active' : ''}" data-type="code">📝 Ad Code</button>
+        </div>
+
+        <div class="ad-image-fields" style="display:${isCode ? 'none' : 'block'};">
+          <span class="admin-label">Image URL</span>
+          <input type="text" class="admin-input ad-image-url" placeholder="https://your-image-url.com/banner.jpg" value="${core.escapeHtml(slot.image_url || '')}" />
+          <span class="admin-label">Click Link URL</span>
+          <input type="text" class="admin-input ad-link-url" placeholder="https://where-to-go-when-clicked.com" value="${core.escapeHtml(slot.link_url || '')}" />
+          <div class="ad-image-preview"></div>
+        </div>
+
+        <div class="ad-code-fields" style="display:${isCode ? 'block' : 'none'};">
+          <span class="admin-label">Paste Your Ad Code Here</span>
+          <textarea class="admin-textarea ad-code" rows="6" placeholder="Paste your Adsterra/AdSense/any ad network code here...">${core.escapeHtml(slot.code || '')}</textarea>
+          <p class="admin-hint">💡 Get this code from Adsterra, Google AdSense, or any ad network</p>
+        </div>
+
+        <div class="ad-active-toggle" style="margin-top:12px;">
+          <span class="admin-label">Show this ad?</span>
+          <button class="toggle-switch ${isActive ? 'on' : 'off'} ad-active-btn">${isActive ? 'ON' : 'OFF'}</button>
+        </div>
+
+        <button class="btn-action ad-save-btn" style="margin-top:12px;width:auto;padding:10px 22px;">💾 Save Ad Slot</button>
+      </div>
+    `;
+
+    /* Toggle expand/collapse */
+    const header = card.querySelector('.ad-slot-header-admin');
+    const body = card.querySelector('.ad-slot-body-admin');
+    const chevron = card.querySelector('.ad-slot-chevron');
+    header.addEventListener('click', () => {
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : 'block';
+      chevron.style.transform = open ? '' : 'rotate(180deg)';
+    });
+    header.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') header.click(); });
+
+    /* Ad type toggle */
+    card.querySelectorAll('.ad-type-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        card.querySelectorAll('.ad-type-toggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const isCodeType = btn.dataset.type === 'code';
+        card.querySelector('.ad-image-fields').style.display = isCodeType ? 'none' : 'block';
+        card.querySelector('.ad-code-fields').style.display = isCodeType ? 'block' : 'none';
+      });
+    });
+
+    /* Image preview */
+    const imgUrlInput = card.querySelector('.ad-image-url');
+    const previewEl = card.querySelector('.ad-image-preview');
+    const updatePreview = () => {
+      const url = imgUrlInput.value.trim();
+      if (url) {
+        previewEl.innerHTML = `<img src="${core.escapeHtml(url)}" alt="Ad preview" style="max-width:100%;max-height:160px;border-radius:8px;margin-top:8px;" loading="lazy" />`;
+      } else {
+        previewEl.innerHTML = '';
       }
-    } catch {}
+    };
+    imgUrlInput.addEventListener('blur', updatePreview);
+    if (slot.image_url) updatePreview();
+
+    /* Active toggle */
+    const activeBtn = card.querySelector('.ad-active-btn');
+    activeBtn.addEventListener('click', () => {
+      const on = activeBtn.classList.contains('on');
+      activeBtn.classList.toggle('on', !on);
+      activeBtn.classList.toggle('off', on);
+      activeBtn.textContent = on ? 'OFF' : 'ON';
+      const badge = card.querySelector('.ad-status-badge');
+      badge.textContent = on ? '○ Inactive' : '● Active';
+      badge.className = `ad-status-badge ${on ? 'inactive' : 'active'}`;
+    });
+
+    /* Save */
+    card.querySelector('.ad-save-btn').addEventListener('click', () => saveAdSlot(card, def));
+
+    return card;
   };
 
-  const saveAdSlot = async () => {
-    const slotId   = document.getElementById('ad-slot-id')?.value || 'header';
-    const imageUrl = document.getElementById('ad-slot-image')?.value?.trim() || '';
-    const linkUrl  = document.getElementById('ad-slot-link')?.value?.trim() || '';
-    const active   = document.getElementById('ad-slot-active')?.value === 'true';
+  const saveAdSlot = async (card, def) => {
+    if (!card || !def) return;
+    const activeType = card.querySelector('.ad-type-toggle button.active')?.dataset.type || 'image';
+    const imageUrl = card.querySelector('.ad-image-url')?.value?.trim() || '';
+    const linkUrl  = card.querySelector('.ad-link-url')?.value?.trim() || '';
+    const code     = card.querySelector('.ad-code')?.value?.trim() || '';
+    const active   = card.querySelector('.ad-active-btn')?.classList.contains('on') || false;
 
     const SLOT_NAMES = { header: 'Header Banner', gallery: 'Gallery Between Items', footer: 'Footer Banner' };
 
     try {
       const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
       let slots = data?.content ? JSON.parse(data.content) : [];
-      const existing = slots.findIndex(s => s.id === slotId);
-      const newSlot = { id: slotId, name: SLOT_NAMES[slotId] || slotId, type: 'image', image_url: imageUrl, link_url: linkUrl, active };
+      const existing = slots.findIndex(s => s.id === def.id);
+      const newSlot = { id: def.id, name: SLOT_NAMES[def.id] || def.name, type: activeType, image_url: imageUrl, link_url: linkUrl, code, active };
       if (existing >= 0) slots[existing] = newSlot;
       else slots.push(newSlot);
       await sb().from('site_content').upsert({ id: 'ad_slots', content: JSON.stringify(slots) });
-      alert('Ad slot saved!');
-      loadAdSlots();
+      showSaveFeedback(card.querySelector('.ad-save-btn'));
       core.applyAdSlots();
     } catch (e) {
       alert(e?.message || 'Error saving ad slot');
@@ -831,7 +1055,12 @@
     saveMaintenance,
     reopenSite,
     loadAdSlots,
-    loadAdSlotToEditor,
-    saveAdSlot
+    saveAdSlot,
+    toggleSpinSwitch,
+    addPrize,
+    autoBalanceOdds,
+    updateOddsDisplay,
+    showSaveFeedback,
+    buildPrizeCard
   });
 })();
