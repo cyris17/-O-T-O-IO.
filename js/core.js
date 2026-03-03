@@ -193,6 +193,8 @@ const core = (() => {
         if (map.logo_url) {
           const el = document.getElementById('brand-logo');
           if (el) el.src = map.logo_url;
+          const mbl = document.getElementById('mobile-block-logo');
+          if (mbl) mbl.src = map.logo_url;
         }
 
         setHref('link-insta', map.instagram);
@@ -257,6 +259,7 @@ const core = (() => {
         applyAdSlots();
 
         /* Inject Adsterra banner ads */
+        injectAdsterraAd('ad-banner-above-gallery');
         injectAdsterraAd('ad-banner-mid');
         injectAdsterraAd('ad-banner-footer');
 
@@ -882,7 +885,18 @@ const core = (() => {
     gsap.to('.hero-content', { opacity: 1, y: 0, duration: 1.4, delay: 0.25, ease: 'power3.out' });
   };
 
-  /* ── App init ─────────────────────────────────────────── */
+  /* ── Mobile admin bypass ──────────────────────────────── */
+  const checkMobileAdminBypass = () => {
+    const hash = window.location.hash.toLowerCase();
+    const adminHashes = ['#admin', '#adminonly', '#dashboard'];
+    if (adminHashes.some(h => hash.startsWith(h))) {
+      document.body.classList.add('admin-bypass');
+    } else {
+      document.body.classList.remove('admin-bypass');
+    }
+  };
+
+/* ── App init ─────────────────────────────────────────── */
   const init = async () => {
     applyLoaderToDom();
     setTimeout(() => {
@@ -912,7 +926,8 @@ const core = (() => {
     if (pl) pl.classList.add('vanish');
 
     await checkRoute();
-    window.addEventListener('hashchange', () => checkRoute());
+    checkMobileAdminBypass();
+    window.addEventListener('hashchange', () => { checkRoute(); checkMobileAdminBypass(); });
     window.addEventListener('scroll', handleScroll);
 
     document.addEventListener('contextmenu', e => e.preventDefault());
