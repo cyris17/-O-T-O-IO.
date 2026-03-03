@@ -2160,7 +2160,9 @@ select.admin-input{
   object-fit: cover;
 }
 @media (max-width: 980px) {
-  body:not(.admin-bypass) #mobile-block-overlay { display: flex !important; }
+  /* Mobile access restored - desktop view on all devices */
+  #mobile-block-overlay { display: none !important; }
+}
   body:not(.admin-bypass) > *:not(#mobile-block-overlay):not(script):not(link):not(style) { display: none !important; }
 }
 @media (min-width: 981px) {
