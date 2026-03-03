@@ -85,7 +85,7 @@ const leaderboardModule = (() => {
       renderEntries('lb-spins', (data || []).map((r, i) => ({
         name: r.user_name || 'Anonymous',
         avatar_url: null,
-        stat: `Won: ${r.prize_name} on ${new Date(r.created_at).toLocaleDateString()}`
+        stat: `Won: ${r.prize_name} on ${new Date(r.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}`
       })));
     } catch {}
   };

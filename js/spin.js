@@ -150,10 +150,16 @@ const spinModule = (() => {
     const n = prizes.length;
     const arc = 360 / n;
 
-    /* Calculate target rotation so the chosen segment lands at the top pointer */
-    const targetSegmentAngle = index * arc + arc / 2;
-    const extraSpins = 5 * 360; /* 5 full rotations */
-    const targetRotation = currentRotation + extraSpins + (360 - (currentRotation % 360)) + (360 - targetSegmentAngle);
+    /* Calculate target rotation so the chosen segment lands at the top pointer.
+       - normalizedCurrent: how far into the current rotation we are (0-360)
+       - degreesToReset: degrees needed to reach the next full rotation
+       - segmentOffset: center angle of the chosen segment from the 12 o'clock position
+       - Total = current + 5 full spins + reset to 0 + offset to target segment */
+    const normalizedCurrent = currentRotation % 360;
+    const degreesToReset = 360 - normalizedCurrent;
+    const segmentOffset = index * arc + arc / 2;
+    const extraSpins = 5 * 360;
+    const targetRotation = currentRotation + extraSpins + degreesToReset + (360 - segmentOffset);
 
     const canvas = document.getElementById('spin-canvas');
     if (canvas) {

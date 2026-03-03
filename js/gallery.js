@@ -240,17 +240,11 @@
   /* ── Product View Tracker ─────────────────────────────── */
   const trackProductView = async (itemId) => {
     try {
-      await core._supabase.from('gallery')
-        .update({ view_count: core._supabase.sql`view_count + 1` })
-        .eq('id', itemId);
-    } catch {
-      /* Fallback: fetch current then increment */
-      try {
-        const { data } = await core._supabase.from('gallery').select('view_count').eq('id', itemId).single();
-        const newCount = parseInt(data?.view_count || 0) + 1;
-        await core._supabase.from('gallery').update({ view_count: newCount }).eq('id', itemId);
-      } catch {}
-    }
+      /* Fetch current then increment (safe for all Supabase versions) */
+      const { data } = await core._supabase.from('gallery').select('view_count').eq('id', itemId).single();
+      const newCount = parseInt(data?.view_count || 0) + 1;
+      await core._supabase.from('gallery').update({ view_count: newCount }).eq('id', itemId);
+    } catch {}
   };
 
   /* ── Rating System ────────────────────────────────────── */
@@ -675,7 +669,7 @@
 
       try {
         const ext  = file.name.split('.').pop();
-        const name = `media_${Date.now()}_${idx}.${ext}`;
+        const name = `media_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
         const { error } = await core._supabase.storage.from(core._ASSETS_BUCKET).upload(name, file, { upsert: true });
         if (error) throw error;
 
