@@ -84,7 +84,6 @@
     setToggle('toggle-spin-free', !!s().spinFreeMode);
     setToggle('toggle-spin-ad',   !!s().spinAdEnabled);
     setToggle('toggle-spin-pay',  !!s().spinPayEnabled);
-    setToggle('toggle-ads-enabled', !!s().adsEnabled);
     val('spin-ad-daily', String(s().spinAdDailyLimit || 3));
     val('spin-price-text', s().spinPriceText || '');
     val('spin-max-per-day', String(s().spinMaxPerDay || 1));
@@ -100,13 +99,16 @@
     val('mystery-prize-1-name', s().mysteryPrize1Name || 'Mystery Prize 1');
     val('mystery-prize-2-name', s().mysteryPrize2Name || 'Mystery Prize 2');
 
+    /* Update button-based toggles */
+    updateAdsToggleBtn();
+    updateSpinVisibilityBtn();
+
     loadGalleryCategories();
     loadAnalytics();
     loadNotifications();
     loadAdminReviews();
     loadSpinResults();
     loadMaintenanceStatus();
-    loadAdSlots();
   };
 
   /* ── Gallery Categories ───────────────────────────────── */
@@ -996,18 +998,49 @@
   };
 
   /* ── Ads On/Off Toggle ────────────────────────────────── */
-  const toggleAdsSwitch = (btn) => {
-    const isOn = btn.classList.contains('on');
-    btn.classList.toggle('on', !isOn);
-    btn.classList.toggle('off', isOn);
-    btn.textContent = isOn ? 'OFF' : 'ON';
+  const updateAdsToggleBtn = () => {
+    const btn = document.getElementById('ads-toggle-btn');
+    if (!btn) return;
+    if (s().adsEnabled) {
+      btn.textContent = '🟢 ADS ARE ON — Click to Turn Off';
+      btn.className = 'maint-toggle-btn maint-toggle-live';
+    } else {
+      btn.textContent = '🔴 ADS ARE OFF — Click to Turn On';
+      btn.className = 'maint-toggle-btn maint-toggle-closed';
+    }
   };
 
-  const saveAdsSettings = async () => {
-    const adsOn = document.getElementById('toggle-ads-enabled')?.classList.contains('on') ? '1' : '0';
-    await sb().from('site_content').upsert({ id: 'ads_enabled', content: adsOn });
-    await core.fetchContentAndGallery();
-    alert('Ad settings saved!');
+  const toggleAdsEnabled = async () => {
+    const newVal = s().adsEnabled ? '0' : '1';
+    await sb().from('site_content').upsert({ id: 'ads_enabled', content: newVal });
+    s().adsEnabled = newVal === '1';
+    updateAdsToggleBtn();
+    core.applyAdSlots();
+    alert(newVal === '1' ? '🟢 Ads are now ON!' : '🔴 Ads are now OFF!');
+  };
+
+  /* ── Spin Visibility Toggle ───────────────────────────── */
+  const updateSpinVisibilityBtn = () => {
+    const btn = document.getElementById('spin-visibility-btn');
+    if (!btn) return;
+    if (s().spinSectionVisible) {
+      btn.textContent = '🟢 SPIN WHEEL IS VISIBLE — Click to Hide';
+      btn.className = 'maint-toggle-btn maint-toggle-live';
+    } else {
+      btn.textContent = '🔴 SPIN WHEEL IS HIDDEN — Click to Show';
+      btn.className = 'maint-toggle-btn maint-toggle-closed';
+    }
+  };
+
+  const toggleSpinVisibility = async () => {
+    const newVal = s().spinSectionVisible ? '0' : '1';
+    await sb().from('site_content').upsert({ id: 'spin_section_visible', content: newVal });
+    s().spinSectionVisible = newVal === '1';
+    updateSpinVisibilityBtn();
+    /* Also update DOM on public page if wrapper is visible */
+    const spinSection = document.getElementById('spin');
+    if (spinSection) spinSection.style.display = s().spinSectionVisible ? '' : 'none';
+    alert(newVal === '1' ? '🟢 Spin wheel is now VISIBLE!' : '🔴 Spin wheel is now HIDDEN!');
   };
 
   /* ── Register on core ─────────────────────────────────── */
@@ -1040,15 +1073,13 @@
     toggleMaintenance,
     saveMaintenance,
     reopenSite,
-    loadAdSlots,
-    saveAdSlot,
     toggleSpinSwitch,
     addPrize,
     autoBalanceOdds,
     updateOddsDisplay,
     showSaveFeedback,
     buildPrizeCard,
-    saveAdsSettings,
-    toggleAdsSwitch
+    toggleAdsEnabled,
+    toggleSpinVisibility
   });
 })();

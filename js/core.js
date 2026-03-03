@@ -58,6 +58,9 @@ const core = (() => {
     /* Ads */
     adsEnabled: true,
 
+    /* Spin visibility */
+    spinSectionVisible: true,
+
     /* Ad slots */
     adSlots: []
   };
@@ -230,6 +233,11 @@ const core = (() => {
         state.mysteryPrize1Name = map.mystery_prize_1_name || 'Mystery Prize 1';
         state.mysteryPrize2Name = map.mystery_prize_2_name || 'Mystery Prize 2';
         state.adsEnabled = (map.ads_enabled || '1') === '1';
+        state.spinSectionVisible = (map.spin_section_visible || '1') === '1';
+
+        /* Apply spin section visibility */
+        const spinSection = document.getElementById('spin');
+        if (spinSection) spinSection.style.display = state.spinSectionVisible ? '' : 'none';
 
         /* Maintenance mode */
         try {
@@ -247,6 +255,10 @@ const core = (() => {
         /* Ad slots */
         try { state.adSlots = JSON.parse(map.ad_slots || '[]'); } catch { state.adSlots = []; }
         applyAdSlots();
+
+        /* Inject Adsterra banner ads */
+        injectAdsterraAd('ad-banner-mid');
+        injectAdsterraAd('ad-banner-footer');
 
         /* Update spin buttons (handled by spinModule after load) */
         if (typeof spinModule !== 'undefined') spinModule.updateButtons();
@@ -380,6 +392,11 @@ const core = (() => {
 
   /* ── Maintenance Mode ─────────────────────────────────── */
   const showMaintenancePage = (maint) => {
+    /* Let admin through even when site is in maintenance */
+    const hash = window.location.hash.toLowerCase();
+    const adminHashes = ['#admin', '#adminonly', '#dashboard', '#admin-login'];
+    if (adminHashes.some(h => hash.startsWith(h))) return;
+
     const overlay = document.getElementById('maintenance-overlay');
     if (!overlay) return;
     overlay.classList.add('active');
@@ -416,6 +433,16 @@ const core = (() => {
       };
       updateCountdown();
     }
+
+    /* Listen for hash changes so admin can navigate in while maintenance is active */
+    const onHashChange = () => {
+      const newHash = window.location.hash.toLowerCase();
+      if (adminHashes.some(h => newHash.startsWith(h))) {
+        overlay.classList.remove('active');
+        window.removeEventListener('hashchange', onHashChange);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
   };
 
   /* ── Ad Slots ─────────────────────────────────────────── */
@@ -432,9 +459,41 @@ const core = (() => {
     });
   };
 
+  /* Inject Adsterra ad into any container by ID */
+  const injectAdsterraAd = (containerId) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!state.adsEnabled) {
+      container.style.display = 'none';
+      return;
+    }
+    container.style.display = '';
+    /* Avoid double-injection */
+    if (container.dataset.adLoaded === 'true') return;
+    container.dataset.adLoaded = 'true';
+
+    const optScript = document.createElement('script');
+    optScript.textContent = `atOptions = {
+  'key' : 'be30e9b513d91c58a7556f27a062421c',
+  'format' : 'iframe',
+  'height' : 90,
+  'width' : 728,
+  'params' : {}
+};`;
+    container.appendChild(optScript);
+
+    const invokeScript = document.createElement('script');
+    invokeScript.src = 'https://www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js';
+    container.appendChild(invokeScript);
+  };
+
   const applyAdSlots = () => {
     const enabled = state.adsEnabled;
-    const ADSTERRA_CODE = `<script type="text/javascript">atOptions={'key':'be30e9b513d91c58a7556f27a062421c','format':'iframe','height':90,'width':728,'params':{}};<\/script><script type="text/javascript" src="//www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js"><\/script>`;
+    /* Show/hide .ad-container divs */
+    document.querySelectorAll('.ad-container').forEach(el => {
+      el.style.display = enabled ? '' : 'none';
+    });
+    const ADSTERRA_CODE = `<script type="text/javascript">atOptions={'key':'be30e9b513d91c58a7556f27a062421c','format':'iframe','height':90,'width':728,'params':{}};<\/script><script type="text/javascript" src="https://www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js"><\/script>`;
     ['header', 'footer'].forEach(slotId => {
       const el = document.getElementById(`ad-${slotId}`);
       if (!el) return;
@@ -914,6 +973,7 @@ const core = (() => {
     applyLoaderToDom,
     fetchContentAndGallery,
     applyAdSlots,
+    injectAdsterraAd,
 
     /* Auth */
     signInWithGoogle,
@@ -948,9 +1008,7 @@ const core = (() => {
     unmarkSold() {},
     toggleMaintenance() {},
     saveMaintenance() {},
-    saveAdSlot() {},
-    loadAdSlots() {},
-    saveAdsSettings() {},
-    toggleAdsSwitch() {}
+    toggleAdsEnabled() {},
+    toggleSpinVisibility() {}
   };
 })();

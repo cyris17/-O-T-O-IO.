@@ -372,16 +372,20 @@ const spinModule = (() => {
       const doneEl = document.getElementById('spin-ad-done');
       if (!modal) { resolve(); return; }
 
-      /* Load Adsterra ad */
+      /* Load Adsterra ad — always inject fresh each time modal opens */
       const adWrap = document.getElementById('spin-ad-adsterra-wrap');
       if (adWrap) {
         adWrap.innerHTML = '';
+        adWrap.style.display = '';
         const optScript = document.createElement('script');
-        optScript.type = 'text/javascript';
-        optScript.textContent = "atOptions={'key':'be30e9b513d91c58a7556f27a062421c','format':'iframe','height':250,'width':300,'params':{}};";
-        const adScript = document.createElement('script');
-        adScript.type = 'text/javascript';
-        adScript.src = '//www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js';
+        optScript.textContent = `atOptions = {
+  "key" : "be30e9b513d91c58a7556f27a062421c",
+  "format" : "iframe",
+  "height" : 250,
+  "width" : 300,
+  "params" : {}
+};`;        const adScript = document.createElement('script');
+        adScript.src = 'https://www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js';
         adWrap.appendChild(optScript);
         adWrap.appendChild(adScript);
       }

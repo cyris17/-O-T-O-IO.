@@ -1737,6 +1737,22 @@ select.admin-input{
 }
 #ad-header{padding:0 40px 12px;}
 #ad-footer{padding:0 40px 24px;}
+.ad-container{
+  width:100%;
+  max-width:728px;
+  margin:20px auto;
+  text-align:center;
+  min-height:90px;
+  overflow:hidden;
+}
+.ad-container::before{
+  content:'Ad';
+  display:block;
+  font-size:10px;
+  color:rgba(255,255,255,.2);
+  text-align:center;
+  margin-bottom:4px;
+}
 #ad-gallery-slot{
   grid-column:1 / -1;
   margin:4px 0;
