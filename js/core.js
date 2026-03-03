@@ -411,17 +411,41 @@ const core = (() => {
   };
 
   /* ── Ad Slots ─────────────────────────────────────────── */
+  const renderAdCode = (container, codeStr) => {
+    container.innerHTML = codeStr;
+    container.querySelectorAll('script').forEach(oldScript => {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+  };
+
   const applyAdSlots = () => {
     const slots = state.adSlots || [];
     ['header', 'gallery', 'footer'].forEach(slotId => {
       const slot = slots.find(s => s.id === slotId);
       const el = document.getElementById(`ad-${slotId}`);
       if (!el) return;
-      if (slot && slot.active && slot.image_url) {
-        const safeImg = escapeHtml(slot.image_url);
-        const safeLink = escapeHtml(slot.link_url || '#');
-        el.innerHTML = `<span class="ad-slot-label">Ad</span><a href="${safeLink}" target="_blank" rel="noopener sponsored"><img src="${safeImg}" alt="Advertisement" loading="lazy" /></a>`;
-        el.classList.add('active');
+      if (slot && slot.active) {
+        if (slot.type === 'code' && slot.code) {
+          el.innerHTML = '<span class="ad-slot-label">Ad</span>';
+          const codeWrap = document.createElement('div');
+          el.appendChild(codeWrap);
+          renderAdCode(codeWrap, slot.code);
+          el.classList.add('active');
+        } else if (slot.image_url) {
+          const safeImg = escapeHtml(slot.image_url);
+          const safeLink = escapeHtml(slot.link_url || '#');
+          el.innerHTML = `<span class="ad-slot-label">Ad</span><a href="${safeLink}" target="_blank" rel="noopener sponsored"><img src="${safeImg}" alt="Advertisement" loading="lazy" /></a>`;
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+          el.innerHTML = '';
+        }
       } else {
         el.classList.remove('active');
         el.innerHTML = '';
