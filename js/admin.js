@@ -242,7 +242,7 @@
         const total = prizes.reduce((sum, p) => sum + (p.odds || 0), 0);
         const el = document.getElementById('spin-odds-validation');
         if (el) {
-          if (Math.abs(total - 100) > 0.01) {
+          if (Math.round(total) !== 100) {
             el.innerHTML = `<span style="color:var(--danger);">⚠️ Odds sum to ${total}% (should be 100%)</span>`;
           } else {
             el.innerHTML = `<span style="color:var(--good);">✅ Odds sum to 100%</span>`;

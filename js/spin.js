@@ -195,7 +195,7 @@ const spinModule = (() => {
 
     /* SPIN text */
     ctx.textAlign = 'center';
-    ctx.fillStyle = isSpinning ? 'var(--miku, #00ffd5)' : 'rgba(234,246,255,.85)';
+    ctx.fillStyle = isSpinning ? '#00ffd5' : 'rgba(234,246,255,.85)';
     ctx.font = 'bold 8px Inter, sans-serif';
     ctx.fillText('SPIN', cx, cy + 3);
 
@@ -555,9 +555,10 @@ const spinModule = (() => {
     /* Share card (only for wins) */
     let shareHtml = '';
     if (won) {
-      const siteUrl = 'https://cyris17.github.io/Cryris/';
+      const siteUrl = window.location.origin + window.location.pathname;
       const shareText = encodeURIComponent(`I just won ${emoji} ${prize.name} at Cyris Store! 🎰 Try your luck: ${siteUrl}`);
       const tweetText = encodeURIComponent(`I just won ${emoji} ${prize.name} at Cyris Store! 🎰`);
+      const copyText = `I just won ${emoji} ${prize.name} at Cyris Store! 🎰 Try your luck: ${siteUrl}`;
       shareHtml = `
         <div class="spin-share-card">
           <div class="spin-share-title">🎉 Share Your Win!</div>
@@ -568,7 +569,7 @@ const spinModule = (() => {
             <a class="spin-share-btn spin-share-btn-tw" href="https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(siteUrl)}" target="_blank" rel="noopener">
               𝕏 Twitter
             </a>
-            <button class="spin-share-btn" onclick="navigator.clipboard.writeText('I just won ${emoji} ${prize.name} at Cyris Store! 🎰 Try your luck: ${siteUrl}').then(()=>alert('Copied!'))">
+            <button class="spin-share-btn spin-copy-btn" data-copy="${core.escapeHtml(copyText)}">
               📋 Copy Link
             </button>
           </div>
@@ -591,6 +592,20 @@ const spinModule = (() => {
     `;
 
     gsap.from(resultEl, { opacity: 0, y: 20, duration: 0.5, ease: 'power3.out' });
+
+    /* Wire up copy button safely via event listener */
+    const copyBtn = resultEl.querySelector('.spin-copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const text = copyBtn.dataset.copy || '';
+        navigator.clipboard.writeText(text).then(() => {
+          copyBtn.textContent = '✅ Copied!';
+          setTimeout(() => { copyBtn.textContent = '📋 Copy Link'; }, 2000);
+        }).catch(() => {
+          alert('Copy failed. Please copy manually.');
+        });
+      });
+    }
   };
 
   /* ── Mute toggle ──────────────────────────────────────── */
