@@ -124,6 +124,9 @@
       </div>
     </section>
 
+    <!-- Ad Banner (mid-page, between gallery and spin) -->
+    <div id="ad-banner-mid" class="ad-container"></div>
+
     <!-- Spin-to-Win Wheel -->
     <section id="spin" class="section">
       <div class="container" style="text-align:center;">
@@ -188,6 +191,9 @@
         <div class="reviews-grid" id="reviews-grid"></div>
       </div>
     </section>
+
+    <!-- Ad Banner (footer, above contact section) -->
+    <div id="ad-banner-footer" class="ad-container"></div>
 
     <!-- Footer Ad Slot -->
     <div id="ad-footer" class="ad-slot"><span class="ad-slot-label">Ad</span></div>
@@ -266,7 +272,7 @@
     <div class="maint-title" id="maint-site-title">CYRIS STORE</div>
     <div class="maint-message" id="maint-message">We'll be back soon!</div>
     <div class="maint-countdown" id="maint-countdown"></div>
-    <div class="maint-admin-trigger" onclick="core.checkRoute()" title="Admin access">⚙️</div>
+    <div class="maint-admin-trigger" onclick="window.location.hash='#adminonly'" title="Admin access">⚙️</div>
   </div>
 
   <!-- Spin Watch-Ad Modal -->
@@ -371,13 +377,14 @@
 
           <!-- Ad Manager -->
           <div class="admin-card full">
-            <h3>📢 Ad Manager</h3>
-            <p class="admin-hint">Adsterra ads are shown in header and footer.</p>
-            <div style="display:flex;align-items:center;gap:14px;margin-top:10px;">
-              <span class="admin-label" style="margin:0;">Show Ads</span>
-              <button class="toggle-switch off" id="toggle-ads-enabled" onclick="core.toggleAdsSwitch(this)">OFF</button>
-            </div>
-            <button class="btn-action" style="margin-top:12px;width:auto;padding:10px 22px;" onclick="core.saveAdsSettings()">💾 Save Ad Settings</button>
+            <h3>📺 ADS</h3>
+            <p class="admin-hint">Your Adsterra ads are built into the site. Just toggle them on or off.</p>
+            <button id="ads-toggle-btn" class="maint-toggle-btn maint-toggle-live" onclick="core.toggleAdsEnabled()">
+              🟢 ADS ARE ON — Click to Turn Off
+            </button>
+            <p style="opacity:.5;font-size:.8rem;margin-top:8px;">
+              Ads show between gallery &amp; spin section, and above footer. You earn money every time someone views them!
+            </p>
           </div>
 
           <!-- Analytics Dashboard -->
@@ -422,6 +429,15 @@
           <!-- Spin Settings -->
           <div class="admin-card full">
             <h3>🎰 Spin Settings</h3>
+
+            <!-- Spin Wheel Visibility -->
+            <div style="margin-bottom:18px;">
+              <h4 style="margin:0 0 4px;font-size:.85rem;letter-spacing:.5px;">🎰 SPIN WHEEL VISIBILITY</h4>
+              <p class="admin-hint">Show or hide the entire Spin &amp; Win section for visitors. <strong>Ads will always show even when spin wheel is hidden.</strong></p>
+              <button id="spin-visibility-btn" class="maint-toggle-btn maint-toggle-live" onclick="core.toggleSpinVisibility()">
+                🟢 SPIN WHEEL IS VISIBLE — Click to Hide
+              </button>
+            </div>
 
             <!-- Spin Modes -->
             <div class="spin-modes">
