@@ -13,13 +13,13 @@
 */
 
 const spinModule = (() => {
-  const DEFAULT_PRIZES = [
-    { name: '10% Off',      emoji: '🏷️', color: '#00ffd5', odds: 30 },
-    { name: 'Free Item',    emoji: '🎁', color: '#ff4fd8', odds: 5  },
-    { name: 'Try Again',    emoji: '🔄', color: '#7c4dff', odds: 35 },
-    { name: '₹50 Off',     emoji: '💰', color: '#00ffa8', odds: 15 },
-    { name: 'Mystery Prize',emoji: '❓', color: '#ff3b3b', odds: 10 },
-    { name: 'JACKPOT',      emoji: '👑', color: '#FFD700', odds: 5  }
+  const FIXED_PRIZES = [
+    { name: 'Better Luck',     emoji: '😔', color: '#444466', odds: 39.1, win: false },
+    { name: 'Try Again',       emoji: '🔄', color: '#553366', odds: 39.1, win: false },
+    { name: '10% Off',         emoji: '🏷️', color: '#00ffd5', odds: 10.9, win: true  },
+    { name: 'Free Delivery',   emoji: '🚚', color: '#ff4fd8', odds: 10.0, win: true  },
+    { name: 'Mystery Prize 1', emoji: '❓', color: '#ff3b3b', odds: 0.5,  win: true  },
+    { name: 'Mystery Prize 2', emoji: '🎁', color: '#FFD700', odds: 0.4,  win: true  }
   ];
 
   let isSpinning = false;
@@ -73,8 +73,12 @@ const spinModule = (() => {
 
   /* ── Get prizes ───────────────────────────────────────── */
   const getPrizes = () => {
-    const prizes = core._state.spinPrizes;
-    return (Array.isArray(prizes) && prizes.length) ? prizes : DEFAULT_PRIZES;
+    const s = core._state;
+    return FIXED_PRIZES.map((p, i) => {
+      if (i === 4) return { ...p, name: s.mysteryPrize1Name || p.name };
+      if (i === 5) return { ...p, name: s.mysteryPrize2Name || p.name };
+      return p;
+    });
   };
 
   /* ── Canvas: draw wheel ───────────────────────────────── */
@@ -362,40 +366,39 @@ const spinModule = (() => {
 
   /* ── Watch Ad flow ────────────────────────────────────── */
   const watchAdAndSpin = () => {
-    return new Promise((resolve, reject) => {
-      const s = core._state;
-      const adCfg = s.spinAdConfig;
-      if (!adCfg?.image_url) {
-        /* No ad configured, just resolve immediately */
-        resolve();
-        return;
-      }
-
+    return new Promise((resolve) => {
       const modal = document.getElementById('spin-ad-modal');
-      const imgEl = document.getElementById('spin-ad-img');
-      const linkEl = document.getElementById('spin-ad-link');
       const timerEl = document.getElementById('spin-ad-timer');
       const doneEl = document.getElementById('spin-ad-done');
       if (!modal) { resolve(); return; }
 
-      imgEl.src = adCfg.image_url;
-      linkEl.href = adCfg.link_url || '#';
-      timerEl.style.display = 'block';
-      doneEl.style.display = 'none';
+      /* Load Adsterra ad */
+      const adWrap = document.getElementById('spin-ad-adsterra-wrap');
+      if (adWrap) {
+        adWrap.innerHTML = '';
+        const optScript = document.createElement('script');
+        optScript.type = 'text/javascript';
+        optScript.textContent = "atOptions={'key':'be30e9b513d91c58a7556f27a062421c','format':'iframe','height':250,'width':300,'params':{}};";
+        const adScript = document.createElement('script');
+        adScript.type = 'text/javascript';
+        adScript.src = '//www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js';
+        adWrap.appendChild(optScript);
+        adWrap.appendChild(adScript);
+      }
+
+      if (timerEl) { timerEl.style.display = 'block'; timerEl.textContent = 'Watch for 5 seconds…'; }
+      if (doneEl) doneEl.style.display = 'none';
       modal.classList.add('active');
 
-      const dur = adCfg.duration || 5;
-      let remaining = dur;
-      timerEl.textContent = `Watch for ${remaining} second${remaining !== 1 ? 's' : ''}…`;
-
+      let remaining = 5;
       const tick = setInterval(() => {
         remaining--;
         if (remaining > 0) {
-          timerEl.textContent = `Watch for ${remaining} second${remaining !== 1 ? 's' : ''}…`;
+          if (timerEl) timerEl.textContent = `Watch for ${remaining} second${remaining !== 1 ? 's' : ''}…`;
         } else {
           clearInterval(tick);
-          timerEl.style.display = 'none';
-          doneEl.style.display = 'block';
+          if (timerEl) timerEl.style.display = 'none';
+          if (doneEl) doneEl.style.display = 'block';
           setTimeout(() => {
             modal.classList.remove('active');
             resolve();
@@ -472,7 +475,7 @@ const spinModule = (() => {
     animateSpin(targetRotation, async () => {
       isSpinning = false;
 
-      const won = (prize.name || '').toLowerCase() !== 'try again' && (prize.name || '').toLowerCase() !== 'limit reached';
+      const won = prize.win === true;
 
       /* Save to DB */
       try {

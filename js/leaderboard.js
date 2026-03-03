@@ -61,45 +61,58 @@ const leaderboardModule = (() => {
 
   const loadBuyers = async () => {
     try {
-      const { data } = await sb().from('user_profiles')
+      const { data, error } = await sb().from('user_profiles')
         .select('display_name,avatar_url,purchase_count,total_spent')
         .order('purchase_count', { ascending: false })
         .limit(10);
 
-      renderEntries('lb-buyers', (data || []).filter(u => u.purchase_count > 0).map(u => ({
-        name: u.display_name || 'Anonymous',
-        avatar_url: u.avatar_url,
-        stat: `${u.purchase_count} purchase${u.purchase_count !== 1 ? 's' : ''} • ₹${parseFloat(u.total_spent || 0).toLocaleString()} spent`
-      })));
-    } catch {}
+      if (error) throw error;
+      const entries = (data || [])
+        .filter(u => (u.purchase_count || 0) > 0)
+        .map(u => ({
+          name: u.display_name || 'Anonymous',
+          avatar_url: u.avatar_url,
+          stat: `${u.purchase_count} purchase${u.purchase_count !== 1 ? 's' : ''} • ₹${parseFloat(u.total_spent || 0).toLocaleString()} spent`
+        }));
+
+      renderEntries('lb-buyers', entries);
+    } catch (e) {
+      console.error('Leaderboard buyers error:', e);
+      renderEntries('lb-buyers', []);
+    }
   };
 
   const loadSpinWinners = async () => {
     try {
-      const { data } = await sb().from('spin_results')
+      const { data, error } = await sb().from('spin_results')
         .select('user_name,prize_name,created_at')
         .eq('won', true)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      renderEntries('lb-spins', (data || []).map((r, i) => ({
+      if (error) throw error;
+      renderEntries('lb-spins', (data || []).map((r) => ({
         name: r.user_name || 'Anonymous',
         avatar_url: null,
         stat: `Won: ${r.prize_name} on ${new Date(r.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}`
       })));
-    } catch {}
+    } catch (e) {
+      console.error('Leaderboard spin winners error:', e);
+      renderEntries('lb-spins', []);
+    }
   };
 
   const loadTopRaters = async () => {
     try {
-      const { data } = await sb().from('product_ratings')
+      const { data, error } = await sb().from('product_ratings')
         .select('user_name,user_id');
 
+      if (error) throw error;
       if (!data?.length) { renderEntries('lb-raters', []); return; }
 
       const counts = {};
       data.forEach(r => {
-        const key = r.user_id || r.user_name;
+        const key = r.user_id || r.user_name || 'anon';
         if (!counts[key]) counts[key] = { name: r.user_name, count: 0 };
         counts[key].count++;
       });
@@ -113,22 +126,29 @@ const leaderboardModule = (() => {
         avatar_url: null,
         stat: `${u.count} rating${u.count !== 1 ? 's' : ''} given`
       })));
-    } catch {}
+    } catch (e) {
+      console.error('Leaderboard raters error:', e);
+      renderEntries('lb-raters', []);
+    }
   };
 
   const loadMostViewed = async () => {
     try {
-      const { data } = await sb().from('gallery')
+      const { data, error } = await sb().from('gallery')
         .select('title,view_count,image_url')
         .order('view_count', { ascending: false })
         .limit(10);
 
-      renderEntries('lb-viewed', (data || []).filter(d => d.view_count > 0).map(d => ({
+      if (error) throw error;
+      renderEntries('lb-viewed', (data || []).filter(d => (d.view_count || 0) > 0).map(d => ({
         name: d.title || 'Untitled',
         avatar_url: core.isVideoUrl(d.image_url) ? null : d.image_url,
         stat: `${d.view_count} view${d.view_count !== 1 ? 's' : ''}`
       })));
-    } catch {}
+    } catch (e) {
+      console.error('Leaderboard most viewed error:', e);
+      renderEntries('lb-viewed', []);
+    }
   };
 
   return { load };
