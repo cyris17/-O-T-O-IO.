@@ -782,7 +782,17 @@
   <script src="js/spin.js"></script>
   <script src="js/leaderboard.js"></script>
   <script>
-    core.init();
+window.addEventListener("load", () => {
+  try{
+    if(window.core){
+      core.init();
+    }else{
+      console.warn("Core not loaded");
+    }
+  }catch(e){
+    console.error("Init error:",e);
+  }
+});
   </script>
 </body>
 </html>
