@@ -904,6 +904,12 @@ const core = (() => {
       if (pl) pl.classList.add('vanish');
     }, 1200);
 
+    /* Safety net: force-close preloader after 3s no matter what */
+    setTimeout(() => {
+      const pl = document.getElementById('preloader');
+      if (pl) { pl.classList.add('vanish'); pl.style.display = 'none'; }
+    }, 3000);
+
     const lenis = new Lenis({ duration: 1.15, smooth: true });
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
     requestAnimationFrame(raf);
@@ -1026,4 +1032,6 @@ const core = (() => {
     toggleAdsEnabled() {},
     toggleSpinVisibility() {}
   };
+  window.core = publicAPI;
+  return publicAPI;
 })();

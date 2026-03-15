@@ -2159,12 +2159,9 @@ select.admin-input{
   border-radius: 50%;
   object-fit: cover;
 }
-@media (max-width: 980px) {
-  /* Mobile access restored - desktop view on all devices */
-  #mobile-block-overlay { display: none !important; }
-}
-  body:not(.admin-bypass) > *:not(#mobile-block-overlay):not(script):not(link):not(style) { display: none !important; }
-}
+/* Mobile block overlay is hidden on all screen sizes — site is accessible everywhere */
+#mobile-block-overlay { display: none !important; }
+
 @media (min-width: 981px) {
   #mobile-block-overlay { display: none !important; }
 }
