@@ -7,7 +7,12 @@ const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 
 const core = (() => {
   /* ── Supabase ─────────────────────────────────────────── */
-  const supabase = window.supabase.createClient(_SB_URL, _SB_KEY);
+  /* Guard: if the Supabase CDN script failed to load, createClient is
+     unavailable.  Assigning null instead of throwing keeps the IIFE alive
+     so the preloader-removal timers inside init() are still registered. */
+  const supabase = window.supabase
+    ? window.supabase.createClient(_SB_URL, _SB_KEY)
+    : null;
   const ASSETS_BUCKET = 'portfolio';
 
   /* ── State ────────────────────────────────────────────── */
@@ -778,6 +783,7 @@ const core = (() => {
   };
 
   const initAuth = async () => {
+    if (!supabase) { renderNavAuth(); return; }
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       state.currentUser = session.user;

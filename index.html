@@ -782,14 +782,26 @@
   <script src="js/leaderboard.js"></script>
   <script>
 window.addEventListener("load", () => {
+  /* Fallback: hide the preloader even when core.js could not be loaded or
+     init() throws synchronously (e.g. CDN resource missing). */
+  const _pl = document.getElementById('preloader');
+  const _hidePreloader = () => {
+    if (_pl) { _pl.classList.add('vanish'); _pl.style.display = 'none'; }
+  };
+  /* Absolute outer safety – fires only if core's own 12 s timer never ran */
+  const _outerTimer = setTimeout(_hidePreloader, 15000);
   try{
     if(window.core){
-      core.init();
+      core.init().finally(() => clearTimeout(_outerTimer));
     }else{
       console.warn("Core not loaded");
+      _hidePreloader();
+      clearTimeout(_outerTimer);
     }
   }catch(e){
     console.error("Init error:",e);
+    _hidePreloader();
+    clearTimeout(_outerTimer);
   }
 });
   </script>
