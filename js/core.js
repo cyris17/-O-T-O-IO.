@@ -167,6 +167,21 @@ const core = (() => {
   };
 
   /* ── Data fetching ────────────────────────────────────── */
+  const checkSupabaseHealth = async () => {
+    try {
+      const result = await Promise.race([
+        supabase.from('site_content').select('id').limit(1),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Health check timeout')), 3000)
+        )
+      ]);
+      return !result.error;
+    } catch (e) {
+      console.warn('[Cyris] Supabase health check failed:', e.message);
+      return false;
+    }
+  };
+
   const fetchAll = async () => {
     await Promise.all([
       fetchContentAndGallery(),
@@ -276,7 +291,7 @@ const core = (() => {
 
       core.renderGallery(gallery || []);
     } catch (e) {
-      console.error('API Error:', e);
+      console.error('[Cyris] fetchContentAndGallery error:', e.message ?? e);
     }
   };
 
@@ -897,6 +912,11 @@ const core = (() => {
   };
 
 /* ── App init ─────────────────────────────────────────── */
+  const removePreloader = () => {
+    const pl = document.getElementById('preloader');
+    if (pl) { pl.classList.add('vanish'); pl.style.display = 'none'; }
+  };
+
   const init = async () => {
     applyLoaderToDom();
     setTimeout(() => {
@@ -904,11 +924,8 @@ const core = (() => {
       if (pl) pl.classList.add('vanish');
     }, 1200);
 
-    /* Safety net: force-close preloader after 3s no matter what */
-    setTimeout(() => {
-      const pl = document.getElementById('preloader');
-      if (pl) { pl.classList.add('vanish'); pl.style.display = 'none'; }
-    }, 3000);
+    /* Safety net: force-close preloader after 12s no matter what */
+    const preloaderSafetyTimer = setTimeout(removePreloader, 12000);
 
     const lenis = new Lenis({ duration: 1.15, smooth: true });
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
@@ -920,7 +937,21 @@ const core = (() => {
     /* Initialize auth first so user state is available */
     await initAuth();
 
-    await fetchAll();
+    /* Check Supabase health before attempting queries */
+    const healthy = await checkSupabaseHealth();
+    if (!healthy) {
+      console.warn('[Cyris] Supabase unreachable — loading app with defaults');
+    } else {
+      /* Wrap fetchAll in a timeout so a hanging query cannot block init */
+      await Promise.race([
+        fetchAll(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Data fetch timed out (8s limit)')), 8000)
+        )
+      ]).catch(e => {
+        console.error('[Cyris] Initialization fetch error:', e.message ?? e);
+      });
+    }
 
     /* Load notifications */
     await loadAndShowNotifications();
@@ -928,8 +959,8 @@ const core = (() => {
     /* Fetch inspirational quote */
     fetchAndDisplayQuote();
 
-    const pl = document.getElementById('preloader');
-    if (pl) pl.classList.add('vanish');
+    clearTimeout(preloaderSafetyTimer);
+    removePreloader();
 
     await checkRoute();
     checkMobileAdminBypass();
