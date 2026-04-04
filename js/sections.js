@@ -6,9 +6,17 @@
   const sb = () => core._supabase;
   const s  = () => core._state;
 
+  /* Fallback sections shown when Supabase is unavailable */
+  const FALLBACK_SECTIONS = [
+    { id: 'fb-sec-1', slug: 'services', title: 'Services', subtitle: 'What We Offer', body: 'Photography, videography, and creative direction services for brands and creators.', enabled: true, sort_order: 1 },
+    { id: 'fb-sec-2', slug: 'portfolio', title: 'Portfolio', subtitle: 'Selected Works', body: 'A curated collection of creative work spanning multiple genres and styles.', enabled: true, sort_order: 2 },
+    { id: 'fb-sec-3', slug: 'about', title: 'About', subtitle: 'Our Story', body: 'Passionate creatives dedicated to telling stories through neon visuals and cinematic imagery.', enabled: true, sort_order: 3 }
+  ];
+
   /* ── Fetch sections from Supabase ─────────────────────── */
   const fetchSections = async () => {
     try {
+      if (!sb()) throw new Error('Supabase not initialized');
       const { data: sections } = await sb()
         .from('site_sections')
         .select('*')
@@ -16,11 +24,19 @@
         .order('created_at', { ascending: true });
 
       s().sections = sections || [];
+      /* If no sections in DB, show fallback so grid is never blank */
+      if (!s().sections.length) {
+        s().sections = FALLBACK_SECTIONS;
+      }
       renderSections();
       renderSectionsAdminList();
       renderNavLinks();
     } catch (e) {
       console.error('Sections fetch error:', e);
+      /* On failure, render fallback cards so grid is not blank */
+      s().sections = FALLBACK_SECTIONS;
+      renderSections();
+      renderNavLinks();
     }
   };
 
