@@ -524,7 +524,7 @@ const core = (() => {
             <div class="notif-title">${escapeHtml(n.title || '')}</div>
             <div class="notif-desc">${escapeHtml(n.description || '')}</div>
           </div>
-          <button class="notif-dismiss" title="Dismiss" data-id="${String(n.id)}">×</button>
+          <button class="notif-dismiss" title="Dismiss" data-id="${escapeHtml(String(n.id))}">×</button>
         `;
 
         slide.querySelector('.notif-dismiss').addEventListener('click', (e) => {
@@ -1093,8 +1093,8 @@ const core = (() => {
     });
 
     /* Load leaderboard and reviews after data is ready (non-blocking) */
-    if (typeof leaderboardModule !== 'undefined') Promise.resolve(leaderboardModule.load()).catch(() => {});
-    if (typeof reviewsModule !== 'undefined') Promise.resolve(reviewsModule.load()).catch(() => {});
+    if (typeof leaderboardModule !== 'undefined') Promise.resolve(leaderboardModule.load()).catch(e => console.error('[Cyris] Leaderboard load error:', e));
+    if (typeof reviewsModule !== 'undefined') Promise.resolve(reviewsModule.load()).catch(e => console.error('[Cyris] Reviews load error:', e));
   };
 
   /* ── Public API ───────────────────────────────────────── */
