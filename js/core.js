@@ -2,18 +2,31 @@
    core.js — Supabase setup, state, utilities, init, routing
    ========================================================= */
 
-const _SB_URL = 'sb_publishable_0dnZLIcM33fpB7GbtHkwpw_Gi6I2kXZ';
+const _SB_URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
 const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
 
 const core = (() => {
+  /* ── Config validation ────────────────────────────────── */
+  const _isValidSbUrl = typeof _SB_URL === 'string' && /^https:\/\/.+\.supabase\.co$/.test(_SB_URL);
+  const _isValidSbKey = typeof _SB_KEY === 'string' && _SB_KEY.startsWith('eyJ') && _SB_KEY.length > 100;
+  if (!_isValidSbUrl) {
+    console.error('[Cyris] _SB_URL is missing or invalid. Expected format: https://<ref>.supabase.co — running in fallback mode.');
+  }
+  if (!_isValidSbKey) {
+    console.error('[Cyris] _SB_KEY looks invalid. Expected a JWT starting with "eyJ" — running in fallback mode.');
+  }
+
   /* ── Supabase ─────────────────────────────────────────── */
-  /* Guard: if the Supabase CDN script failed to load, createClient is
-     unavailable.  Assigning null instead of throwing keeps the IIFE alive
-     so the preloader-removal timers inside init() are still registered. */
-  const supabase = window.supabase
+  /* Guard: if the Supabase CDN script failed to load, or config is invalid,
+     createClient is skipped.  Assigning null instead of throwing keeps the
+     IIFE alive so the preloader-removal timers inside init() still run. */
+  const supabase = (window.supabase && _isValidSbUrl && _isValidSbKey)
     ? window.supabase.createClient(_SB_URL, _SB_KEY)
     : null;
   const ASSETS_BUCKET = 'portfolio';
+
+  /* ── Shared diagnostics state (admin debug panel) ─────── */
+  const _diag = { sbHealthy: null, lastGalleryCount: null, lastError: null };
 
   /* ── State ────────────────────────────────────────────── */
   const state = {
@@ -106,6 +119,47 @@ const core = (() => {
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
+  /* Reject javascript: / data: / other dangerous URL schemes */
+  const sanitizeUrl = (url) => {
+    if (!url || typeof url !== 'string') return '';
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol)) return '';
+      return url;
+    } catch {
+      /* relative URLs pass through — they can't carry dangerous schemes */
+      if (/^javascript:/i.test(url)) return '';
+      return url;
+    }
+  };
+
+  /* Race a promise against a timeout */
+  const withTimeout = (promise, ms, label) => Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`[Cyris] ${label || 'operation'} timed out after ${ms}ms`)), ms)
+    )
+  ]);
+
+  /* Centralized query wrapper: timeout + one retry, never throws to caller */
+  const safeQuery = async (label, fn, { timeoutMs = 7000, retries = 1 } = {}) => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const result = await withTimeout(fn(), timeoutMs, label);
+        return { ok: true, data: result.data ?? null, error: result.error ?? null };
+      } catch (e) {
+        if (attempt < retries) {
+          console.warn(`[Cyris] ${label} attempt ${attempt + 1} failed, retrying…`, e.message);
+        } else {
+          const msg = e.message ?? String(e);
+          console.error(`[Cyris] ${label} failed after ${retries + 1} attempt(s):`, msg);
+          _diag.lastError = msg;
+          return { ok: false, data: null, error: e };
+        }
+      }
+    }
+  };
+
   /* item.custom_wa_message overrides global template when non-empty */
   const buildWhatsAppUrl = ({ phone, template, title, url, type, tags, customMessage, username, email }) => {
     const p = (phone || '').replace(/[^\d]/g, '');
@@ -135,7 +189,8 @@ const core = (() => {
   const setHref = (id, val) => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (val && val.length > 2) { el.href = val; el.style.display = 'inline-block'; }
+    const safe = sanitizeUrl(val || '');
+    if (safe && safe.length > 2) { el.href = safe; el.style.display = 'inline-block'; }
     else el.style.display = 'none';
   };
 
@@ -164,16 +219,19 @@ const core = (() => {
 
   /* ── Data fetching ────────────────────────────────────── */
   const checkSupabaseHealth = async () => {
+    if (!supabase) { _diag.sbHealthy = false; return false; }
     try {
-      const result = await Promise.race([
+      const result = await withTimeout(
         supabase.from('site_content').select('id').limit(1),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Health check timeout')), 3000)
-        )
-      ]);
-      return !result.error;
+        3000,
+        'health-check'
+      );
+      const healthy = !result.error;
+      _diag.sbHealthy = healthy;
+      return healthy;
     } catch (e) {
       console.warn('[Cyris] Supabase health check failed:', e.message);
+      _diag.sbHealthy = false;
       return false;
     }
   };
@@ -186,9 +244,17 @@ const core = (() => {
   };
 
   const fetchContentAndGallery = async () => {
+    const counter = document.getElementById('gallery-counter');
     try {
-      const { data: content } = await supabase.from('site_content').select('*');
-      if (content) {
+      if (!supabase) throw new Error('Supabase client not initialized');
+
+      const contentResult = await safeQuery(
+        'site_content',
+        () => supabase.from('site_content').select('*'),
+        { timeoutMs: 6000 }
+      );
+      if (contentResult.ok && contentResult.data) {
+        const content = contentResult.data;
         const map = {};
         content.forEach(c => { map[c.id] = c.content; });
 
@@ -267,51 +333,97 @@ const core = (() => {
         incrementViewToday(map.views_today, map.views_today_date, map.view_count);
       }
 
-      const { data: gallery } = await supabase
-        .from('gallery')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      core.renderGallery(gallery || []);
+      const galleryResult = await safeQuery(
+        'gallery',
+        () => supabase.from('gallery').select('*').order('created_at', { ascending: false }),
+        { timeoutMs: 6000 }
+      );
+      const gallery = galleryResult.ok ? (galleryResult.data || []) : [];
+      _diag.lastGalleryCount = gallery.length;
+      core.renderGallery(gallery);
     } catch (e) {
       console.error('[Cyris] fetchContentAndGallery error:', e.message ?? e);
+      _diag.lastError = e.message ?? String(e);
       core.renderGallery([]);
+    } finally {
+      /* Safety net: never leave gallery-counter stuck at "Loading…" */
+      if (counter && (counter.textContent === 'Loading\u2026' || counter.textContent === 'Loading...')) {
+        counter.textContent = '';
+      }
     }
   };
 
+  /* ── Fallback data shown when Supabase is unreachable ────── */
+  const FALLBACK_GALLERY = [
+    {
+      id: 'fb-1',
+      image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800',
+      title: 'Sample Work',
+      description: 'Preview — connect your database to show real content.',
+      tags: 'sample,preview',
+      category: 'Preview',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'fb-2',
+      image_url: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?q=80&w=800',
+      title: 'Sample Work',
+      description: 'Preview — connect your database to show real content.',
+      tags: 'sample,preview',
+      category: 'Preview',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'fb-3',
+      image_url: 'https://images.unsplash.com/photo-1574169208507-84007bdd4b7a?q=80&w=800',
+      title: 'Sample Work',
+      description: 'Preview — connect your database to show real content.',
+      tags: 'sample,preview',
+      category: 'Preview',
+      created_at: new Date().toISOString()
+    }
+  ];
+
+  const FALLBACK_SECTIONS = [
+    { id: 'fb-sec-1', slug: 'services', title: 'Services', subtitle: 'What We Offer', body: 'Photography, videography, and creative direction services for brands and creators.', enabled: true, sort_order: 1 },
+    { id: 'fb-sec-2', slug: 'portfolio', title: 'Portfolio', subtitle: 'Selected Works', body: 'A curated collection of creative work spanning multiple genres and styles.', enabled: true, sort_order: 2 },
+    { id: 'fb-sec-3', slug: 'about', title: 'About', subtitle: 'Our Story', body: 'Passionate creatives dedicated to telling stories through neon visuals and cinematic imagery.', enabled: true, sort_order: 3 }
+  ];
+
   /* ── Fallback content when Supabase is unreachable ────── */
   const applyFallbackContent = () => {
-    /* Gallery placeholder */
+    /* Gallery — render sample cards via the standard card UI */
     const feed = document.getElementById('gallery-feed');
     if (feed && !feed.children.length) {
-      feed.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(234,246,255,.45);">
-        <div style="font-size:2rem;margin-bottom:12px;">📷</div>
-        <div style="font-size:1rem;font-weight:600;margin-bottom:6px;">Gallery unavailable</div>
-        <div style="font-size:.85rem;">Content could not be loaded. Please check back soon.</div>
-      </div>`;
+      core.renderGallery(FALLBACK_GALLERY);
     }
+    /* Safety: ensure counter is never left at "Loading…" */
     const counter = document.getElementById('gallery-counter');
-    if (counter && counter.textContent === 'Loading…') counter.textContent = '';
+    if (counter && (counter.textContent === 'Loading\u2026' || counter.textContent === 'Loading...')) {
+      counter.textContent = '';
+    }
 
-    /* Sections placeholder */
+    /* Sections — render fallback section cards */
     const sgrid = document.getElementById('sections-grid');
     if (sgrid && !sgrid.children.length) {
-      sgrid.innerHTML = `<div style="grid-column:1/-1;color:rgba(234,246,255,.45);font-size:.9rem;padding:20px 0;">
-        Sections unavailable — content could not be loaded.
-      </div>`;
+      state.sections = FALLBACK_SECTIONS;
+      if (typeof core.renderSections === 'function') {
+        core.renderSections();
+      }
     }
 
-    /* Leaderboard placeholder */
-    ['lb-buyers','lb-spins','lb-raters','lb-viewed'].forEach(id => {
+    /* Leaderboard placeholders */
+    ['lb-buyers', 'lb-spins', 'lb-raters', 'lb-viewed'].forEach(id => {
       const el = document.getElementById(id);
       if (el && !el.children.length) {
-        el.innerHTML = '<div style="color:rgba(234,246,255,.40);font-size:.85rem;padding:14px 0;">No data available.</div>';
+        el.innerHTML = '<div style="color:rgba(234,246,255,.40);font-size:.85rem;padding:14px 0;">No data yet.</div>';
       }
     });
   };
 
   /* ── View counters ────────────────────────────────────── */
   const incrementViewToday = async (todayCount, todayDate, totalCount) => {
+    if (!supabase) return;
     try {
       const today = new Date().toISOString().slice(0, 10);
       let newToday;
@@ -372,6 +484,7 @@ const core = (() => {
 
   /* ── Notifications ────────────────────────────────────── */
   const loadAndShowNotifications = async () => {
+    if (!supabase) return;
     try {
       const dismissed = JSON.parse(localStorage.getItem('dismissed_notifs') || '[]');
       const now = new Date().toISOString();
@@ -393,7 +506,13 @@ const core = (() => {
       visible.forEach(n => {
         const slide = document.createElement('div');
         slide.className = 'notif-slide';
-        if (n.link_url) { slide.style.cursor = 'pointer'; slide.onclick = () => window.open(n.link_url, '_blank'); }
+        if (n.link_url) {
+          const safeNotifUrl = sanitizeUrl(n.link_url);
+          if (safeNotifUrl) {
+            slide.style.cursor = 'pointer';
+            slide.onclick = () => window.open(safeNotifUrl, '_blank', 'noopener,noreferrer');
+          }
+        }
 
         const thumbHtml = n.media_url
           ? `<img class="notif-thumb" src="${escapeHtml(n.media_url)}" alt="" />`
@@ -405,7 +524,7 @@ const core = (() => {
             <div class="notif-title">${escapeHtml(n.title || '')}</div>
             <div class="notif-desc">${escapeHtml(n.description || '')}</div>
           </div>
-          <button class="notif-dismiss" title="Dismiss" data-id="${n.id}">×</button>
+          <button class="notif-dismiss" title="Dismiss" data-id="${escapeHtml(String(n.id))}">×</button>
         `;
 
         slide.querySelector('.notif-dismiss').addEventListener('click', (e) => {
@@ -672,6 +791,7 @@ const core = (() => {
 
   /* ── Google Auth ──────────────────────────────────────── */
   const signInWithGoogle = async () => {
+    if (!supabase) { console.error('[Cyris] Cannot sign in — Supabase not configured.'); return; }
     try {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -683,7 +803,7 @@ const core = (() => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     state.currentUser = null;
     renderNavAuth();
   };
@@ -750,7 +870,8 @@ const core = (() => {
         state.pendingGateAction = null;
         closeSignInGate();
         if (action === 'whatsapp' && state.pendingWaHref) {
-          window.open(state.pendingWaHref, '_blank', 'noopener');
+          const safeWaHref = sanitizeUrl(state.pendingWaHref);
+          if (safeWaHref) window.open(safeWaHref, '_blank', 'noopener,noreferrer');
           state.pendingWaHref = null;
         }
       }
@@ -772,6 +893,28 @@ const core = (() => {
     if (modal) modal.classList.remove('active');
   };
 
+  /* ── Admin diagnostics (visible only on admin routes) ─── */
+  const _renderAdminDiag = () => {
+    const panel = document.getElementById('admin-panel');
+    if (!panel) return;
+    const existing = document.getElementById('cyris-diag-bar');
+    if (existing) existing.remove();
+
+    const bar = document.createElement('div');
+    bar.id = 'cyris-diag-bar';
+    bar.style.cssText = 'position:sticky;top:0;z-index:9999;background:rgba(0,0,0,.85);border-bottom:1px solid rgba(0,255,213,.25);padding:6px 16px;font-size:.72rem;font-family:monospace;color:rgba(234,246,255,.7);display:flex;gap:16px;flex-wrap:wrap;';
+
+    const sbStatus = _diag.sbHealthy === true ? '🟢 Supabase reachable'
+      : _diag.sbHealthy === false ? '🔴 Supabase unreachable'
+      : '⚪ Supabase untested';
+    const galleryStatus = _diag.lastGalleryCount !== null
+      ? `📷 Gallery: ${_diag.lastGalleryCount} item(s)` : '📷 Gallery: not fetched';
+    const errStatus = _diag.lastError ? `⚠️ Last error: ${escapeHtml(String(_diag.lastError).slice(0, 80))}` : '';
+
+    bar.innerHTML = `<span>${sbStatus}</span><span>${galleryStatus}</span>${errStatus ? `<span style="color:#ff6b6b;">${errStatus}</span>` : ''}`;
+    panel.prepend(bar);
+  };
+
   /* ── Auth / Routing ───────────────────────────────────── */
   const checkRoute = async () => {
     const h = window.location.hash;
@@ -788,6 +931,7 @@ const core = (() => {
       document.getElementById('admin-panel').style.display = 'block';
       core.loadAdminData();
       core.fetchSections();
+      _renderAdminDiag();
     };
 
     if (h === '#adminonly') {
@@ -796,6 +940,11 @@ const core = (() => {
     }
 
     if (h === '#dashboard') {
+      if (!supabase) {
+        window.location.hash = '#adminonly';
+        showLogin();
+        return;
+      }
       try {
         const { data } = await supabase.auth.getSession();
         const session = data?.session;
@@ -820,6 +969,7 @@ const core = (() => {
     const email = document.getElementById('auth-email').value;
     const pass = document.getElementById('auth-pass').value;
     const msg = document.getElementById('login-error');
+    if (!supabase) { msg.innerText = 'Supabase not configured.'; return; }
     msg.innerText = 'Verifying Credentials...';
     const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
     if (error) msg.innerText = error.message;
@@ -827,7 +977,7 @@ const core = (() => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     exitAdmin();
   };
 
@@ -886,38 +1036,37 @@ const core = (() => {
     core.setupTilt();
 
     /* Initialize auth first so user state is available */
-    await initAuth();
+    await initAuth().catch(e => console.error('[Cyris] initAuth error:', e));
 
     /* Check Supabase health before attempting queries */
     const healthy = await checkSupabaseHealth();
     if (!healthy) {
-      console.warn('[Cyris] Supabase unreachable — loading app with defaults');
+      console.warn('[Cyris] Supabase unreachable — loading app with fallback content');
       applyFallbackContent();
     } else {
       /* Wrap fetchAll in a timeout so a hanging query cannot block init */
-      await Promise.race([
-        fetchAll(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Data fetch timed out (8s limit)')), 8000)
-        )
-      ]).catch(e => {
+      await withTimeout(fetchAll(), 8000, 'fetchAll').catch(e => {
         console.error('[Cyris] Initialization fetch error:', e.message ?? e);
+        _diag.lastError = e.message ?? String(e);
         applyFallbackContent();
       });
     }
 
-    /* Load notifications */
-    await loadAndShowNotifications();
+    /* Load notifications (non-blocking — failure is silent) */
+    loadAndShowNotifications().catch(() => {});
 
-    /* Fetch inspirational quote */
+    /* Fetch inspirational quote (non-blocking) */
     fetchAndDisplayQuote();
 
     clearTimeout(preloaderSafetyTimer);
     removePreloader();
 
-    await checkRoute();
+    await checkRoute().catch(e => console.error('[Cyris] checkRoute error:', e));
     checkMobileAdminBypass();
-    window.addEventListener('hashchange', () => { checkRoute(); checkMobileAdminBypass(); });
+    window.addEventListener('hashchange', () => {
+      checkRoute().catch(() => {});
+      checkMobileAdminBypass();
+    });
     window.addEventListener('scroll', handleScroll);
 
     document.addEventListener('contextmenu', e => e.preventDefault());
@@ -943,9 +1092,9 @@ const core = (() => {
       p.style.display = i === 0 ? 'block' : 'none';
     });
 
-    /* Load leaderboard and reviews after data is ready */
-    if (typeof leaderboardModule !== 'undefined') leaderboardModule.load();
-    if (typeof reviewsModule !== 'undefined') reviewsModule.load();
+    /* Load leaderboard and reviews after data is ready (non-blocking) */
+    if (typeof leaderboardModule !== 'undefined') Promise.resolve(leaderboardModule.load()).catch(e => console.error('[Cyris] Leaderboard load error:', e));
+    if (typeof reviewsModule !== 'undefined') Promise.resolve(reviewsModule.load()).catch(e => console.error('[Cyris] Reviews load error:', e));
   };
 
   /* ── Public API ───────────────────────────────────────── */
@@ -966,6 +1115,9 @@ const core = (() => {
     buildWhatsAppUrl,
     setText,
     setHref,
+    sanitizeUrl,
+    withTimeout,
+    safeQuery,
 
     /* Core methods */
     init,

@@ -182,7 +182,7 @@
           ${ratingHtml}
           <div class="card-actions">
             ${waHref
-              ? `<a class="btn-wa wa-contact-btn" href="${waHref}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Contact</a>`
+              ? `<a class="btn-wa wa-contact-btn" href="${waHref}" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> Contact</a>`
               : `<span style="color:rgba(234,246,255,.55);font-size:0.85rem;">(Admin: set WhatsApp phone to enable contact)</span>`}
           </div>
         </div>
