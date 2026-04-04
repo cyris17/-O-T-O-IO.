@@ -56,9 +56,6 @@
   </div>
 
   <div id="wrapper">
-    <!-- Header Ad Slot -->
-    <div id="ad-header" class="ad-slot"><span class="ad-slot-label">Ad</span></div>
-
     <nav id="navbar">
       <div class="brand">
         <div class="brand-logo-wrap">
@@ -116,9 +113,6 @@
       </div>
     </section>
 
-    <!-- Ad Banner — Above Gallery -->
-    <div id="ad-banner-above-gallery" class="ad-container"></div>
-
     <!-- Gallery -->
     <section id="work" class="section">
       <div class="container">
@@ -138,9 +132,6 @@
         <div class="gallery-grid" id="gallery-feed"></div>
       </div>
     </section>
-
-    <!-- Ad Banner (mid-page, between gallery and spin) -->
-    <div id="ad-banner-mid" class="ad-container"></div>
 
     <!-- Spin-to-Win Wheel (hidden by default — toggle via Admin Dashboard > Spin Settings) -->
     <section id="spin" class="section" style="display:none;">
@@ -206,12 +197,6 @@
         <div class="reviews-grid" id="reviews-grid"></div>
       </div>
     </section>
-
-    <!-- Ad Banner (footer, above contact section) -->
-    <div id="ad-banner-footer" class="ad-container"></div>
-
-    <!-- Footer Ad Slot -->
-    <div id="ad-footer" class="ad-slot"><span class="ad-slot-label">Ad</span></div>
 
     <footer id="contact" class="section">
       <div class="container">
@@ -288,17 +273,6 @@
     <div class="maint-message" id="maint-message">We'll be back soon!</div>
     <div class="maint-countdown" id="maint-countdown"></div>
     <div class="maint-admin-trigger" onclick="window.location.hash='#adminonly'" title="Admin access">⚙️</div>
-  </div>
-
-  <!-- Spin Watch-Ad Modal -->
-  <div class="spin-ad-modal" id="spin-ad-modal">
-    <div class="spin-ad-box">
-      <div class="spin-ad-adsterra-wrap" id="spin-ad-adsterra-wrap" style="min-height:120px;display:flex;align-items:center;justify-content:center;overflow:hidden;"></div>
-      <div class="spin-ad-footer">
-        <div class="spin-ad-timer" id="spin-ad-timer">Watch for 5 seconds…</div>
-        <div class="spin-ad-done" id="spin-ad-done">Ad complete! ✅ Spin unlocked!</div>
-      </div>
-    </div>
   </div>
 
   <!-- Lightbox -->
@@ -390,18 +364,6 @@
             </div>
           </div>
 
-          <!-- Ad Manager -->
-          <div class="admin-card full">
-            <h3>📺 ADS</h3>
-            <p class="admin-hint">Your Adsterra ads are built into the site. Just toggle them on or off.</p>
-            <button id="ads-toggle-btn" class="maint-toggle-btn maint-toggle-live" onclick="core.toggleAdsEnabled()">
-              🟢 ADS ARE ON — Click to Turn Off
-            </button>
-            <p style="opacity:.5;font-size:.8rem;margin-top:8px;">
-              Ads show between gallery &amp; spin section, and above footer. You earn money every time someone views them!
-            </p>
-          </div>
-
           <!-- Analytics Dashboard -->
           <div class="admin-card full" id="analytics-card">
             <h3>📊 Analytics</h3>
@@ -448,7 +410,7 @@
             <!-- Spin Wheel Visibility -->
             <div style="margin-bottom:18px;">
               <h4 style="margin:0 0 4px;font-size:.85rem;letter-spacing:.5px;">🎰 SPIN WHEEL VISIBILITY</h4>
-              <p class="admin-hint">Show or hide the entire Spin &amp; Win section for visitors. <strong>Ads will always show even when spin wheel is hidden.</strong></p>
+              <p class="admin-hint">Show or hide the entire Spin &amp; Win section for visitors. When hidden, the spin section is completely removed from the homepage.</p>
               <button id="spin-visibility-btn" class="maint-toggle-btn maint-toggle-live" onclick="core.toggleSpinVisibility()">
                 🟢 SPIN WHEEL IS VISIBLE — Click to Hide
               </button>
@@ -465,19 +427,6 @@
                 <div class="mode-body">
                   <span class="admin-label">Free spins per day per user</span>
                   <input type="number" id="spin-max-per-day" class="admin-input" min="1" max="10" value="1" />
-                </div>
-              </div>
-
-              <!-- Watch Ad Spin -->
-              <div class="mode-card">
-                <div class="mode-header">
-                  <span>📺 Watch Ad to Spin</span>
-                  <button class="toggle-switch off" id="toggle-spin-ad" data-key="spin-ad-enabled" onclick="core.toggleSpinSwitch(this)">OFF</button>
-                </div>
-                <div class="mode-body">
-                  <span class="admin-label">Ad spins per day per user</span>
-                  <input type="number" id="spin-ad-daily" class="admin-input" min="1" max="10" value="3" />
-                  <p class="admin-hint" style="margin:6px 0 0;">Adsterra ad is shown automatically for the 5-second countdown.</p>
                 </div>
               </div>
 

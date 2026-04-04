@@ -247,7 +247,6 @@ const spinModule = (() => {
         .eq('user_id', userId)
         .gte('created_at', today + 'T00:00:00');
       if (paymentFilter === 'free') query = query.is('payment_id', null);
-      if (paymentFilter === 'ad') query = query.eq('payment_id', 'ad_watch');
       const { count } = await query;
       return count || 0;
     } catch { return 0; }
@@ -269,13 +268,6 @@ const spinModule = (() => {
     } catch {}
     const count = await getTodaySpinCount(userId, 'free');
     return count < (max + bonusSpins);
-  };
-
-  const canSpinAd = async (userId) => {
-    const s = core._state;
-    if (!s.spinAdEnabled) return false;
-    const count = await getTodaySpinCount(userId, 'ad');
-    return count < (s.spinAdDailyLimit || 3);
   };
 
   /* ── RAF-based smooth spin animation ─────────────────── */
@@ -332,7 +324,7 @@ const spinModule = (() => {
     if (!user) {
       html = `<button class="spin-btn spin-btn-free" onclick="spinModule.handleSpin('free')">🎰 SPIN (Sign in to play)</button>`;
     } else {
-      const [freeOk, adOk] = await Promise.all([canSpinFree(user.id), canSpinAd(user.id)]);
+      const freeOk = await canSpinFree(user.id);
 
       if (s.spinFreeMode) {
         const freeCount = await getTodaySpinCount(user.id, 'free');
@@ -342,74 +334,18 @@ const spinModule = (() => {
         </button>`;
       }
 
-      if (s.spinAdEnabled) {
-        const adCount = await getTodaySpinCount(user.id, 'ad');
-        const max = s.spinAdDailyLimit || 3;
-        html += `<button class="spin-btn spin-btn-ad" onclick="spinModule.handleSpin('ad')" ${!adOk ? 'disabled' : ''}>
-          📺 WATCH AD TO SPIN ${adOk ? `(${Math.max(0, max - adCount)} left today)` : '— Limit reached'}
-        </button>`;
-      }
-
       if (s.spinPayEnabled && s.spinRazorpayLink) {
         html += `<button class="spin-btn spin-btn-pay" onclick="spinModule.handleSpin('pay')">
           💳 PAY ${s.spinPriceText || '₹49'} TO SPIN
         </button>`;
       }
 
-      if (!s.spinFreeMode && !s.spinAdEnabled && !s.spinPayEnabled) {
+      if (!s.spinFreeMode && !s.spinPayEnabled) {
         html = `<button class="spin-btn spin-btn-free" onclick="spinModule.handleSpin('free')">🎰 SPIN NOW</button>`;
       }
     }
 
     wrap.innerHTML = html;
-  };
-
-  /* ── Watch Ad flow ────────────────────────────────────── */
-  const watchAdAndSpin = () => {
-    return new Promise((resolve) => {
-      const modal = document.getElementById('spin-ad-modal');
-      const timerEl = document.getElementById('spin-ad-timer');
-      const doneEl = document.getElementById('spin-ad-done');
-      if (!modal) { resolve(); return; }
-
-      /* Load Adsterra ad — always inject fresh each time modal opens */
-      const adWrap = document.getElementById('spin-ad-adsterra-wrap');
-      if (adWrap) {
-        adWrap.innerHTML = '';
-        adWrap.style.display = '';
-        const optScript = document.createElement('script');
-        optScript.textContent = `atOptions = {
-  "key" : "be30e9b513d91c58a7556f27a062421c",
-  "format" : "iframe",
-  "height" : 250,
-  "width" : 300,
-  "params" : {}
-};`;        const adScript = document.createElement('script');
-        adScript.src = 'https://www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js';
-        adWrap.appendChild(optScript);
-        adWrap.appendChild(adScript);
-      }
-
-      if (timerEl) { timerEl.style.display = 'block'; timerEl.textContent = 'Watch for 5 seconds…'; }
-      if (doneEl) doneEl.style.display = 'none';
-      modal.classList.add('active');
-
-      let remaining = 5;
-      const tick = setInterval(() => {
-        remaining--;
-        if (remaining > 0) {
-          if (timerEl) timerEl.textContent = `Watch for ${remaining} second${remaining !== 1 ? 's' : ''}…`;
-        } else {
-          clearInterval(tick);
-          if (timerEl) timerEl.style.display = 'none';
-          if (doneEl) doneEl.style.display = 'block';
-          setTimeout(() => {
-            modal.classList.remove('active');
-            resolve();
-          }, 1200);
-        }
-      }, 1000);
-    });
   };
 
   /* ── Main spin handler ────────────────────────────────── */
@@ -435,28 +371,12 @@ const spinModule = (() => {
       return;
     }
 
-    /* Mode: Ad */
-    if (mode === 'ad') {
-      const adOk = await canSpinAd(user.id);
-      if (!adOk) {
-        showResult({ name: 'Limit Reached', emoji: '❌' }, false, 'You\'ve used all your ad spins today.');
-        return;
-      }
-      try {
-        await watchAdAndSpin();
-      } catch {
-        return;
-      }
-    }
-
     /* Mode: Free */
-    if (mode === 'free' || mode === 'ad') {
-      if (mode === 'free') {
-        const freeOk = await canSpinFree(user.id);
-        if (!freeOk) {
-          showResult({ name: 'Already Spun!', emoji: '⏰' }, false, 'Come back tomorrow for your free spin!');
-          return;
-        }
+    if (mode === 'free') {
+      const freeOk = await canSpinFree(user.id);
+      if (!freeOk) {
+        showResult({ name: 'Already Spun!', emoji: '⏰' }, false, 'Come back tomorrow for your free spin!');
+        return;
       }
     }
 
@@ -484,13 +404,13 @@ const spinModule = (() => {
       /* Save to DB */
       try {
         const userName = user.user_metadata?.full_name || user.email;
-        const paymentId = mode === 'ad' ? 'ad_watch' : null;
+        /* payment_id is null for free spins; paid spins redirect via Razorpay before reaching this point */
         await core._supabase.from('spin_results').insert([{
           user_id: user.id,
           user_name: userName,
           prize_name: prize.name,
           won,
-          payment_id: paymentId
+          payment_id: null
         }]);
 
         /* Update user stats */
