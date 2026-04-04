@@ -2,7 +2,7 @@
    core.js — Supabase setup, state, utilities, init, routing
    ========================================================= */
 
-const _SB_URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
+const _SB_URL = 'sb_publishable_0dnZLIcM33fpB7GbtHkwpw_Gi6I2kXZ';
 const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
 
 const core = (() => {
