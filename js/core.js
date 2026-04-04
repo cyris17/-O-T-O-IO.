@@ -44,14 +44,11 @@ const core = (() => {
     currentUser: null,
     newBadgeDays: 7,
     spinFreeMode: true,
-    spinAdEnabled: false,
-    spinAdDailyLimit: 3,
     spinPayEnabled: false,
     spinRazorpayLink: '',
     spinPriceText: '₹49',
     spinMaxPerDay: 1,
     spinPrizes: [],
-    spinAdConfig: null,
     mysteryPrize1Name: 'Mystery Prize 1',
     mysteryPrize2Name: 'Mystery Prize 2',
     pendingWaHref: null,
@@ -60,14 +57,8 @@ const core = (() => {
     /* Maintenance */
     maintenanceEnabled: false,
 
-    /* Ads */
-    adsEnabled: true,
-
     /* Spin visibility */
-    spinSectionVisible: true,
-
-    /* Ad slots */
-    adSlots: []
+    spinSectionVisible: true
   };
 
   /* ── Zoom state (shared with gallery.js) ─────────────── */
@@ -244,17 +235,13 @@ const core = (() => {
         /* Spin settings */
         state.newBadgeDays = parseInt(map.new_badge_days || '7', 10) || 7;
         state.spinFreeMode = (map.spin_free_mode || '1') === '1';
-        state.spinAdEnabled = (map.spin_ad_enabled || '0') === '1';
-        state.spinAdDailyLimit = parseInt(map.spin_ad_daily_limit || '3', 10) || 3;
         state.spinPayEnabled = (map.spin_pay_enabled || '0') === '1';
         state.spinRazorpayLink = map.razorpay_payment_link || '';
         state.spinPriceText = map.spin_price || '₹49';
         state.spinMaxPerDay = parseInt(map.spin_max_per_day || '1', 10) || 1;
         try { state.spinPrizes = JSON.parse(map.spin_prizes || '[]'); } catch { state.spinPrizes = []; }
-        try { state.spinAdConfig = JSON.parse(map.spin_ad_config || 'null'); } catch { state.spinAdConfig = null; }
         state.mysteryPrize1Name = map.mystery_prize_1_name || 'Mystery Prize 1';
         state.mysteryPrize2Name = map.mystery_prize_2_name || 'Mystery Prize 2';
-        state.adsEnabled = (map.ads_enabled || '1') === '1';
         state.spinSectionVisible = (map.spin_section_visible || '1') === '1';
 
         /* Apply spin section visibility */
@@ -274,15 +261,6 @@ const core = (() => {
           }
         } catch {}
 
-        /* Ad slots */
-        try { state.adSlots = JSON.parse(map.ad_slots || '[]'); } catch { state.adSlots = []; }
-        applyAdSlots();
-
-        /* Inject Adsterra banner ads */
-        injectAdsterraAd('ad-banner-above-gallery');
-        injectAdsterraAd('ad-banner-mid');
-        injectAdsterraAd('ad-banner-footer');
-
         /* Update spin buttons (handled by spinModule after load) */
         if (typeof spinModule !== 'undefined') spinModule.updateButtons();
 
@@ -297,7 +275,39 @@ const core = (() => {
       core.renderGallery(gallery || []);
     } catch (e) {
       console.error('[Cyris] fetchContentAndGallery error:', e.message ?? e);
+      core.renderGallery([]);
     }
+  };
+
+  /* ── Fallback content when Supabase is unreachable ────── */
+  const applyFallbackContent = () => {
+    /* Gallery placeholder */
+    const feed = document.getElementById('gallery-feed');
+    if (feed && !feed.children.length) {
+      feed.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(234,246,255,.45);">
+        <div style="font-size:2rem;margin-bottom:12px;">📷</div>
+        <div style="font-size:1rem;font-weight:600;margin-bottom:6px;">Gallery unavailable</div>
+        <div style="font-size:.85rem;">Content could not be loaded. Please check back soon.</div>
+      </div>`;
+    }
+    const counter = document.getElementById('gallery-counter');
+    if (counter && counter.textContent === 'Loading…') counter.textContent = '';
+
+    /* Sections placeholder */
+    const sgrid = document.getElementById('sections-grid');
+    if (sgrid && !sgrid.children.length) {
+      sgrid.innerHTML = `<div style="grid-column:1/-1;color:rgba(234,246,255,.45);font-size:.9rem;padding:20px 0;">
+        Sections unavailable — content could not be loaded.
+      </div>`;
+    }
+
+    /* Leaderboard placeholder */
+    ['lb-buyers','lb-spins','lb-raters','lb-viewed'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el.children.length) {
+        el.innerHTML = '<div style="color:rgba(234,246,255,.40);font-size:.85rem;padding:14px 0;">No data available.</div>';
+      }
+    });
   };
 
   /* ── View counters ────────────────────────────────────── */
@@ -468,71 +478,6 @@ const core = (() => {
     window.addEventListener('hashchange', onHashChange);
   };
 
-  /* ── Ad Slots ─────────────────────────────────────────── */
-  const renderAdCode = (container, codeStr) => {
-    container.innerHTML = codeStr;
-    container.querySelectorAll('script').forEach(oldScript => {
-      const newScript = document.createElement('script');
-      if (oldScript.src) {
-        newScript.src = oldScript.src;
-      } else {
-        newScript.textContent = oldScript.textContent;
-      }
-      oldScript.parentNode.replaceChild(newScript, oldScript);
-    });
-  };
-
-  /* Inject Adsterra ad into any container by ID */
-  const injectAdsterraAd = (containerId) => {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    if (!state.adsEnabled) {
-      container.style.display = 'none';
-      return;
-    }
-    container.style.display = '';
-    /* Avoid double-injection */
-    if (container.dataset.adLoaded === 'true') return;
-    container.dataset.adLoaded = 'true';
-
-    const optScript = document.createElement('script');
-    optScript.textContent = `atOptions = {
-  'key' : 'be30e9b513d91c58a7556f27a062421c',
-  'format' : 'iframe',
-  'height' : 90,
-  'width' : 728,
-  'params' : {}
-};`;
-    container.appendChild(optScript);
-
-    const invokeScript = document.createElement('script');
-    invokeScript.src = 'https://www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js';
-    container.appendChild(invokeScript);
-  };
-
-  const applyAdSlots = () => {
-    const enabled = state.adsEnabled;
-    /* Show/hide .ad-container divs */
-    document.querySelectorAll('.ad-container').forEach(el => {
-      el.style.display = enabled ? '' : 'none';
-    });
-    const ADSTERRA_CODE = `<script type="text/javascript">atOptions={'key':'be30e9b513d91c58a7556f27a062421c','format':'iframe','height':90,'width':728,'params':{}};<\/script><script type="text/javascript" src="https://www.highperformanceformat.com/be30e9b513d91c58a7556f27a062421c/invoke.js"><\/script>`;
-    ['header', 'footer'].forEach(slotId => {
-      const el = document.getElementById(`ad-${slotId}`);
-      if (!el) return;
-      if (enabled) {
-        el.innerHTML = '<span class="ad-slot-label">Ad</span>';
-        const codeWrap = document.createElement('div');
-        el.appendChild(codeWrap);
-        renderAdCode(codeWrap, ADSTERRA_CODE);
-        el.classList.add('active');
-      } else {
-        el.classList.remove('active');
-        el.innerHTML = '';
-      }
-    });
-  };
-
   /* ── Profile Modal ────────────────────────────────────── */
   const openProfileModal = async () => {
     const modal = document.getElementById('profile-modal');
@@ -586,7 +531,7 @@ const core = (() => {
 
       const spinHistoryHtml = (spinHistory?.length)
         ? spinHistory.map(s => {
-            const method = s.payment_id === 'ad_watch' ? 'Ad' : (s.payment_id ? 'Paid' : 'Free');
+            const method = s.payment_id === 'ad_watch' ? 'Ad (legacy)' : (s.payment_id ? 'Paid' : 'Free');
             const emoji = (core._state.spinPrizes || []).find(p => p.name === s.prize_name)?.emoji || '🎰';
             return `
               <div class="spin-history-item">
@@ -947,6 +892,7 @@ const core = (() => {
     const healthy = await checkSupabaseHealth();
     if (!healthy) {
       console.warn('[Cyris] Supabase unreachable — loading app with defaults');
+      applyFallbackContent();
     } else {
       /* Wrap fetchAll in a timeout so a hanging query cannot block init */
       await Promise.race([
@@ -956,6 +902,7 @@ const core = (() => {
         )
       ]).catch(e => {
         console.error('[Cyris] Initialization fetch error:', e.message ?? e);
+        applyFallbackContent();
       });
     }
 
@@ -1030,8 +977,6 @@ const core = (() => {
     shareProfile,
     applyLoaderToDom,
     fetchContentAndGallery,
-    applyAdSlots,
-    injectAdsterraAd,
 
     /* Auth */
     signInWithGoogle,
@@ -1066,7 +1011,6 @@ const core = (() => {
     unmarkSold() {},
     toggleMaintenance() {},
     saveMaintenance() {},
-    toggleAdsEnabled() {},
     toggleSpinVisibility() {}
   };
   window.core = publicAPI;

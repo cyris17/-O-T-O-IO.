@@ -82,25 +82,16 @@
       btn.textContent = on ? 'ON' : 'OFF';
     };
     setToggle('toggle-spin-free', !!s().spinFreeMode);
-    setToggle('toggle-spin-ad',   !!s().spinAdEnabled);
     setToggle('toggle-spin-pay',  !!s().spinPayEnabled);
-    val('spin-ad-daily', String(s().spinAdDailyLimit || 3));
     val('spin-price-text', s().spinPriceText || '');
     val('spin-max-per-day', String(s().spinMaxPerDay || 1));
     val('spin-razorpay-link', s().spinRazorpayLink || '');
     val('new-badge-days', String(s().newBadgeDays || 7));
-    /* Populate ad config fields */
-    if (s().spinAdConfig) {
-      val('spin-ad-image', s().spinAdConfig.image_url || '');
-      val('spin-ad-link',  s().spinAdConfig.link_url  || '');
-      val('spin-ad-duration', String(s().spinAdConfig.duration || 5));
-    }
     /* Mystery Prize names */
     val('mystery-prize-1-name', s().mysteryPrize1Name || 'Mystery Prize 1');
     val('mystery-prize-2-name', s().mysteryPrize2Name || 'Mystery Prize 2');
 
     /* Update button-based toggles */
-    updateAdsToggleBtn();
     updateSpinVisibilityBtn();
 
     loadGalleryCategories();
@@ -249,9 +240,7 @@
   const saveSpinSettings = async () => {
     /* Collect mode toggles */
     const freeMode   = document.getElementById('toggle-spin-free')?.classList.contains('on') ? '1' : '0';
-    const adEnabled  = document.getElementById('toggle-spin-ad')?.classList.contains('on') ? '1' : '0';
     const payEnabled = document.getElementById('toggle-spin-pay')?.classList.contains('on') ? '1' : '0';
-    const adDaily    = document.getElementById('spin-ad-daily')?.value || '3';
     const priceText  = document.getElementById('spin-price-text')?.value || '';
     const maxPerDay  = document.getElementById('spin-max-per-day')?.value || '1';
     const razorLink  = document.getElementById('spin-razorpay-link')?.value || '';
@@ -263,8 +252,6 @@
 
     await sb().from('site_content').upsert([
       { id: 'spin_free_mode',        content: freeMode },
-      { id: 'spin_ad_enabled',       content: adEnabled },
-      { id: 'spin_ad_daily_limit',   content: adDaily },
       { id: 'spin_pay_enabled',      content: payEnabled },
       { id: 'spin_price',            content: priceText },
       { id: 'spin_max_per_day',      content: maxPerDay },
@@ -852,173 +839,6 @@
     loadMaintenanceStatus();
   };
 
-  /* ── Ad Slots ─────────────────────────────────────────── */
-  const AD_SLOT_DEFS = [
-    { id: 'header',  name: 'Header Banner',         icon: '🔝' },
-    { id: 'gallery', name: 'Gallery Between Items',  icon: '🖼️' },
-    { id: 'footer',  name: 'Footer Banner',          icon: '⬇️' }
-  ];
-
-  const loadAdSlots = async () => {
-    const list = document.getElementById('ad-slots-list');
-    if (!list) return;
-    try {
-      const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
-      const slots = data?.content ? JSON.parse(data.content) : [];
-
-      list.innerHTML = '';
-      AD_SLOT_DEFS.forEach(def => {
-        const slot = slots.find(s => s.id === def.id) || { id: def.id, name: def.name, type: 'image', image_url: '', link_url: '', code: '', active: false };
-        list.appendChild(buildAdSlotCard(def, slot));
-      });
-    } catch (e) {
-      list.innerHTML = `<div class="tiny" style="color:var(--danger);">Error: ${core.escapeHtml(e.message)}</div>`;
-    }
-  };
-
-  const buildAdSlotCard = (def, slot) => {
-    const isCode = slot.type === 'code';
-    const isActive = !!slot.active;
-
-    const card = document.createElement('div');
-    card.className = 'ad-slot-card-admin';
-    card.dataset.slotId = def.id;
-    card.innerHTML = `
-      <div class="ad-slot-header-admin" role="button" tabindex="0">
-        <span>${def.icon} ${core.escapeHtml(def.name)}</span>
-        <span class="ad-status-badge ${isActive ? 'active' : 'inactive'}">${isActive ? '● Active' : '○ Inactive'}</span>
-        <span class="ad-slot-chevron">▼</span>
-      </div>
-      <div class="ad-slot-body-admin" style="display:none;">
-        <div class="ad-type-toggle">
-          <button class="${!isCode ? 'active' : ''}" data-type="image">🖼️ Image Ad</button>
-          <button class="${isCode ? 'active' : ''}" data-type="code">📝 Ad Code</button>
-        </div>
-
-        <div class="ad-image-fields" style="display:${isCode ? 'none' : 'block'};">
-          <span class="admin-label">Image URL</span>
-          <input type="text" class="admin-input ad-image-url" placeholder="https://your-image-url.com/banner.jpg" value="${core.escapeHtml(slot.image_url || '')}" />
-          <span class="admin-label">Click Link URL</span>
-          <input type="text" class="admin-input ad-link-url" placeholder="https://where-to-go-when-clicked.com" value="${core.escapeHtml(slot.link_url || '')}" />
-          <div class="ad-image-preview"></div>
-        </div>
-
-        <div class="ad-code-fields" style="display:${isCode ? 'block' : 'none'};">
-          <span class="admin-label">Paste Your Ad Code Here</span>
-          <textarea class="admin-textarea ad-code" rows="6" placeholder="Paste your Adsterra/AdSense/any ad network code here...">${core.escapeHtml(slot.code || '')}</textarea>
-          <p class="admin-hint">💡 Get this code from Adsterra, Google AdSense, or any ad network</p>
-        </div>
-
-        <div class="ad-active-toggle" style="margin-top:12px;">
-          <span class="admin-label">Show this ad?</span>
-          <button class="toggle-switch ${isActive ? 'on' : 'off'} ad-active-btn">${isActive ? 'ON' : 'OFF'}</button>
-        </div>
-
-        <button class="btn-action ad-save-btn" style="margin-top:12px;width:auto;padding:10px 22px;">💾 Save Ad Slot</button>
-      </div>
-    `;
-
-    /* Toggle expand/collapse */
-    const header = card.querySelector('.ad-slot-header-admin');
-    const body = card.querySelector('.ad-slot-body-admin');
-    const chevron = card.querySelector('.ad-slot-chevron');
-    header.addEventListener('click', () => {
-      const open = body.style.display !== 'none';
-      body.style.display = open ? 'none' : 'block';
-      chevron.style.transform = open ? '' : 'rotate(180deg)';
-    });
-    header.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') header.click(); });
-
-    /* Ad type toggle */
-    card.querySelectorAll('.ad-type-toggle button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        card.querySelectorAll('.ad-type-toggle button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const isCodeType = btn.dataset.type === 'code';
-        card.querySelector('.ad-image-fields').style.display = isCodeType ? 'none' : 'block';
-        card.querySelector('.ad-code-fields').style.display = isCodeType ? 'block' : 'none';
-      });
-    });
-
-    /* Image preview */
-    const imgUrlInput = card.querySelector('.ad-image-url');
-    const previewEl = card.querySelector('.ad-image-preview');
-    const updatePreview = () => {
-      const url = imgUrlInput.value.trim();
-      if (url) {
-        previewEl.innerHTML = `<img src="${core.escapeHtml(url)}" alt="Ad preview" style="max-width:100%;max-height:160px;border-radius:8px;margin-top:8px;" loading="lazy" />`;
-      } else {
-        previewEl.innerHTML = '';
-      }
-    };
-    imgUrlInput.addEventListener('blur', updatePreview);
-    if (slot.image_url) updatePreview();
-
-    /* Active toggle */
-    const activeBtn = card.querySelector('.ad-active-btn');
-    activeBtn.addEventListener('click', () => {
-      const on = activeBtn.classList.contains('on');
-      activeBtn.classList.toggle('on', !on);
-      activeBtn.classList.toggle('off', on);
-      activeBtn.textContent = on ? 'OFF' : 'ON';
-      const badge = card.querySelector('.ad-status-badge');
-      badge.textContent = on ? '○ Inactive' : '● Active';
-      badge.className = `ad-status-badge ${on ? 'inactive' : 'active'}`;
-    });
-
-    /* Save */
-    card.querySelector('.ad-save-btn').addEventListener('click', () => saveAdSlot(card, def));
-
-    return card;
-  };
-
-  const saveAdSlot = async (card, def) => {
-    if (!card || !def) return;
-    const activeType = card.querySelector('.ad-type-toggle button.active')?.dataset.type || 'image';
-    const imageUrl = card.querySelector('.ad-image-url')?.value?.trim() || '';
-    const linkUrl  = card.querySelector('.ad-link-url')?.value?.trim() || '';
-    const code     = card.querySelector('.ad-code')?.value?.trim() || '';
-    const active   = card.querySelector('.ad-active-btn')?.classList.contains('on') || false;
-
-    const SLOT_NAMES = { header: 'Header Banner', gallery: 'Gallery Between Items', footer: 'Footer Banner' };
-
-    try {
-      const { data } = await sb().from('site_content').select('content').eq('id', 'ad_slots').single();
-      let slots = data?.content ? JSON.parse(data.content) : [];
-      const existing = slots.findIndex(s => s.id === def.id);
-      const newSlot = { id: def.id, name: SLOT_NAMES[def.id] || def.name, type: activeType, image_url: imageUrl, link_url: linkUrl, code, active };
-      if (existing >= 0) slots[existing] = newSlot;
-      else slots.push(newSlot);
-      await sb().from('site_content').upsert({ id: 'ad_slots', content: JSON.stringify(slots) });
-      showSaveFeedback(card.querySelector('.ad-save-btn'));
-      core.applyAdSlots();
-    } catch (e) {
-      alert(e?.message || 'Error saving ad slot');
-    }
-  };
-
-  /* ── Ads On/Off Toggle ────────────────────────────────── */
-  const updateAdsToggleBtn = () => {
-    const btn = document.getElementById('ads-toggle-btn');
-    if (!btn) return;
-    if (s().adsEnabled) {
-      btn.textContent = '🟢 ADS ARE ON — Click to Turn Off';
-      btn.className = 'maint-toggle-btn maint-toggle-live';
-    } else {
-      btn.textContent = '🔴 ADS ARE OFF — Click to Turn On';
-      btn.className = 'maint-toggle-btn maint-toggle-closed';
-    }
-  };
-
-  const toggleAdsEnabled = async () => {
-    const newVal = s().adsEnabled ? '0' : '1';
-    await sb().from('site_content').upsert({ id: 'ads_enabled', content: newVal });
-    s().adsEnabled = newVal === '1';
-    updateAdsToggleBtn();
-    core.applyAdSlots();
-    alert(newVal === '1' ? '🟢 Ads are now ON!' : '🔴 Ads are now OFF!');
-  };
-
   /* ── Spin Visibility Toggle ───────────────────────────── */
   const updateSpinVisibilityBtn = () => {
     const btn = document.getElementById('spin-visibility-btn');
@@ -1079,7 +899,6 @@
     updateOddsDisplay,
     showSaveFeedback,
     buildPrizeCard,
-    toggleAdsEnabled,
     toggleSpinVisibility
   });
 })();
