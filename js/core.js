@@ -124,7 +124,7 @@ const core = (() => {
     if (!url || typeof url !== 'string') return '';
     try {
       const parsed = new URL(url);
-      if (!['http:', 'https:', 'mailto:', 'tel:', 'wa.me:'].includes(parsed.protocol)) return '';
+      if (!['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol)) return '';
       return url;
     } catch {
       /* relative URLs pass through — they can't carry dangerous schemes */
@@ -248,12 +248,13 @@ const core = (() => {
     try {
       if (!supabase) throw new Error('Supabase client not initialized');
 
-      const { data: content } = await safeQuery(
+      const contentResult = await safeQuery(
         'site_content',
         () => supabase.from('site_content').select('*'),
         { timeoutMs: 6000 }
       );
-      if (content) {
+      if (contentResult.ok && contentResult.data) {
+        const content = contentResult.data;
         const map = {};
         content.forEach(c => { map[c.id] = c.content; });
 
@@ -277,7 +278,7 @@ const core = (() => {
         setHref('link-yt', map.youtube);
         setHref('link-wa', map.whatsapp);
         const mail = document.getElementById('btn-email-main');
-        if (mail && map.email) mail.href = 'mailto:' + encodeURIComponent(map.email).replace(/%40/g, '@');
+        if (mail && map.email) mail.href = 'mailto:' + map.email;
 
         state.whatsappPhone = map.whatsapp_phone || '';
         state.whatsappTemplate = map.whatsapp_template || state.whatsappTemplate;
@@ -332,13 +333,14 @@ const core = (() => {
         incrementViewToday(map.views_today, map.views_today_date, map.view_count);
       }
 
-      const { data: gallery } = await safeQuery(
+      const galleryResult = await safeQuery(
         'gallery',
         () => supabase.from('gallery').select('*').order('created_at', { ascending: false }),
         { timeoutMs: 6000 }
       );
-      _diag.lastGalleryCount = (gallery || []).length;
-      core.renderGallery(gallery || []);
+      const gallery = galleryResult.ok ? (galleryResult.data || []) : [];
+      _diag.lastGalleryCount = gallery.length;
+      core.renderGallery(gallery);
     } catch (e) {
       console.error('[Cyris] fetchContentAndGallery error:', e.message ?? e);
       _diag.lastError = e.message ?? String(e);
@@ -522,7 +524,7 @@ const core = (() => {
             <div class="notif-title">${escapeHtml(n.title || '')}</div>
             <div class="notif-desc">${escapeHtml(n.description || '')}</div>
           </div>
-          <button class="notif-dismiss" title="Dismiss" data-id="${escapeHtml(String(n.id))}">×</button>
+          <button class="notif-dismiss" title="Dismiss" data-id="${String(n.id)}">×</button>
         `;
 
         slide.querySelector('.notif-dismiss').addEventListener('click', (e) => {
@@ -1091,8 +1093,8 @@ const core = (() => {
     });
 
     /* Load leaderboard and reviews after data is ready (non-blocking) */
-    if (typeof leaderboardModule !== 'undefined') leaderboardModule.load().catch(() => {});
-    if (typeof reviewsModule !== 'undefined') reviewsModule.load().catch(() => {});
+    if (typeof leaderboardModule !== 'undefined') Promise.resolve(leaderboardModule.load()).catch(() => {});
+    if (typeof reviewsModule !== 'undefined') Promise.resolve(reviewsModule.load()).catch(() => {});
   };
 
   /* ── Public API ───────────────────────────────────────── */
