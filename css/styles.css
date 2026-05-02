@@ -2011,3 +2011,150 @@ select.admin-input{
 @media (min-width: 981px) {
   #mobile-block-overlay { display: none !important; }
 }
+
+/* =========================================================
+   SCROLL REVEAL ANIMATIONS
+   ========================================================= */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.72s cubic-bezier(.19,1,.22,1), transform 0.72s cubic-bezier(.19,1,.22,1);
+}
+.reveal-hidden.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =========================================================
+   PREMIUM POLISH — enhanced card hover, shadows, transitions
+   ========================================================= */
+
+/* Deeper glow on section cards */
+.sec-card {
+  transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease), border-color 0.28s var(--ease);
+}
+.sec-card:hover {
+  transform: translateY(-6px) scale(1.012);
+  box-shadow: 0 32px 140px rgba(0,0,0,.65), 0 0 0 1px rgba(0,255,213,.12);
+  border-color: rgba(0,255,213,.20);
+}
+
+/* Enhanced gallery card */
+.tilt-card {
+  transition: transform 0.24s var(--ease), box-shadow 0.24s var(--ease), border-color 0.24s var(--ease);
+}
+.tilt-card:hover {
+  transform: translateY(-12px) scale(1.012);
+  border-color: rgba(0,255,213,.22);
+  box-shadow: 0 40px 180px rgba(0,0,0,.72), 0 0 0 1px rgba(0,255,213,.10);
+}
+
+/* Filter tab premium effect */
+.filter-tab {
+  transition: background 0.22s var(--ease), border-color 0.22s var(--ease), color 0.22s var(--ease), box-shadow 0.22s var(--ease);
+}
+.filter-tab:hover {
+  box-shadow: 0 0 24px rgba(0,255,213,.10);
+}
+.filter-tab.active {
+  box-shadow: 0 0 32px rgba(0,255,213,.14);
+}
+
+/* Social icon premium hover */
+.social-icon {
+  transition: color 0.22s var(--ease), transform 0.22s var(--ease), filter 0.22s var(--ease);
+}
+.social-icon:hover {
+  filter: drop-shadow(0 0 10px rgba(0,255,213,.45));
+  transform: translateY(-4px) scale(1.12);
+}
+
+/* Back to top enhanced */
+.back-top:hover {
+  box-shadow: 0 0 40px rgba(0,255,213,.22), var(--shadow);
+  border-color: rgba(0,255,213,.25);
+}
+
+/* Nav link premium underline effect */
+.nav-link::after {
+  background: linear-gradient(90deg, var(--miku), var(--pink));
+  box-shadow: 0 0 14px rgba(0,255,213,.25);
+}
+
+/* Hero bg subtle 3D via transform (JS handles scroll) */
+#hero-bg-el {
+  transform-origin: center center;
+  will-change: transform;
+  transition: none; /* JS controls this */
+}
+
+/* Leaderboard list item hover */
+.lb-row {
+  transition: background 0.18s var(--ease), transform 0.18s var(--ease);
+}
+.lb-row:hover {
+  background: rgba(255,255,255,.04);
+  transform: translateX(4px);
+}
+
+/* Review card hover */
+.review-card {
+  transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s var(--ease);
+}
+.review-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 100px rgba(0,0,0,.55);
+  border-color: rgba(255,255,255,.14);
+}
+
+/* Admin key divider */
+.admin-key-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 10px;
+  color: rgba(234,246,255,.35);
+  font-size: .76rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.admin-key-divider::before,
+.admin-key-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.08);
+}
+
+/* Section title stagger reveal via GSAP (initial hidden) */
+.section-title {
+  will-change: transform, opacity;
+}
+
+/* Footer quote premium style */
+.footer-quote {
+  margin-top: 44px;
+  padding: 22px 28px;
+  border-radius: 18px;
+  background: rgba(10,12,22,.45);
+  border: 1px solid rgba(255,255,255,.07);
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+  backdrop-filter: blur(8px);
+}
+.footer-quote blockquote {
+  font-style: italic;
+  color: rgba(234,246,255,.75);
+  font-size: .92rem;
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+.footer-quote cite {
+  font-size: .78rem;
+  color: var(--miku);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 950;
+  font-style: normal;
+}

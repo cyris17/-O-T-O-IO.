@@ -56,22 +56,11 @@ const core = (() => {
     /* New state */
     currentUser: null,
     newBadgeDays: 7,
-    spinFreeMode: true,
-    spinPayEnabled: false,
-    spinRazorpayLink: '',
-    spinPriceText: '₹49',
-    spinMaxPerDay: 1,
-    spinPrizes: [],
-    mysteryPrize1Name: 'Mystery Prize 1',
-    mysteryPrize2Name: 'Mystery Prize 2',
     pendingWaHref: null,
     pendingGateAction: null,
 
     /* Maintenance */
-    maintenanceEnabled: false,
-
-    /* Spin visibility */
-    spinSectionVisible: true
+    maintenanceEnabled: false
   };
 
   /* ── Zoom state (shared with gallery.js) ─────────────── */
@@ -298,21 +287,8 @@ const core = (() => {
         state.galleryCategories = (map.gallery_categories || '')
           .split(',').map(c => c.trim()).filter(Boolean);
 
-        /* Spin settings */
+        /* new badge days */
         state.newBadgeDays = parseInt(map.new_badge_days || '7', 10) || 7;
-        state.spinFreeMode = (map.spin_free_mode || '1') === '1';
-        state.spinPayEnabled = (map.spin_pay_enabled || '0') === '1';
-        state.spinRazorpayLink = map.razorpay_payment_link || '';
-        state.spinPriceText = map.spin_price || '₹49';
-        state.spinMaxPerDay = parseInt(map.spin_max_per_day || '1', 10) || 1;
-        try { state.spinPrizes = JSON.parse(map.spin_prizes || '[]'); } catch { state.spinPrizes = []; }
-        state.mysteryPrize1Name = map.mystery_prize_1_name || 'Mystery Prize 1';
-        state.mysteryPrize2Name = map.mystery_prize_2_name || 'Mystery Prize 2';
-        state.spinSectionVisible = (map.spin_section_visible || '1') === '1';
-
-        /* Apply spin section visibility */
-        const spinSection = document.getElementById('spin');
-        if (spinSection) spinSection.style.display = state.spinSectionVisible ? '' : 'none';
 
         /* Maintenance mode */
         try {
@@ -326,9 +302,6 @@ const core = (() => {
             }
           }
         } catch {}
-
-        /* Update spin buttons (handled by spinModule after load) */
-        if (typeof spinModule !== 'undefined') spinModule.updateButtons();
 
         incrementViewToday(map.views_today, map.views_today_date, map.view_count);
       }
@@ -413,7 +386,7 @@ const core = (() => {
     }
 
     /* Leaderboard placeholders */
-    ['lb-buyers', 'lb-spins', 'lb-raters', 'lb-viewed'].forEach(id => {
+    ['lb-buyers', 'lb-raters', 'lb-viewed'].forEach(id => {
       const el = document.getElementById(id);
       if (el && !el.children.length) {
         el.innerHTML = '<div style="color:rgba(234,246,255,.40);font-size:.85rem;padding:14px 0;">No data yet.</div>';
@@ -480,66 +453,6 @@ const core = (() => {
       <blockquote>"${escapeHtml(quote.content)}"</blockquote>
       <cite>— ${escapeHtml(quote.author)}</cite>
     `;
-  };
-
-  /* ── Notifications ────────────────────────────────────── */
-  const loadAndShowNotifications = async () => {
-    if (!supabase) return;
-    try {
-      const dismissed = JSON.parse(localStorage.getItem('dismissed_notifs') || '[]');
-      const now = new Date().toISOString();
-      const { data } = await supabase.from('notifications')
-        .select('*')
-        .eq('active', true)
-        .or(`expires_at.is.null,expires_at.gt.${now}`)
-        .order('sort_order', { ascending: true });
-
-      const banner = document.getElementById('notif-banner');
-      if (!banner || !data?.length) return;
-
-      const visible = data.filter(n => !dismissed.includes(String(n.id)));
-      if (!visible.length) return;
-
-      banner.classList.add('active');
-      banner.innerHTML = '';
-
-      visible.forEach(n => {
-        const slide = document.createElement('div');
-        slide.className = 'notif-slide';
-        if (n.link_url) {
-          const safeNotifUrl = sanitizeUrl(n.link_url);
-          if (safeNotifUrl) {
-            slide.style.cursor = 'pointer';
-            slide.onclick = () => window.open(safeNotifUrl, '_blank', 'noopener,noreferrer');
-          }
-        }
-
-        const thumbHtml = n.media_url
-          ? `<img class="notif-thumb" src="${escapeHtml(n.media_url)}" alt="" />`
-          : `<div class="notif-dot"></div>`;
-
-        slide.innerHTML = `
-          ${thumbHtml}
-          <div class="notif-content">
-            <div class="notif-title">${escapeHtml(n.title || '')}</div>
-            <div class="notif-desc">${escapeHtml(n.description || '')}</div>
-          </div>
-          <button class="notif-dismiss" title="Dismiss" data-id="${escapeHtml(String(n.id))}">×</button>
-        `;
-
-        slide.querySelector('.notif-dismiss').addEventListener('click', (e) => {
-          e.stopPropagation();
-          const nid = e.currentTarget.dataset.id;
-          const arr = JSON.parse(localStorage.getItem('dismissed_notifs') || '[]');
-          arr.push(nid);
-          localStorage.setItem('dismissed_notifs', JSON.stringify(arr));
-          slide.remove();
-          if (!banner.children.length) banner.classList.remove('active');
-        });
-
-        banner.appendChild(slide);
-      });
-    } catch {}
   };
 
   /* ── Maintenance Mode ─────────────────────────────────── */
@@ -916,6 +829,8 @@ const core = (() => {
   };
 
   /* ── Auth / Routing ───────────────────────────────────── */
+  const _ADMIN_KEY = 'Cyris17@me';
+
   const checkRoute = async () => {
     const h = window.location.hash;
 
@@ -934,12 +849,22 @@ const core = (() => {
       _renderAdminDiag();
     };
 
-    if (h === '#adminonly') {
+    if (h === '#adminonly' || h === '#admin') {
+      /* If already unlocked by key, go straight to dashboard */
+      if (sessionStorage.getItem('_cyris_admin_key_ok') === '1') {
+        showDashboard();
+        return;
+      }
       showLogin();
       return;
     }
 
     if (h === '#dashboard') {
+      /* Allow key-based unlock */
+      if (sessionStorage.getItem('_cyris_admin_key_ok') === '1') {
+        showDashboard();
+        return;
+      }
       if (!supabase) {
         window.location.hash = '#adminonly';
         showLogin();
@@ -976,7 +901,26 @@ const core = (() => {
     else window.location.hash = '#dashboard';
   };
 
+  const loginWithKey = () => {
+    const keyInput = document.getElementById('auth-admin-key');
+    const msg = document.getElementById('login-error');
+    const hash = window.location.hash.toLowerCase();
+    if (!['#adminonly', '#admin', '#dashboard'].some(h => hash.startsWith(h))) {
+      if (msg) msg.innerText = 'Admin key can only be used on the admin route.';
+      return;
+    }
+    const entered = (keyInput?.value || '').trim();
+    if (entered === _ADMIN_KEY) {
+      sessionStorage.setItem('_cyris_admin_key_ok', '1');
+      window.location.hash = '#dashboard';
+    } else {
+      if (msg) msg.innerText = 'Invalid admin key.';
+      if (keyInput) keyInput.value = '';
+    }
+  };
+
   const logout = async () => {
+    sessionStorage.removeItem('_cyris_admin_key_ok');
     if (supabase) await supabase.auth.signOut();
     exitAdmin();
   };
@@ -997,8 +941,43 @@ const core = (() => {
   /* ── GSAP / Lenis init ────────────────────────────────── */
   const setupAnimations = () => {
     gsap.registerPlugin(ScrollTrigger);
-    gsap.to('#hero-bg-el', { yPercent: 10, ease: 'none', scrollTrigger: { trigger: '.hero', scrub: true } });
+    gsap.to('#hero-bg-el', { yPercent: 12, ease: 'none', scrollTrigger: { trigger: '.hero', scrub: true } });
     gsap.to('.hero-content', { opacity: 1, y: 0, duration: 1.4, delay: 0.25, ease: 'power3.out' });
+
+    /* Stagger reveal for section headings */
+    gsap.utils.toArray('.section-title').forEach(el => {
+      gsap.fromTo(el,
+        { opacity: 0, y: 28 },
+        {
+          opacity: 1, y: 0, duration: 0.85, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' }
+        }
+      );
+    });
+
+    /* Reveal sections via IntersectionObserver */
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('[data-reveal]').forEach(el => {
+      el.classList.add('reveal-hidden');
+      revealObs.observe(el);
+    });
+
+    /* Parallax on hero bg via scroll */
+    window.addEventListener('scroll', () => {
+      const heroBg = document.getElementById('hero-bg-el');
+      if (heroBg) {
+        const scrolled = window.scrollY;
+        heroBg.style.transform = `scale(1.06) translateY(${scrolled * 0.08}px)`;
+      }
+    }, { passive: true });
   };
 
   /* ── Mobile admin bypass ──────────────────────────────── */
@@ -1052,9 +1031,6 @@ const core = (() => {
       });
     }
 
-    /* Load notifications (non-blocking — failure is silent) */
-    loadAndShowNotifications().catch(() => {});
-
     /* Fetch inspirational quote (non-blocking) */
     fetchAndDisplayQuote();
 
@@ -1091,7 +1067,6 @@ const core = (() => {
     document.querySelectorAll('.leaderboard-list').forEach((p, i) => {
       p.style.display = i === 0 ? 'block' : 'none';
     });
-
     /* Load leaderboard and reviews after data is ready (non-blocking) */
     if (typeof leaderboardModule !== 'undefined') Promise.resolve(leaderboardModule.load()).catch(e => console.error('[Cyris] Leaderboard load error:', e));
     if (typeof reviewsModule !== 'undefined') Promise.resolve(reviewsModule.load()).catch(e => console.error('[Cyris] Reviews load error:', e));
@@ -1123,6 +1098,7 @@ const core = (() => {
     init,
     checkRoute,
     login,
+    loginWithKey,
     logout,
     exitAdmin,
     scrollToFooter,
@@ -1155,15 +1131,11 @@ const core = (() => {
     fetchSections() {},
     loadAdminData() {},
     loadAnalytics() {},
-    saveSpinSettings() {},
-    loadNotifications() {},
-    addNotification() {},
     loadAdminReviews() {},
     markAsSold() {},
     unmarkSold() {},
     toggleMaintenance() {},
-    saveMaintenance() {},
-    toggleSpinVisibility() {}
+    saveMaintenance() {}
   };
   window.core = publicAPI;
   return publicAPI;

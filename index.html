@@ -43,9 +43,6 @@
 
   <div class="film-grain"></div>
 
-  <!-- Notification Banner -->
-  <div id="notif-banner"></div>
-
   <div id="preloader">
     <div class="loader-logo">
       <span id="loader-w1" class="w1">CYRIS</span>
@@ -100,7 +97,7 @@
     </header>
 
     <!-- Dynamic sections -->
-    <section id="sections" class="section">
+    <section id="sections" class="section" data-reveal>
       <div class="container">
         <div class="section-head">
           <div>
@@ -114,7 +111,7 @@
     </section>
 
     <!-- Gallery -->
-    <section id="work" class="section">
+    <section id="work" class="section" data-reveal>
       <div class="container">
         <div class="section-head">
           <div>
@@ -133,33 +130,8 @@
       </div>
     </section>
 
-    <!-- Spin-to-Win Wheel (hidden by default — toggle via Admin Dashboard > Spin Settings) -->
-    <section id="spin" class="section" style="display:none;">
-      <div class="container" style="text-align:center;">
-        <div class="section-head">
-          <div>
-            <div class="tagline">Try Your Luck</div>
-            <div class="section-title">Spin &amp; Win</div>
-          </div>
-          <div id="spin-streak-display"></div>
-        </div>
-
-        <div id="spin-wheel-container">
-          <canvas id="spin-canvas" width="400" height="400"></canvas>
-          <div class="spin-buttons-wrap" id="spin-buttons-wrap">
-            <button id="btn-spin" class="spin-btn spin-btn-free" onclick="spinModule.handleSpin()">
-              🎰 FREE SPIN
-            </button>
-          </div>
-          <button class="spin-mute-btn" onclick="spinModule.toggleMute()" id="spin-mute-btn">🔊 Sound</button>
-        </div>
-
-        <div id="spin-result" style="display:none;"></div>
-      </div>
-    </section>
-
     <!-- Leaderboard -->
-    <section id="leaderboard" class="section">
+    <section id="leaderboard" class="section" data-reveal>
       <div class="container">
         <div class="section-head">
           <div>
@@ -170,20 +142,18 @@
 
         <div class="leaderboard-tabs" id="lb-tabs">
           <button class="lb-tab active" data-panel="lb-buyers">🏆 Top Buyers</button>
-          <button class="lb-tab" data-panel="lb-spins">🎰 Spin Winners</button>
           <button class="lb-tab" data-panel="lb-raters">⭐ Top Raters</button>
           <button class="lb-tab" data-panel="lb-viewed">👁️ Most Viewed</button>
         </div>
 
         <div class="leaderboard-list" id="lb-buyers" style=""></div>
-        <div class="leaderboard-list lb-panel" id="lb-spins"></div>
         <div class="leaderboard-list lb-panel" id="lb-raters"></div>
         <div class="leaderboard-list lb-panel" id="lb-viewed"></div>
       </div>
     </section>
 
     <!-- Reviews -->
-    <section id="reviews" class="section">
+    <section id="reviews" class="section" data-reveal>
       <div class="container">
         <div class="section-head">
           <div>
@@ -306,6 +276,10 @@
       <input type="password" id="auth-pass" class="admin-input" placeholder="Password" />
       <button class="btn-action" style="margin-top:12px" onclick="core.login()">LOGIN</button>
 
+      <div class="admin-key-divider"><span>— or use admin key —</span></div>
+      <input type="password" id="auth-admin-key" class="admin-input" placeholder="Admin key" autocomplete="off" />
+      <button class="btn-soft" style="margin-top:8px;width:100%;" onclick="core.loginWithKey()">UNLOCK WITH KEY</button>
+
       <p id="login-error" style="color:var(--danger);font-size:0.85rem;margin-top:14px;line-height:1.3;"></p>
       <p onclick="core.exitAdmin()" style="margin-top:16px;color:rgba(234,246,255,.55);font-size:0.85rem;cursor:pointer;">Cancel</p>
     </div>
@@ -371,116 +345,6 @@
               <div style="color:rgba(234,246,255,.45);font-size:.82rem;">Loading…</div>
             </div>
             <button class="btn-soft" style="margin-top:12px;width:auto;padding:10px 18px;" onclick="core.loadAnalytics()">↻ Refresh</button>
-          </div>
-
-          <!-- Notification Manager -->
-          <div class="admin-card full">
-            <h3>🔔 Notification Manager</h3>
-            <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;">
-              <div style="grid-column:span 6;">
-                <span class="admin-label">Title</span>
-                <input type="text" id="notif-title" class="admin-input" placeholder="Notification title" />
-                <span class="admin-label">Description</span>
-                <input type="text" id="notif-desc" class="admin-input" placeholder="Short description" />
-                <span class="admin-label">Media URL (image/video, optional)</span>
-                <input type="text" id="notif-media" class="admin-input" placeholder="https://..." />
-              </div>
-              <div style="grid-column:span 6;">
-                <span class="admin-label">Link URL (optional)</span>
-                <input type="text" id="notif-link" class="admin-input" placeholder="https://..." />
-                <span class="admin-label">Active (true/false)</span>
-                <input type="text" id="notif-active" class="admin-input" placeholder="true" value="true" />
-                <span class="admin-label">Expiry Date (optional)</span>
-                <input type="datetime-local" id="notif-expires" class="admin-input" />
-                <span class="admin-label">Sort Order</span>
-                <input type="number" id="notif-sort" class="admin-input" placeholder="0" value="0" />
-              </div>
-              <div style="grid-column:1 / -1;display:flex;gap:10px;">
-                <button class="btn-action" style="margin-top:0;flex:1;" onclick="core.addNotification()">Add Notification</button>
-                <button class="btn-soft" style="flex:1;" onclick="core.loadNotifications()">Refresh List</button>
-              </div>
-            </div>
-            <div id="notif-admin-list" style="margin-top:14px;"></div>
-          </div>
-
-          <!-- Spin Settings -->
-          <div class="admin-card full">
-            <h3>🎰 Spin Settings</h3>
-
-            <!-- Spin Wheel Visibility -->
-            <div style="margin-bottom:18px;">
-              <h4 style="margin:0 0 4px;font-size:.85rem;letter-spacing:.5px;">🎰 SPIN WHEEL VISIBILITY</h4>
-              <p class="admin-hint">Show or hide the entire Spin &amp; Win section for visitors. When hidden, the spin section is completely removed from the homepage.</p>
-              <button id="spin-visibility-btn" class="maint-toggle-btn maint-toggle-live" onclick="core.toggleSpinVisibility()">
-                🟢 SPIN WHEEL IS VISIBLE — Click to Hide
-              </button>
-            </div>
-
-            <!-- Spin Modes -->
-            <div class="spin-modes">
-              <!-- Free Spin -->
-              <div class="mode-card">
-                <div class="mode-header">
-                  <span>🎰 Free Spin</span>
-                  <button class="toggle-switch off" id="toggle-spin-free" data-key="spin-free-mode" onclick="core.toggleSpinSwitch(this)">OFF</button>
-                </div>
-                <div class="mode-body">
-                  <span class="admin-label">Free spins per day per user</span>
-                  <input type="number" id="spin-max-per-day" class="admin-input" min="1" max="10" value="1" />
-                </div>
-              </div>
-
-              <!-- Pay to Spin -->
-              <div class="mode-card">
-                <div class="mode-header">
-                  <span>💳 Pay to Spin</span>
-                  <button class="toggle-switch off" id="toggle-spin-pay" data-key="spin-pay-enabled" onclick="core.toggleSpinSwitch(this)">OFF</button>
-                </div>
-                <div class="mode-body">
-                  <span class="admin-label">Razorpay Payment Link URL</span>
-                  <input type="text" id="spin-razorpay-link" class="admin-input" placeholder="https://rzp.io/..." />
-                  <span class="admin-label">Price Display (e.g. ₹49)</span>
-                  <input type="text" id="spin-price-text" class="admin-input" value="₹49" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Prize Names (Mystery Prizes only are editable) -->
-            <div class="prize-editor">
-              <h3>🎁 PRIZES</h3>
-              <p class="admin-hint">6 fixed prizes with hardcoded odds. Only Mystery Prize names are editable.</p>
-              <div style="background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;margin-bottom:12px;font-size:.82rem;color:rgba(234,246,255,.60);line-height:1.8;">
-                😔 Better Luck — 39.1% (not a win) &nbsp;|&nbsp; 🔄 Try Again — 39.1% (not a win)<br>
-                🏷️ 10% Off — 10.9% (win) &nbsp;|&nbsp; 🚚 Free Delivery — 10.0% (win)<br>
-                ❓ Mystery Prize 1 — 0.5% (win) &nbsp;|&nbsp; 🎁 Mystery Prize 2 — 0.4% (win)
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <div>
-                  <span class="admin-label">Mystery Prize 1 Name (0.5% win)</span>
-                  <input type="text" id="mystery-prize-1-name" class="admin-input" placeholder="Mystery Prize 1" />
-                </div>
-                <div>
-                  <span class="admin-label">Mystery Prize 2 Name (0.4% win)</span>
-                  <input type="text" id="mystery-prize-2-name" class="admin-input" placeholder="Mystery Prize 2" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Other Settings -->
-            <div class="other-settings" style="margin-top:18px;">
-              <h3 style="margin-bottom:10px;font-size:.9rem;letter-spacing:.5px;">⚙️ Other Settings</h3>
-              <span class="admin-label">New Badge Days <span class="admin-hint-inline">Products marked "NEW" for this many days after upload</span></span>
-              <input type="number" id="new-badge-days" class="admin-input" min="1" max="30" value="7" style="max-width:120px;" />
-            </div>
-
-            <!-- Save Button -->
-            <button class="btn-action" id="btn-save-spin" style="margin-top:18px;" onclick="core.saveSpinSettings()">💾 Save Spin Settings</button>
-
-            <!-- Spin Results -->
-            <div style="margin-top:24px;">
-              <h3 style="margin-bottom:10px;">📊 Spin Results</h3>
-              <div id="spin-results-list" style="color:rgba(234,246,255,.45);font-size:.82rem;">Loading…</div>
-            </div>
           </div>
 
           <!-- Reviews Manager -->
@@ -727,7 +591,6 @@
   <script src="js/gallery.js"></script>
   <script src="js/admin.js"></script>
   <script src="js/sections.js"></script>
-  <script src="js/spin.js"></script>
   <script src="js/leaderboard.js"></script>
   <script>
 window.addEventListener("load", () => {
