@@ -2,8 +2,8 @@
    core.js — Supabase setup, state, utilities, init, routing
    ========================================================= */
 
-const _SB_URL = 'https://zpztxadmcxgytplgxvib.supabase.co';
-const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwenR4YWRtY3hneXRwbGd4dmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNTg5NzksImV4cCI6MjA4NjYzNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
+const _SB_URL = 'https://msqmfbfmgabtoegreouj.supabase.co';
+const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zcW1mYmZtZ2FidG9lZ3Jlb3VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTA4MDIsImV4cCI6MjA5MzI2NjgwMn0.IVA1HiiF6ichsyJH0_yTLvYk1EXC3IAKTkf4UdMuiQ4zNDk3OX0.A4W1jl1qvEkpUIfj6qPomDalPZUloL0bqqUA1YwMeo8';
 
 const core = (() => {
   /* ── Config validation ────────────────────────────────── */
