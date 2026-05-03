@@ -73,32 +73,9 @@
     val('edit-ui-wm-text',    s().uiWatermarkText  || '');
     val('edit-ui-wm-opacity', String(s().uiWatermarkOpacity || 0.15));
 
-    /* Spin settings — toggle switches */
-    const setToggle = (id, on) => {
-      const btn = document.getElementById(id);
-      if (!btn) return;
-      btn.classList.toggle('on', on);
-      btn.classList.toggle('off', !on);
-      btn.textContent = on ? 'ON' : 'OFF';
-    };
-    setToggle('toggle-spin-free', !!s().spinFreeMode);
-    setToggle('toggle-spin-pay',  !!s().spinPayEnabled);
-    val('spin-price-text', s().spinPriceText || '');
-    val('spin-max-per-day', String(s().spinMaxPerDay || 1));
-    val('spin-razorpay-link', s().spinRazorpayLink || '');
-    val('new-badge-days', String(s().newBadgeDays || 7));
-    /* Mystery Prize names */
-    val('mystery-prize-1-name', s().mysteryPrize1Name || 'Mystery Prize 1');
-    val('mystery-prize-2-name', s().mysteryPrize2Name || 'Mystery Prize 2');
-
-    /* Update button-based toggles */
-    updateSpinVisibilityBtn();
-
     loadGalleryCategories();
     loadAnalytics();
     loadNotifications();
-    loadAdminReviews();
-    loadSpinResults();
     loadMaintenanceStatus();
   };
 
@@ -124,51 +101,29 @@
 
     try {
       const [
-        { count: userCount },
-        { count: salesCount },
-        { data: salesData },
-        { count: spinCount },
-        { count: spinWins },
-        { data: reviewData },
-        { count: reviewCount },
         { count: galleryCount },
         { data: contentData },
-        { data: topViewed }
+        { data: topViewed },
+        { data: topRated }
       ] = await Promise.all([
-        sb().from('user_profiles').select('*', { count: 'exact', head: true }),
-        sb().from('product_sales').select('*', { count: 'exact', head: true }),
-        sb().from('product_sales').select('amount'),
-        sb().from('spin_results').select('*', { count: 'exact', head: true }),
-        sb().from('spin_results').select('*', { count: 'exact', head: true }).eq('won', true),
-        sb().from('site_reviews').select('rating'),
-        sb().from('site_reviews').select('*', { count: 'exact', head: true }),
         sb().from('gallery').select('*', { count: 'exact', head: true }),
         sb().from('site_content').select('id,content').in('id', ['view_count', 'views_today']),
-        sb().from('gallery').select('title,view_count').order('view_count', { ascending: false }).limit(1)
+        sb().from('gallery').select('title,view_count').order('view_count', { ascending: false }).limit(1),
+        sb().from('gallery').select('title,avg_rating').order('avg_rating', { ascending: false }).limit(1)
       ]);
-
-      const totalRevenue = (salesData || []).reduce((sum, r) => sum + parseFloat(r.amount || 0), 0);
-      const avgRating = reviewData?.length
-        ? (reviewData.reduce((sum, r) => sum + r.rating, 0) / reviewData.length).toFixed(1)
-        : '—';
 
       const contentMap = {};
       (contentData || []).forEach(c => { contentMap[c.id] = c.content; });
 
       const topProduct = topViewed?.[0];
+      const topRatedProduct = topRated?.[0];
 
       const stats = [
-        { icon: '👥', label: 'Total Users', value: (userCount || 0).toLocaleString() },
+        { icon: '📦', label: 'Gallery Items', value: (galleryCount || 0).toLocaleString() },
         { icon: '👁️', label: 'Views Today', value: parseInt(contentMap.views_today || 0).toLocaleString() },
         { icon: '👁️', label: 'Total Views', value: parseInt(contentMap.view_count || 0).toLocaleString() },
         { icon: '🔥', label: 'Most Viewed', value: topProduct ? `${topProduct.title || 'Untitled'} (${topProduct.view_count})` : '—' },
-        { icon: '💰', label: 'Products Sold', value: (salesCount || 0).toLocaleString() },
-        { icon: '💰', label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}` },
-        { icon: '🎰', label: 'Total Spins', value: (spinCount || 0).toLocaleString() },
-        { icon: '🎰', label: 'Spin Wins', value: (spinWins || 0).toLocaleString() },
-        { icon: '⭐', label: 'Avg Site Rating', value: avgRating !== '—' ? `${avgRating}/5` : '—' },
-        { icon: '📝', label: 'Total Reviews', value: (reviewCount || 0).toLocaleString() },
-        { icon: '📦', label: 'Gallery Items', value: (galleryCount || 0).toLocaleString() }
+        { icon: '⭐', label: 'Top Rated', value: topRatedProduct?.avg_rating ? `${topRatedProduct.title || 'Untitled'} (${parseFloat(topRatedProduct.avg_rating).toFixed(1)}★)` : '—' }
       ];
 
       grid.innerHTML = stats.map(stat => `
@@ -234,194 +189,6 @@
     if (error) return alert(error.message);
     alert('Notification added!');
     loadNotifications();
-  };
-
-  /* ── Spin Settings ────────────────────────────────────── */
-  const saveSpinSettings = async () => {
-    /* Collect mode toggles */
-    const freeMode   = document.getElementById('toggle-spin-free')?.classList.contains('on') ? '1' : '0';
-    const payEnabled = document.getElementById('toggle-spin-pay')?.classList.contains('on') ? '1' : '0';
-    const priceText  = document.getElementById('spin-price-text')?.value || '';
-    const maxPerDay  = document.getElementById('spin-max-per-day')?.value || '1';
-    const razorLink  = document.getElementById('spin-razorpay-link')?.value || '';
-    const badgeDays  = document.getElementById('new-badge-days')?.value || '7';
-
-    /* Mystery Prize names */
-    const mystery1 = document.getElementById('mystery-prize-1-name')?.value?.trim() || 'Mystery Prize 1';
-    const mystery2 = document.getElementById('mystery-prize-2-name')?.value?.trim() || 'Mystery Prize 2';
-
-    await sb().from('site_content').upsert([
-      { id: 'spin_free_mode',        content: freeMode },
-      { id: 'spin_pay_enabled',      content: payEnabled },
-      { id: 'spin_price',            content: priceText },
-      { id: 'spin_max_per_day',      content: maxPerDay },
-      { id: 'razorpay_payment_link', content: razorLink },
-      { id: 'new_badge_days',        content: badgeDays },
-      { id: 'mystery_prize_1_name',  content: mystery1 },
-      { id: 'mystery_prize_2_name',  content: mystery2 }
-    ]);
-    showSaveFeedback('btn-save-spin');
-    await core.fetchContentAndGallery();
-  };
-
-  /* ── Prize Editor ─────────────────────────────────────── */
-  const buildPrizeCard = (prize) => {
-    const card = document.createElement('div');
-    card.className = 'prize-card';
-    card.innerHTML = `
-      <div class="prize-color-preview" style="background:${core.escapeHtml(prize.color || '#00ffd5')};"></div>
-      <div class="prize-fields">
-        <div class="prize-row">
-          <input type="text" placeholder="Prize Name" value="${core.escapeHtml(prize.name || '')}" class="prize-name admin-input" style="flex:1;" />
-          <input type="text" placeholder="🎁" value="${core.escapeHtml(prize.emoji || '')}" class="prize-emoji admin-input" style="width:60px;text-align:center;" />
-        </div>
-        <div class="prize-row" style="margin-top:6px;">
-          <label class="admin-label" style="margin:0 6px 0 0;">Color</label>
-          <input type="color" value="${core.escapeHtml(prize.color || '#00ffd5')}" class="prize-color" style="width:36px;height:28px;padding:2px;border:none;background:none;cursor:pointer;" />
-          <label class="admin-label" style="margin:0 6px 0 12px;">Win Rate</label>
-          <input type="number" min="0" max="100" value="${prize.odds || 0}" class="prize-odds admin-input" style="width:70px;" />
-          <span style="margin-left:4px;color:rgba(234,246,255,.55);">%</span>
-        </div>
-        <div class="prize-odds-bar" style="margin-top:6px;">
-          <div class="odds-fill" style="width:${Math.min(prize.odds || 0, 100)}%;background:${core.escapeHtml(prize.color || '#00ffd5')};"></div>
-        </div>
-      </div>
-      <button class="prize-delete" type="button" title="Delete prize">🗑️</button>
-    `;
-
-    /* Color picker → update preview */
-    const colorInput = card.querySelector('.prize-color');
-    const colorPreview = card.querySelector('.prize-color-preview');
-    const oddsFill = card.querySelector('.odds-fill');
-    colorInput.addEventListener('input', () => {
-      colorPreview.style.background = colorInput.value;
-      oddsFill.style.background = colorInput.value;
-    });
-
-    /* Odds input → update bar + validation */
-    card.querySelector('.prize-odds').addEventListener('input', () => {
-      const pct = Math.min(Math.max(parseInt(card.querySelector('.prize-odds').value) || 0, 0), 100); // clamp [0,100]
-      oddsFill.style.width = pct + '%';
-      updateOddsDisplay();
-    });
-
-    /* Delete button */
-    card.querySelector('.prize-delete').addEventListener('click', () => {
-      if (!confirm('Delete this prize?')) return;
-      card.remove();
-      updateOddsDisplay();
-    });
-
-    return card;
-  };
-
-  const updateOddsDisplay = () => {
-    let total = 0;
-    document.querySelectorAll('.prize-odds').forEach(input => {
-      total += parseInt(input.value) || 0;
-    });
-    const totalEl = document.getElementById('odds-total');
-    const warnEl = document.getElementById('odds-warning');
-    const currentEl = document.getElementById('odds-current');
-    const saveBtn = document.getElementById('btn-save-spin');
-
-    if (totalEl) {
-      totalEl.textContent = total + '%';
-      totalEl.className = Math.round(total) === 100 ? 'odds-ok' : 'odds-warn';
-    }
-    if (currentEl) currentEl.textContent = total;
-    const ok = Math.round(total) === 100;
-    if (warnEl) warnEl.style.display = ok ? 'none' : 'block';
-    if (saveBtn) saveBtn.disabled = !ok && document.querySelectorAll('.prize-card').length > 0;
-  };
-
-  const addPrize = () => {
-    const list = document.getElementById('prize-list');
-    if (!list) return;
-    const card = buildPrizeCard({ name: '', emoji: '🎁', color: '#' + ((Math.random() * 0xffffff | 0)).toString(16).padStart(6, '0'), odds: 0 });
-    list.appendChild(card);
-    updateOddsDisplay();
-  };
-
-  const autoBalanceOdds = () => {
-    const cards = document.querySelectorAll('.prize-card');
-    if (!cards.length) return;
-    let total = 0;
-    let maxOddsCard = null;
-    let maxOdds = -1;
-    cards.forEach(card => {
-      const odds = parseInt(card.querySelector('.prize-odds').value) || 0;
-      total += odds;
-      if (odds > maxOdds) {
-        maxOdds = odds;
-        maxOddsCard = card;
-      }
-    });
-    if (Math.round(total) !== 100 && maxOddsCard) {
-      const diff = 100 - total;
-      const oddsInput = maxOddsCard.querySelector('.prize-odds');
-      const newVal = (parseInt(oddsInput.value) || 0) + diff;
-      if (newVal >= 0) {
-        oddsInput.value = newVal;
-        const pct = Math.min(newVal, 100);
-        maxOddsCard.querySelector('.odds-fill').style.width = pct + '%';
-      }
-    }
-    updateOddsDisplay();
-  };
-
-  const toggleSpinSwitch = (btn) => {
-    const isOn = btn.classList.contains('on');
-    btn.classList.toggle('on', !isOn);
-    btn.classList.toggle('off', isOn);
-    btn.textContent = isOn ? 'OFF' : 'ON';
-  };
-
-  /* ── Spin Results ─────────────────────────────────────── */
-  const loadSpinResults = async () => {
-    const list = document.getElementById('spin-results-list');
-    if (!list) return;
-    try {
-      const { data } = await sb().from('spin_results')
-        .select('*').order('created_at', { ascending: false }).limit(20);
-      if (!data?.length) { list.innerHTML = '<div class="tiny">No spins yet.</div>'; return; }
-      list.innerHTML = data.map(r => `
-        <div style="display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);margin-bottom:6px;">
-          <span style="font-size:.8rem;flex:1;">${core.escapeHtml(r.user_name || 'Anonymous')} — <b>${core.escapeHtml(r.prize_name || '')}</b></span>
-          <span style="font-size:.72rem;color:${r.won ? 'var(--good)' : 'rgba(234,246,255,.40)'};">${r.won ? '🏆 Won' : 'Try again'}</span>
-          <span style="font-size:.70rem;color:rgba(234,246,255,.35);">${new Date(r.created_at).toLocaleDateString()}</span>
-        </div>
-      `).join('');
-    } catch {}
-  };
-
-  /* ── Reviews Manager ──────────────────────────────────── */
-  const loadAdminReviews = async () => {
-    const list = document.getElementById('admin-reviews-list');
-    if (!list) return;
-    try {
-      const { data } = await sb().from('site_reviews').select('*').order('created_at', { ascending: false });
-      if (!data?.length) { list.innerHTML = '<div class="tiny">No reviews yet.</div>'; return; }
-      list.innerHTML = data.map(r => `
-        <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);margin-bottom:8px;">
-          <div style="flex:1;">
-            <div style="font-weight:950;font-size:.82rem;">${core.escapeHtml(r.display_name || 'Anonymous')}</div>
-            <div style="color:#ffd700;font-size:.75rem;margin:2px 0;">${'★'.repeat(r.rating || 0)}</div>
-            <div style="font-size:.82rem;color:rgba(234,246,255,.70);margin-top:4px;">${core.escapeHtml(r.review_text || '')}</div>
-          </div>
-          <button class="btn-danger" style="padding:6px 10px;font-size:.7rem;flex-shrink:0;" data-review-id="${r.id}">Delete</button>
-        </div>
-      `).join('');
-      list.querySelectorAll('[data-review-id]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          if (!confirm('Delete this review?')) return;
-          await sb().from('site_reviews').delete().eq('id', btn.dataset.reviewId);
-          loadAdminReviews();
-        });
-      });
-    } catch (e) {
-      list.innerHTML = `<div class="tiny" style="color:var(--danger);">Error: ${core.escapeHtml(e.message)}</div>`;
-    }
   };
 
   /* ── Save branding ────────────────────────────────────── */
@@ -585,22 +352,6 @@
       }
     }
 
-    /* Load users for buyer dropdown */
-    const buyerSel = document.getElementById('amm-buyer-select');
-    if (buyerSel) {
-      buyerSel.innerHTML = '<option value="">Select buyer…</option>';
-      try {
-        const { data: users } = await sb().from('user_profiles').select('id,display_name,email').order('display_name');
-        (users || []).forEach(u => {
-          const opt = document.createElement('option');
-          opt.value = u.id;
-          opt.textContent = `${u.display_name || u.email} (${u.email})`;
-          opt.dataset.name = u.display_name || u.email;
-          buyerSel.appendChild(opt);
-        });
-      } catch {}
-    }
-
     renderAdditionalThumbs();
     document.getElementById('admin-media-modal')?.classList.add('active');
   };
@@ -658,37 +409,17 @@
     const id = s().editingMediaId;
     if (!id) return;
 
-    const buyerSel = document.getElementById('amm-buyer-select');
-    const buyerId = buyerSel?.value;
-    const buyerName = buyerSel?.options[buyerSel.selectedIndex]?.dataset.name || '';
-    const amountStr = document.getElementById('amm-sold-amount')?.value || '0';
-    const amount = parseFloat(amountStr) || 0;
+    const buyerNameInput = document.getElementById('amm-buyer-name');
+    const buyerName = (buyerNameInput?.value || '').trim();
 
-    if (!buyerId) return alert('Select a buyer.');
-    if (!confirm(`Mark this item as sold to ${buyerName} for ${amount}?`)) return;
+    if (!buyerName) return alert('Enter buyer name.');
+    if (!confirm(`Mark this item as sold to ${buyerName}?`)) return;
 
     try {
-      /* Update gallery item */
       await sb().from('gallery').update({
         sold: true,
-        buyer_id: buyerId,
         buyer_name: buyerName
       }).eq('id', id);
-
-      /* Insert into product_sales */
-      await sb().from('product_sales').insert([{
-        product_id: id,
-        buyer_id: buyerId,
-        buyer_name: buyerName,
-        amount
-      }]);
-
-      /* Update buyer's profile */
-      const { data: profile } = await sb().from('user_profiles').select('purchase_count,total_spent').eq('id', buyerId).single();
-      await sb().from('user_profiles').update({
-        purchase_count: (profile?.purchase_count || 0) + 1,
-        total_spent: (parseFloat(profile?.total_spent || 0) + amount)
-      }).eq('id', buyerId);
 
       alert('Marked as sold!');
       closeMediaModal();
@@ -703,7 +434,7 @@
     if (!id) return;
     if (!confirm('Unmark this item as sold?')) return;
     try {
-      await sb().from('gallery').update({ sold: false, buyer_id: null, buyer_name: null }).eq('id', id);
+      await sb().from('gallery').update({ sold: false, buyer_name: null }).eq('id', id);
       alert('Unmarked!');
       closeMediaModal();
       core.fetchContentAndGallery();
@@ -839,30 +570,6 @@
     loadMaintenanceStatus();
   };
 
-  /* ── Spin Visibility Toggle ───────────────────────────── */
-  const updateSpinVisibilityBtn = () => {
-    const btn = document.getElementById('spin-visibility-btn');
-    if (!btn) return;
-    if (s().spinSectionVisible) {
-      btn.textContent = '🟢 SPIN WHEEL IS VISIBLE — Click to Hide';
-      btn.className = 'maint-toggle-btn maint-toggle-live';
-    } else {
-      btn.textContent = '🔴 SPIN WHEEL IS HIDDEN — Click to Show';
-      btn.className = 'maint-toggle-btn maint-toggle-closed';
-    }
-  };
-
-  const toggleSpinVisibility = async () => {
-    const newVal = s().spinSectionVisible ? '0' : '1';
-    await sb().from('site_content').upsert({ id: 'spin_section_visible', content: newVal });
-    s().spinSectionVisible = newVal === '1';
-    updateSpinVisibilityBtn();
-    /* Also update DOM on public page if wrapper is visible */
-    const spinSection = document.getElementById('spin');
-    if (spinSection) spinSection.style.display = s().spinSectionVisible ? '' : 'none';
-    alert(newVal === '1' ? '🟢 Spin wheel is now VISIBLE!' : '🔴 Spin wheel is now HIDDEN!');
-  };
-
   /* ── Register on core ─────────────────────────────────── */
   Object.assign(core, {
     loadAdminData,
@@ -886,19 +593,10 @@
     loadAnalytics,
     loadNotifications,
     addNotification,
-    saveSpinSettings,
-    loadAdminReviews,
     markAsSold,
     unmarkSold,
     toggleMaintenance,
     saveMaintenance,
-    reopenSite,
-    toggleSpinSwitch,
-    addPrize,
-    autoBalanceOdds,
-    updateOddsDisplay,
-    showSaveFeedback,
-    buildPrizeCard,
-    toggleSpinVisibility
+    reopenSite
   });
 })();
