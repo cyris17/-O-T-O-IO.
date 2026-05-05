@@ -56,22 +56,11 @@ const core = (() => {
     /* New state */
     currentUser: null,
     newBadgeDays: 7,
-    spinFreeMode: true,
-    spinPayEnabled: false,
-    spinRazorpayLink: '',
-    spinPriceText: '₹49',
-    spinMaxPerDay: 1,
-    spinPrizes: [],
-    mysteryPrize1Name: 'Mystery Prize 1',
-    mysteryPrize2Name: 'Mystery Prize 2',
     pendingWaHref: null,
     pendingGateAction: null,
 
     /* Maintenance */
-    maintenanceEnabled: false,
-
-    /* Spin visibility */
-    spinSectionVisible: true
+    maintenanceEnabled: false
   };
 
   /* ── Zoom state (shared with gallery.js) ─────────────── */
@@ -298,21 +287,7 @@ const core = (() => {
         state.galleryCategories = (map.gallery_categories || '')
           .split(',').map(c => c.trim()).filter(Boolean);
 
-        /* Spin settings */
         state.newBadgeDays = parseInt(map.new_badge_days || '7', 10) || 7;
-        state.spinFreeMode = (map.spin_free_mode || '1') === '1';
-        state.spinPayEnabled = (map.spin_pay_enabled || '0') === '1';
-        state.spinRazorpayLink = map.razorpay_payment_link || '';
-        state.spinPriceText = map.spin_price || '₹49';
-        state.spinMaxPerDay = parseInt(map.spin_max_per_day || '1', 10) || 1;
-        try { state.spinPrizes = JSON.parse(map.spin_prizes || '[]'); } catch { state.spinPrizes = []; }
-        state.mysteryPrize1Name = map.mystery_prize_1_name || 'Mystery Prize 1';
-        state.mysteryPrize2Name = map.mystery_prize_2_name || 'Mystery Prize 2';
-        state.spinSectionVisible = (map.spin_section_visible || '1') === '1';
-
-        /* Apply spin section visibility */
-        const spinSection = document.getElementById('spin');
-        if (spinSection) spinSection.style.display = state.spinSectionVisible ? '' : 'none';
 
         /* Maintenance mode */
         try {
@@ -326,9 +301,6 @@ const core = (() => {
             }
           }
         } catch {}
-
-        /* Update spin buttons (handled by spinModule after load) */
-        if (typeof spinModule !== 'undefined') spinModule.updateButtons();
 
         incrementViewToday(map.views_today, map.views_today_date, map.view_count);
       }
@@ -413,7 +385,7 @@ const core = (() => {
     }
 
     /* Leaderboard placeholders */
-    ['lb-buyers', 'lb-spins', 'lb-raters', 'lb-viewed'].forEach(id => {
+    ['lb-buyers', 'lb-raters', 'lb-viewed'].forEach(id => {
       const el = document.getElementById(id);
       if (el && !el.children.length) {
         el.innerHTML = '<div style="color:rgba(234,246,255,.40);font-size:.85rem;padding:14px 0;">No data yet.</div>';
@@ -613,13 +585,11 @@ const core = (() => {
       const [
         { data: profile },
         { count: ratingsCount },
-        { count: reviewsCount },
-        { data: spinHistory }
+        { count: reviewsCount }
       ] = await Promise.all([
         supabase.from('user_profiles').select('*').eq('id', u.id).single(),
         supabase.from('product_ratings').select('*', { count: 'exact', head: true }).eq('user_id', u.id),
-        supabase.from('site_reviews').select('*', { count: 'exact', head: true }).eq('user_id', u.id),
-        supabase.from('spin_results').select('*').eq('user_id', u.id).order('created_at', { ascending: false }).limit(20)
+        supabase.from('site_reviews').select('*', { count: 'exact', head: true }).eq('user_id', u.id)
       ]);
 
       const name = profile?.display_name || u.user_metadata?.full_name || u.email || 'User';
@@ -638,29 +608,6 @@ const core = (() => {
       const avatarHtml = avatar
         ? `<img class="profile-avatar-large" src="${escapeHtml(avatar)}" alt="Avatar" />`
         : `<div class="profile-avatar-placeholder">${escapeHtml(name[0]?.toUpperCase() || '?')}</div>`;
-
-      const formatRelTime = (iso) => {
-        const diff = Date.now() - new Date(iso).getTime();
-        if (diff < 60000) return 'Just now';
-        if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-        if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-        if (diff < 172800000) return 'Yesterday';
-        return new Date(iso).toLocaleDateString();
-      };
-
-      const spinHistoryHtml = (spinHistory?.length)
-        ? spinHistory.map(s => {
-            const method = s.payment_id === 'ad_watch' ? 'Ad (legacy)' : (s.payment_id ? 'Paid' : 'Free');
-            const emoji = (core._state.spinPrizes || []).find(p => p.name === s.prize_name)?.emoji || '🎰';
-            return `
-              <div class="spin-history-item">
-                <div class="spin-hist-prize">${escapeHtml(emoji)} ${escapeHtml(s.prize_name || '')}</div>
-                <div class="spin-hist-method">${method}</div>
-                <div class="${s.won ? 'spin-hist-result-win' : 'spin-hist-result-lose'}">${s.won ? '🏆 WON' : '❌ Lost'}</div>
-                <div class="spin-hist-date">${formatRelTime(s.created_at)}</div>
-              </div>`;
-          }).join('')
-        : '<div style="color:rgba(234,246,255,.40);font-size:.85rem;padding:10px 0;">No spins yet! Try your luck 🎰</div>';
 
       if (contentEl) {
         contentEl.innerHTML = `
@@ -686,16 +633,6 @@ const core = (() => {
               <div class="profile-stat-label">Total Spent</div>
             </div>
             <div class="profile-stat-item">
-              <div class="profile-stat-icon">🎰</div>
-              <div class="profile-stat-value">${profile?.spin_count || 0}</div>
-              <div class="profile-stat-label">Spins</div>
-            </div>
-            <div class="profile-stat-item">
-              <div class="profile-stat-icon">🏆</div>
-              <div class="profile-stat-value">${profile?.spin_wins || 0}</div>
-              <div class="profile-stat-label">Wins</div>
-            </div>
-            <div class="profile-stat-item">
               <div class="profile-stat-icon">⭐</div>
               <div class="profile-stat-value">${ratingsCount || 0}</div>
               <div class="profile-stat-label">Ratings Given</div>
@@ -712,12 +649,9 @@ const core = (() => {
             <div class="streak-bar-wrap">
               <div style="font-weight:950;font-size:.82rem;">Current Streak: <span style="color:#ffab40;">${streak} days</span> &nbsp;•&nbsp; Best: <span style="color:var(--miku);">${bestStreak} days</span></div>
               <div class="streak-bar-track"><div class="streak-bar-fill" style="width:${streakPct}%"></div></div>
-              <div class="streak-bar-label">Next reward at ${nextMilestone} days (${streakPct}% there)</div>
+              <div class="streak-bar-label">Next milestone at ${nextMilestone} days (${streakPct}% there)</div>
             </div>
           </div>
-
-          <div class="profile-section-head">🎰 Spin History</div>
-          <div class="spin-history-wrap">${spinHistoryHtml}</div>
         `;
       }
     } catch (e) {
@@ -762,31 +696,7 @@ const core = (() => {
         last_visit_date: today,
         best_streak: best
       }).eq('id', userId);
-
-      /* Show streak milestone popup */
-      const REWARDS = { 3: 1, 7: 2, 14: 3, 30: 5 };
-      if (REWARDS[streak]) {
-        showStreakMilestone(streak, REWARDS[streak]);
-      }
-
-      /* Update streak display on spin section */
-      const dispEl = document.getElementById('spin-streak-display');
-      if (dispEl && streak > 0) {
-        dispEl.innerHTML = `<div class="spin-streak-display">🔥 ${streak}-day streak</div>`;
-      }
     } catch {}
-  };
-
-  const showStreakMilestone = (days, bonusSpins) => {
-    const popup = document.createElement('div');
-    popup.className = 'streak-popup';
-    popup.innerHTML = `
-      <div class="streak-popup-emoji">🔥</div>
-      <div class="streak-popup-title">${days}-Day Streak!</div>
-      <div class="streak-popup-sub">You earned ${bonusSpins} bonus spin${bonusSpins > 1 ? 's' : ''}!</div>
-    `;
-    document.body.appendChild(popup);
-    setTimeout(() => popup.remove(), 4000);
   };
 
   /* ── Google Auth ──────────────────────────────────────── */
@@ -966,14 +876,66 @@ const core = (() => {
   };
 
   const login = async () => {
-    const email = document.getElementById('auth-email').value;
-    const pass = document.getElementById('auth-pass').value;
-    const msg = document.getElementById('login-error');
+    const email    = document.getElementById('auth-email').value.trim();
+    const pass     = document.getElementById('auth-pass').value;
+    const passkey  = document.getElementById('auth-passkey')?.value || '';
+    const msg      = document.getElementById('login-error');
     if (!supabase) { msg.innerText = 'Supabase not configured.'; return; }
-    msg.innerText = 'Verifying Credentials...';
-    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-    if (error) msg.innerText = error.message;
-    else window.location.hash = '#dashboard';
+    if (!email || !pass) { msg.innerText = 'Email and password are required.'; return; }
+    if (!passkey) { msg.innerText = 'Admin passkey is required.'; return; }
+
+    msg.innerText = 'Verifying credentials…';
+
+    /* Step 1 — Sign in with Supabase Auth */
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password: pass });
+    if (authError) { msg.innerText = authError.message; return; }
+
+    /* Step 2 — Verify is_admin flag */
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('is_admin')
+        .eq('email', email)
+        .single();
+
+      if (profileError || !profile?.is_admin) {
+        await supabase.auth.signOut();
+        msg.innerText = 'Access denied. This account does not have admin privileges.';
+        return;
+      }
+    } catch {
+      await supabase.auth.signOut();
+      msg.innerText = 'Could not verify admin privileges.';
+      return;
+    }
+
+    /* Step 3 — Verify admin passkey hash (stored in site_content) */
+    try {
+      const { data: pkRow } = await supabase
+        .from('site_content')
+        .select('content')
+        .eq('id', 'admin_passkey_hash')
+        .single();
+
+      if (pkRow?.content) {
+        const encoder = new TextEncoder();
+        const data    = encoder.encode(passkey);
+        const hashBuf = await crypto.subtle.digest('SHA-256', data);
+        const hashHex = Array.from(new Uint8Array(hashBuf))
+          .map(b => b.toString(16).padStart(2, '0')).join('');
+
+        if (hashHex !== pkRow.content.toLowerCase()) {
+          await supabase.auth.signOut();
+          msg.innerText = 'Invalid admin passkey.';
+          return;
+        }
+      }
+      /* If no hash is stored yet, allow first-time access so admin can set it up */
+    } catch {
+      /* Passkey table missing or unreachable — allow through (admin can set up later) */
+    }
+
+    window.location.hash = '#dashboard';
   };
 
   const logout = async () => {
@@ -1155,15 +1117,13 @@ const core = (() => {
     fetchSections() {},
     loadAdminData() {},
     loadAnalytics() {},
-    saveSpinSettings() {},
     loadNotifications() {},
     addNotification() {},
     loadAdminReviews() {},
     markAsSold() {},
     unmarkSold() {},
     toggleMaintenance() {},
-    saveMaintenance() {},
-    toggleSpinVisibility() {}
+    saveMaintenance() {}
   };
   window.core = publicAPI;
   return publicAPI;
