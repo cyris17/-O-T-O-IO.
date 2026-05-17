@@ -53,7 +53,6 @@ const leaderboardModule = (() => {
   const load = async () => {
     await Promise.all([
       loadBuyers(),
-      loadSpinWinners(),
       loadTopRaters(),
       loadMostViewed()
     ]);
@@ -79,26 +78,6 @@ const leaderboardModule = (() => {
     } catch (e) {
       console.error('Leaderboard buyers error:', e);
       renderEntries('lb-buyers', []);
-    }
-  };
-
-  const loadSpinWinners = async () => {
-    try {
-      const { data, error } = await sb().from('spin_results')
-        .select('user_name,prize_name,created_at')
-        .eq('won', true)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      renderEntries('lb-spins', (data || []).map((r) => ({
-        name: r.user_name || 'Anonymous',
-        avatar_url: null,
-        stat: `Won: ${r.prize_name} on ${new Date(r.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}`
-      })));
-    } catch (e) {
-      console.error('Leaderboard spin winners error:', e);
-      renderEntries('lb-spins', []);
     }
   };
 
